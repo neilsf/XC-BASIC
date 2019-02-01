@@ -349,9 +349,9 @@ Use **xcbasic64** to compile XC-BASIC source code to assembly source. Then use D
 
 ### Method 2: use a pre-built binary
 
-There are pre-built binaries in the `dist/` directory of this repo (currently for Windows and Linux). To use one of them just copy your choice to the project root. Copying the file to the project root is important because the compiler will look for the libraries in the `lib/` directory relative to the executable's path.
+There are pre-built binaries in the `dist/` directory of this repo (currently for Windows and Linux).
 
-##Usage
+## Usage
 
 Command line usage is:
 
