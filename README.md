@@ -8,9 +8,9 @@ Some of the advantages of programming in **XC-BASIC** are:
 
 **XC-BASIC** is based on Tiny BASIC, with many differences in syntax.
 
-#Language reference
+# Language reference
 
-##General syntax
+## General syntax
 A **XC-BASIC** program consists of lines, allowing only one statement per line. A line may be prepended by a label or the label can be written in a separate line. For example:
 
 	rem ** fibonacci series **
@@ -26,7 +26,7 @@ A **XC-BASIC** program consists of lines, allowing only one statement per line. 
 		if nx < max then goto loop
 	end
 
-##Variables
+## Variables
 
 Variables are automatically declared upon the first `LET`, `DIM` or `ḊATA` statement that the compiler encounters. Every variable has a type that cannot be changed after declaration. The variable type is defined by appending the variable type modifier to the variable name. The valid types are:
 
@@ -36,7 +36,7 @@ Variables are automatically declared upon the first `LET`, `DIM` or `ḊATA` sta
 
 Variable names can be of any length, they can consist of letters and numbers, but they may not start with a number. Variable names are case-sensitive.
 
-##Arrays
+## Arrays
 
 Arrays must be defined using the `DIM` statement. As of the current version, maximum two-dimensional arrays are supported and both dimensions are limited to a length of 32767 elements. However, this is just a theoretical limit, in practice you'll run out of memory earlier. Arrays are zero-based (the first index is 0) and only integers may be used as indices.
 
@@ -69,7 +69,7 @@ Arrays are not initialized, which means that if you read the value of an array m
 
 **Important:** there is no runtime array bounds checking! The programmer has to make sure that the array subscript returns a number that is within the bounds of the array. Otherwise the result will be undefined.
 
-##Expressions
+## Expressions
 
 Numeric expressions are evaluated just like in BASIC V2 or any other BASIC dialects. The valid operators are `*`, `/`, `+` and `-`. Parentheses are also supported. Example:
 
@@ -77,7 +77,7 @@ Numeric expressions are evaluated just like in BASIC V2 or any other BASIC diale
 
 More operators coming soon.
 
-##Strings
+## Strings
 
 As of the current version, only constant strings (literals) are supported. Strings are enclosed in double quotes (`"`) and can be used as the argument of the `PRINT` and `TEXTAT` commands. All characters in strings will be translated from ASCII to PETSCII or screencodes, depending on the context.
 
@@ -94,11 +94,11 @@ Examples:
 
 As for the screencodes (used by `TEXTAT`), you can use the `{num}` escape sequence - remember to use screencodes instead of PETSCII.
 
-##Error conditions
+## Error conditions
 
 For the sake of execution speed, there is only one error condition that is checked in runtime, the **division by zero**. The compiler will try to detect static (compile time) errors in code, but naturally it can't predict runtime error conditions. In each statement's documentation you can read the possible error conditions that you, the programmer have to take care of.
 
-##List of commands
+## List of commands
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
@@ -106,7 +106,7 @@ The following is the list of the commands supported by **XC-BASIC**, in alphabet
 
 More commands are coming soon!
 
-###CHARAT
+### CHARAT
 
 Syntax:
 
@@ -119,7 +119,7 @@ Outputs a character at the given column and row on the screen. Accepts integers 
 	
 Note that the runtime library will not check if the values are within the screen boundaries. As `CHARAT` is just a convenience wrapper around `POKE`, it can overwrite memory locations other than the screen memory, thus damaging the program or data. Use it with special care.
 
-###DATA
+### DATA
 
 Syntax:
 
@@ -152,15 +152,15 @@ The data members can be updated in runtime using the `LET` command:
 
 Again, note there is no runtime array bounds checking. Trying to write data over the array bounds may break the program.
 
-###DIM
+### DIM
 
 Defines an array. See the Arrays section for more information.
 
-###END
+### END
 
 Ends execution. Can be used within the normal program flow. It can be used in the end of the program, but it is not necessary. See `GOSUB` for an example.
 
-###FOR ...  NEXT
+### FOR ...  NEXT
 Syntax:
 
 	for varname = expression1 to expression2
@@ -175,13 +175,13 @@ Note #2: it is not possible to omit the varibale name after the `NEXT` statement
 
 Note #3: the runtime library will not check the consistency of your `FOR ... NEXT` blocks. If there is a `NEXT` without `FOR`, for example, the program will likely break.
 
-###GOTO
+### GOTO
 
 Continues execution of the program from the given label. Syntax:
 
 	goto label
 
-###GOSUB ... RETURN
+### GOSUB ... RETURN
 
 Calls a subroutine marked by a label. Return will pass control back to the caller. Nesting subroutines are supported (`GOSUB` and `RETURN` compiles to just plain `JSR` and `RTS`, nothing fancy). Stack overflow is not checked in runtime, but is quite unlikely to encounter. Example:
 
@@ -202,7 +202,7 @@ Note #1: make sure to use the `END` command before your routines if you don't wa
 
 Note #2: there is no runtime call stack checking (e. g. no `?RETURN WITHOUT GOSUB ERROR`). If your call stack is corrupted, the program is likely to break.
 
-###IF ... THEN ... ELSE
+### IF ... THEN ... ELSE
 
 Syntax:
 
@@ -230,7 +230,7 @@ The supported relational operators are:
 - `<=` (less than or equal)
 - `<>` (not equal)
 
-###INKEY
+### INKEY
 
 Syntax:
 
@@ -244,21 +244,21 @@ The `INKEY()` function returns the keyboard code of the currently pressed key. I
 		if key = 0 then goto loop
 	print "you pressed: ", key
 	
-###INPUT
+### INPUT
 
 Calls a built-in routine that allows the user to input numbers using the keyboard. Only decimal integer inputs are supported currently. If there are more than one variable in the argument list, the routine will prompt to input the values one by one. Examples:
 
 	input x
 	input x, y, z
 	
-###LET
+### LET
 
 Assigns the value of an expression to a variable. The keyword `LET` can not be omitted as in other BASIC dialects. Examples:
 
 	let somevar = 5
 	let somearray[n] = x * 2
 	
-###PRINT
+### PRINT
 
 Prints strings or numbers (values of any expression) on the screen using the KERNAL CHAROUT routine. Any number of arguments are accepted. The arguments must be separated with a colon (`,`). Examples:
 
@@ -268,7 +268,7 @@ Prints strings or numbers (values of any expression) on the screen using the KER
 	
 ASCII strings will be converted to PETSCII in compile-time.
 
-###POKE
+### POKE
 
 Syntax:
 
@@ -295,17 +295,17 @@ Examples:
 	rem ** will be the same as
 	poke 53820, 255
 
-###PEEK
+### PEEK
 
 The `PEEK` function returns the value that is read from a memory address. The same conversions apply to the address as discussed above. Example:
 
 	let value = peek(n)
 
-###REM
+### REM
 
 A remark, just as you'd expect. Everything until the end of line is ignored.
 
-###RND
+### RND
 
 The `RND` function returns a pseudo-random integer between -32768 and +32767. Example:
 
@@ -314,7 +314,7 @@ The `RND` function returns a pseudo-random integer between -32768 and +32767. Ex
 	
 Note: needless to say that the number returned by `RND` is not a true random number.
 
-###TEXTAT
+### TEXTAT
 
 Syntax:
 
@@ -332,13 +332,13 @@ Outputs a string or a number a the given column and row on the screen. Accepts i
 
 Note: the runtime library will not prevent the text from overflowing outside the screen thus damaging data or code. The programmer has to make sure the text fits within the screen RAM ($0400-$07E7).
 
-#Using the compiler
+# Using the compiler
 
 Use **xcbasic64** to compile XC-BASIC source code to assembly source. Then use DASM (not included in the source) to assemble to machine code. 
 
 ## Installation
 
-###Method 1: compile from source
+### Method 1: compile from source
 
 **xcbasic64** is written in D, using the DUB package manager.
 
@@ -347,7 +347,7 @@ Use **xcbasic64** to compile XC-BASIC source code to assembly source. Then use D
 3. Enter `dub build` to compile from source
 4. The executable will be in the project root.
 
-###Method 2: use a pre-built binary
+### Method 2: use a pre-built binary
 
 There are pre-built binaries in the `dist/` directory of this repo (currently for Windows and Linux). To use one of them just copy your choice to the project root. Copying the file to the project root is important because the compiler will look for the libraries in the `lib/` directory relative to the executable's path.
 
