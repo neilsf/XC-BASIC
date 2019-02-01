@@ -30,9 +30,9 @@ A **XC-BASIC** program consists of lines, allowing only one statement per line. 
 
 Variables are automatically declared upon the first `LET`, `DIM` or `ḊATA` statement that the compiler encounters. Every variable has a type that cannot be changed after declaration. The variable type is defined by appending the variable type modifier to the variable name. The valid types are:
 
-- **Signed short integers** (-32768 to +32767), where variable names are appended by the `#` modifier (this is the default and the modifier can be omitted, i. e. `myInt#` is the same as `myInt`)
-- **Floating point numbers** (*coming soon!*),  where variable names are appended by the `%` modifier
-- **Strings** (*coming soon!*), where variable names are appended by the `$` modifier
+- **Signed short integers** (-32768 to +32767), where variable names are prepended with the `#` modifier (this is the default and the modifier can be omitted, i. e. `myInt#` is the same as `myInt`)
+- **Floating point numbers** (*coming soon!*),  where variable names are prepended with the `%` modifier
+- **Strings** (*coming soon!*), where variable names are prepended with the `$` modifier
 
 Variable names can be of any length, they can consist of letters and numbers, but they may not start with a number. Variable names are case-sensitive.
 
