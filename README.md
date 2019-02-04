@@ -102,7 +102,7 @@ For the sake of execution speed, there is only one error condition that is check
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
-`CHARAT` | `DATA` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE`  | `REM` | `RND` | `TEXTAT` 
+`CHARAT` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE`  | `REM` | `RND` | `TEXTAT` 
 
 More commands are coming soon!
 
@@ -151,6 +151,16 @@ The data members can be updated in runtime using the `LET` command:
 	data squares[] = 0, 1, 4, 9, 16
 
 Again, note there is no runtime array bounds checking. Trying to write data over the array bounds may break the program.
+
+### DEC
+
+Decrements the value of an integer variable by 1. This is considerably faster than doing `LET x = x - 1`. Example:
+
+	let myVar = 10
+	dec myVar
+	print myVar
+
+The above will output 9.
 
 ### DIM
 
@@ -229,6 +239,16 @@ The supported relational operators are:
 - `<` (less than)
 - `<=` (less than or equal)
 - `<>` (not equal)
+
+### INC
+
+Increments the value of an integer variable by 1. This is considerably faster than doing `LET x = x + 1`. Example:
+
+	let myVar = 10
+	inc myVar
+	print myVar
+
+The above will output 11.
 
 ### INKEY
 
