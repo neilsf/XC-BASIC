@@ -7,7 +7,7 @@ TINYBASIC:
     Program <- Line (NL* Line)+ EOI
     Line <- Line_id :WS? Statement?
 
-    Statement < Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Return_stmt / End_stmt / Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt
+    Statement < Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Return_stmt / End_stmt / Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Inc_stmt / Dec_stmt
     Let_stmt <      "let" :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print" :WS? ExprList
     If_stmt <       "if" :WS? Expression :WS? Relop :WS? Expression :WS? "then" :WS? Statement :WS? ("else" :WS? Statement)?
@@ -24,6 +24,8 @@ TINYBASIC:
     Data_stmt <     "data" :WS? Varname Vartype "[]" :WS? "=" :WS? Datalist
     Charat_stmt <   "charat" :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
     Textat_stmt <   "textat" :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? (String / Expression)
+    Inc_stmt <      "inc" : WS? Var
+    Dec_stmt <      "dec" : WS? Var
 
     ExprList < (String / Expression) :WS? ("," :WS? (String / Expression) )*
     VarList < Var (:WS? "," :WS? Var)*

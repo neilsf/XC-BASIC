@@ -74,6 +74,13 @@ Stmt StmtFactory(ParseTree node, Program program) {
             stmt = new Next_stmt(node, program);
         break;
 
+        case "TINYBASIC.Inc_stmt":
+            stmt = new Inc_stmt(node, program);
+        break;
+
+        case "TINYBASIC.Dec_stmt":
+            stmt = new Dec_stmt(node, program);
+        break;
         
         default:
         assert(0);
@@ -579,5 +586,32 @@ class Next_stmt:Stmt
         string varname = join(v.children[0].matches);
         Variable var = this.program.findVariable(varname);
         this.program.program_segment ~= "\tnext "~var.getLabel()~"\n";
+    }
+}
+
+class Inc_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        ParseTree v = this.node.children[0].children[0];
+        string varname = join(v.children[0].matches);
+        Variable var = this.program.findVariable(varname);
+        this.program.program_segment ~= "\tiinc "~var.getLabel()~"\n";
+    }
+}
+
+
+class Dec_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        ParseTree v = this.node.children[0].children[0];
+        string varname = join(v.children[0].matches);
+        Variable var = this.program.findVariable(varname);
+        this.program.program_segment ~= "\tidec "~var.getLabel()~"\n";
     }
 }

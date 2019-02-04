@@ -812,6 +812,22 @@ NUCL_DIVU16 SUBROUTINE
 	rts
 	ENDM
 
+	MAC iinc
+	inc {1}
+	bne .skip
+	inc {1}+1
+.skip
+	ENDM
+
+	MAC idec
+	dec {1}
+	lda #$ff
+	cmp {1}
+	bne .skip
+	dec {1}+1
+.skip
+	ENDM
+
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
 
 RUNTIME_ERROR	SUBROUTINE
