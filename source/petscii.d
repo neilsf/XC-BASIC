@@ -1,4 +1,5 @@
 import std.string, std.conv;
+import std.regex;
 
 char[] petscii = [
     0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf,
@@ -30,9 +31,53 @@ ubyte ascii_to_petscii(char ascii_char)
     return 0;
 }
 
+string replace_petscii_escapes(string s)
+{
+    string ret;
+    ret = tr(s,     "{CLR}", "\x93");
+    ret = tr(ret,   "{HOME}", "\x13");
+    ret = tr(ret,   "{INSERT}", "\x94");
+    ret = tr(ret,   "{DEL}", "\x14");
+    ret = tr(ret,   "{CR}", "\x0d");
+    ret = tr(ret,   "{REV_ON}", "\x12");
+    ret = tr(ret,   "{REV_OFF}", "\x92");
+    ret = tr(ret,   "{CRSR_UP}", "\x91");
+    ret = tr(ret,   "{CRSR_DOWN}", "\x11");
+    ret = tr(ret,   "{CRSR_LEFT}", "\x9d");
+    ret = tr(ret,   "{CRSR_RIGHT}", "\x1d");
+
+    return ret;
+}
+
+ char[] replace_numeric_escapes(string s) {
+    char[] r;
+    bool esc = false;
+    ubyte chr=0;
+    string num = "";
+    for (ubyte i=0; i < s.length; i++) {
+        if(!esc && s[i] != '{' && s[i] != '}') {
+            r ~= s[i];
+        }
+        else if(s[i] == '{') {
+            esc = true;
+        }
+        else if(s[i] == '}') {
+            r ~= to!ubyte(num);
+            esc = false;
+            num = "";
+        }
+        else {
+            num = num ~ to!string(s[i]);
+        }
+    }
+    
+    return r;
+}
+
 string str_ascii_to_petscii(string ascii_string)
 {
-    char[] petscii_string = ascii_string.dup;
+    char[] petscii_string = replace_petscii_escapes(ascii_string.dup);
+
     for(ubyte i=0; i<ascii_string.length; i++) {
         petscii_string[i] = ascii_to_petscii(ascii_string[i]);
     }
