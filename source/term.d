@@ -19,6 +19,25 @@ class Term
         this.program = program;
     }
 
+    char detect_type()
+    {
+        Factor tmpFact;
+        char tmptype = 'i';
+        foreach(ref child; this.node.children) {
+            if(child.name == "TINYBASIC.Factor") {
+                tmpFact = new Factor(child, this.program);
+                if(tmpFact.detect_type() == 'f') {
+                    // if only one factor is a float,
+                    // the whole term will be of type float
+                    tmptype = 'f';
+                    break;
+                }
+            }
+        }
+
+        return tmptype;
+    }
+
     void eval()
     {
         char i = 0; 

@@ -53,6 +53,7 @@ abstract class Fun:FunInterface
     protected ubyte arg_count;
     protected Expression[8] arglist;
     protected string fncode;
+    public char type = 'i';
 
     this(ParseTree node, Program program)
     {
@@ -79,6 +80,7 @@ class PeekFun:Fun
     mixin FunConstructor;
 
     protected ubyte arg_count = 1;
+    public char type = 'i';
 
     void process()
     {
@@ -89,8 +91,8 @@ class PeekFun:Fun
 class RndFun:Fun
 {
     mixin FunConstructor;
-
     protected ubyte arg_count = 0;
+    public char type = 'i';
 
     void process()
     {
@@ -103,6 +105,7 @@ class InKeyFun:Fun
     mixin FunConstructor;
 
     protected ubyte arg_count = 0;
+    public char type = 'i';
 
     void process()
     {

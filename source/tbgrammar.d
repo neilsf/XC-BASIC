@@ -47,11 +47,12 @@ TINYBASIC:
     Relop < "<" | "<=" | "=" | "<>" | ">" | ">="
     String < doublequote (!doublequote . / ^' ')* doublequote
 
+    Floating   < Integer "." Unsigned
     Unsigned   < [0-9]+
     Integer    < "-"? Unsigned
     Hexa       < "$" [0-9a-fA-F]+    
     
-    Number < (Integer / Hexa)
+    Number < (Floating / Integer / Hexa)
 
     Label < [a-zA-Z_] [a-zA-Z_0-9]* ":"
     Label_ref < [a-zA-Z_] [a-zA-Z_0-9]*

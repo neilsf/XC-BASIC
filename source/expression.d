@@ -14,12 +14,41 @@ class Expression
     Program program;
     bool negateFirstTerm;
     string asmcode;
+    char type;
 
     this(ParseTree node, Program program)
     { 
         this.node = node;
         this.program = program;
     }
+
+    /**
+     * Pre-parses the expression to find out
+     * the final result type (int or float)
+     */
+
+    char detect_type()
+    {
+        this.type = 'i';
+        Term tmpTerm;
+        foreach(ref child; this.node.children) {
+            if(child.name == "TINYBASIC.Term") {
+                tmpTerm = new Term(child, this.program);
+                if(tmpTerm.detect_type() == 'f') {
+                    // if only one term is a float,
+                    // the whole expr will be of type float
+                    this.type = 'f';
+                    break;
+                }
+            }
+        }
+
+        return this.type;
+    }
+
+    /**
+     * Evaluates the expression
+     */
 
     void eval()
     {

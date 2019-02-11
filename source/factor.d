@@ -7,7 +7,9 @@ import fun;
 import std.array;
 import std.conv;
 import std.stdio;
+import std.string;
 import core.stdc.stdlib;
+import excess;
 
 class Factor
 {
@@ -19,6 +21,48 @@ class Factor
     { 
         this.node = node;
         this.program = program;
+    }
+
+    char detect_type()
+    {
+        string ftype = this.node.children[0].name;
+        char ret;
+        final switch(ftype) {
+            case "TINYBASIC.Var":
+                ParseTree v = this.node.children[0];
+                string varname = join(v.children[0].matches);
+                char vartype = this.program.type_conv(v.children[1].matches[0]);
+                ret = vartype;
+            break;
+
+            case "TINYBASIC.Number":
+                ParseTree v = this.node.children[0].children[0];
+                final switch(v.name) {
+                    case "TINYBASIC.Integer":
+                    case "TINYBASIC.Hexa":
+                        ret = 'i';
+                        break;
+
+                    case "TINYBASIC.Floating":
+                        ret = 'f';
+                        break;
+                }
+            break;
+
+            case "TINYBASIC.Fn_call":
+                ParseTree fn = this.node.children[0];
+                auto fun = FunFactory(fn, this.program);
+                ret = fun.type;
+            break;
+
+            case "TINYBASIC.Expression":
+                ParseTree ex = this.node.children[0];
+                auto Ex = new Expression(ex, this.program);
+                ret = Ex.detect_type();
+            break;
+        }
+
+        return ret;
     }
 
     void eval()
@@ -75,11 +119,40 @@ class Factor
             case "TINYBASIC.Number":
                 ParseTree v = this.node.children[0];
                 string num_str = join(v.children[0].matches);
-                int num = to!int(num_str);
-                if(num < -32768 || num > 65535) {
-                    this.program.error("Number out of range");
+                final switch(v.children[0].name) {
+                    case "TINYBASIC.Integer":
+                        int num = to!int(num_str);
+                        if(num < -32768 || num > 65535) {
+                            this.program.error("Number out of range");
+                        }
+                        this.asmcode ~= "\tpword #" ~ num_str ~ "\n";
+                        break;
+
+                    case "TINYBASIC.Hexa":
+                        num_str = num_str[1..$];
+                        int num = to!int(num_str, 16);
+                        if(num > 65535) {
+                            this.program.error("Number out of range");
+                        }
+                        this.asmcode ~= "\tpword #$" ~ num_str ~ "\n";
+
+                        break;
+
+                    case "TINYBASIC.Floating":
+                        try {
+                            float num = to!float(num_str);
+                            ubyte[4] bytes = float_to_hex(to!real(num));
+                            this.asmcode ~= "\tpfloat $" ~ to!string(bytes[0], 16) ~ ", $" ~ to!string(bytes[1], 16) ~ ", $" ~ to!string(bytes[2], 16) ~ ", $" ~ to!string(bytes[3], 16) ~ "\n";
+                        }
+                        catch(Exception e) {
+                            this.program.error("Can't parse number "~num_str);
+                        }
+
+                        break;
                 }
-                this.asmcode ~= "\tpword #" ~ num_str ~ "\n";
+
+
+
             break;
 
             case "TINYBASIC.Expression":
