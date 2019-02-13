@@ -76,11 +76,12 @@ string replace_petscii_escapes(string s)
 
 string str_ascii_to_petscii(string ascii_string)
 {
-    char[] petscii_string = replace_petscii_escapes(ascii_string.dup);
-
+    string petscii_string = replace_petscii_escapes(ascii_string.dup);
+    /*
     for(ubyte i=0; i<ascii_string.length; i++) {
         petscii_string[i] = ascii_to_petscii(ascii_string[i]);
     }
+    */
     return to!string(petscii_string);
 }
 
