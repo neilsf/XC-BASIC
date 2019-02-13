@@ -36,6 +36,15 @@ Variables are automatically declared upon the first `LET`, `DIM` or `ḊATA` sta
 
 Variable names can be of any length, they can consist of letters and numbers, but they may not start with a number. Variable names are case-sensitive.
 
+## Scope
+
+Variables and labels can be **global** or **local**.
+
+- Any variable declared using a `LET`, `DIM` or `ḊATA` statement outside a `PROC ... ENDPROC` pair is considered to be a global variable and can only be accessed from the global scope. Global variables are not accessible from within a procedure.
+- Any variable declared using a `LET`, `DIM` or `ḊATA` statement inside a `PROC ... ENDPROC` pair, including the procedure's parameters, is considered to be a local variable and can only be accessed within that procedure.
+
+Please see the documentation for the `PROC ... ENDPROC` statements for more details.
+
 ## Arrays
 
 Arrays must be defined using the `DIM` statement. As of the current version, maximum two-dimensional arrays are supported and both dimensions are limited to a length of 32767 elements. However, this is just a theoretical limit, in practice you'll run out of memory earlier. Arrays are zero-based (the first index is 0) and only integers may be used as indices.
@@ -92,8 +101,6 @@ Examples:
 	print "this is line one{CR}and this is line two"
 	print "{5}white text"
 
-As for the screencodes (used by `TEXTAT`), you can use the `{num}` escape sequence - remember to use screencodes instead of PETSCII.
-
 ## Error conditions
 
 For the sake of execution speed, there is only one error condition that is checked in runtime, the **division by zero**. The compiler will try to detect static (compile time) errors in code, but naturally it can't predict runtime error conditions. In each statement's documentation you can read the possible error conditions that you, the programmer have to take care of.
@@ -102,9 +109,13 @@ For the sake of execution speed, there is only one error condition that is check
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
-`CHARAT` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE`  | `REM` | `RND` | `TEXTAT` 
+`CALL` | `CHARAT` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `TEXTAT` 
 
 More commands are coming soon!
+
+### CALL
+
+Please see `PROC ... ENDPROC`
 
 ### CHARAT
 
@@ -212,6 +223,8 @@ Note #1: make sure to use the `END` command before your routines if you don't wa
 
 Note #2: there is no runtime call stack checking (e. g. no `?RETURN WITHOUT GOSUB ERROR`). If your call stack is corrupted, the program is likely to break.
 
+Note #3: Unlike procedures, subroutines are part of the *global* scope.
+
 ### IF ... THEN ... ELSE
 
 Syntax:
@@ -278,15 +291,15 @@ Assigns the value of an expression to a variable. The keyword `LET` can not be o
 	let somevar = 5
 	let somearray[n] = x * 2
 	
-### PRINT
 
-Prints strings or numbers (values of any expression) on the screen using the KERNAL CHAROUT routine. Any number of arguments are accepted. The arguments must be separated with a colon (`,`). Examples:
-
-	print "hello world"
-	print "the value of myvar is ", myvar, " and that of anothervar is ", anothervar
-	print "let's print the value of an expression: ", (486 + y) * 3
-	
 ASCII strings will be converted to PETSCII in compile-time.
+
+### PEEK
+
+The `PEEK` function returns the value that is read from a memory address. The same conversions apply to the address as discussed above. Example:
+
+	let value = peek(n)
+
 
 ### POKE
 
@@ -315,12 +328,71 @@ Examples:
 	rem ** will be the same as
 	poke 53820, 255
 
-### PEEK
+### PRINT
 
-The `PEEK` function returns the value that is read from a memory address. The same conversions apply to the address as discussed above. Example:
+Prints strings or numbers (values of any expression) on the screen using the KERNAL CHAROUT routine. Any number of arguments are accepted. The arguments must be separated with a colon (`,`). Examples:
 
-	let value = peek(n)
+	print "hello world"
+	print "the value of myvar is ", myvar, " and that of anothervar is ", anothervar
+	print "let's print the value of an expression: ", (486 + y) * 3
+	
+### PROC ... ENDPROC
 
+The `PROC` statement introduces a new procedure that spans until the `ENDPROC` statement. Procedures are named subroutines that have a unique variable and label scope. Procedures may have one or more parameters that are passed to by the `CALL` statement. The `CALL` statement is the only way to execute a procedure (you can't `GOTO` into a procedure, for example). You can use `RETURN` to early exit a procedure.
+
+Syntax:
+
+	proc proc_name (parameter_list)
+	endproc
+	call proc_name (argument_list)
+
+Example:
+
+	rem ** procedure example **
+	rem ** these variables are global **
+	let a = 1
+	let b = 2
+	
+	proc printmin(x, y)
+		rem ** x, y and a are local variables **
+		let a = 3
+		if x < y then print x else print y
+	endproc
+
+	call printmin(a, b)
+	call printmin(-1, -5)
+	print a
+
+The above program will output (note that the value of `a` remained 1 in the global scope):
+
+	1
+	-5
+	1
+	
+Local variables of a procedure are *static* which means they are not dinamically allocated on each procedure call. This also means they keep their values through subsequent executions of the same procedure. Take the following example.
+
+	proc staticexample(firstrun)
+		dim a[1]
+		if firstrun = 1 then let a[0] = 1 else inc a[0]
+		print a[0]
+	endproc
+	
+	call staticexample(1)
+	call staticexample(0)
+	
+The above program will output:
+
+	1
+	2
+	
+To declare and call parameterless procedures, just omit the parentheses:
+
+	proc simpleproc
+		print "simpleproc called"
+	endproc
+	
+	call simpleproc
+		
 ### REM
 
 A remark, just as you'd expect. Everything until the end of line is ignored.

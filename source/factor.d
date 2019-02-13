@@ -33,12 +33,15 @@ class Factor
                     this.program.variables ~= Variable(0, varname, vartype);
                     this.program.error("Undefined variable: " ~ varname);
                 }
+
                 Variable var = this.program.findVariable(varname);
 
                 if(v.children.length > 2) {
+                    /* any variable can be accessed as an array
                     if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
                         this.program.error("Not an array");
                     }
+                    */
                     auto subscript = v.children[2];
                     if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
                         this.program.error("Bad subscript");
