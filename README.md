@@ -101,8 +101,6 @@ Examples:
 	print "this is line one{CR}and this is line two"
 	print "{5}white text"
 
-As for the screencodes (used by `TEXTAT`), you can use the `{num}` escape sequence - remember to use screencodes instead of PETSCII.
-
 ## Error conditions
 
 For the sake of execution speed, there is only one error condition that is checked in runtime, the **division by zero**. The compiler will try to detect static (compile time) errors in code, but naturally it can't predict runtime error conditions. In each statement's documentation you can read the possible error conditions that you, the programmer have to take care of.
@@ -111,9 +109,13 @@ For the sake of execution speed, there is only one error condition that is check
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
-`CHARAT` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `TEXTAT` 
+`CALL` | `CHARAT` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `TEXTAT` 
 
 More commands are coming soon!
+
+### CALL
+
+Please see `PROC ... ENDPROC`
 
 ### CHARAT
 
