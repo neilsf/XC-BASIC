@@ -36,12 +36,21 @@ Variables are automatically declared upon the first `LET`, `DIM` or `ḊATA` sta
 
 Variable names can be of any length, they can consist of letters and numbers, but they may not start with a number. Variable names are case-sensitive.
 
+## Constants
+
+Constants are special variables that are initialized in compile time and may not change value during runtime. The benefit of using constants instead of variables are:
+
+- Constants do not reserve space in memory
+- Constants are *faster* to evaluate
+
+Always prefer constants over variables, whenever possible. See the documentation for `CONST` for more information.
+
 ## Scope
 
-Variables and labels can be **global** or **local**.
+Variables, constants and labels can be **global** or **local**.
 
-- Any variable declared using a `LET`, `DIM` or `ḊATA` statement outside a `PROC ... ENDPROC` pair is considered to be a global variable and can only be accessed from the global scope. Global variables are not accessible from within a procedure.
-- Any variable declared using a `LET`, `DIM` or `ḊATA` statement inside a `PROC ... ENDPROC` pair, including the procedure's parameters, is considered to be a local variable and can only be accessed within that procedure.
+- Any variable or constant declared using a `CONST`,  `LET`, `DIM` or `ḊATA` statement outside a `PROC ... ENDPROC` pair is considered to be a global variable and can only be accessed from the global scope. Global variables are not accessible from within a procedure.
+- Any variable or constant declared using a `CONST`, `LET`, `DIM` or `ḊATA` statement inside a `PROC ... ENDPROC` pair, including the procedure's parameters, is considered to be a local variable and can only be accessed within that procedure.
 
 Please see the documentation for the `PROC ... ENDPROC` statements for more details.
 
@@ -109,7 +118,7 @@ For the sake of execution speed, there is only one error condition that is check
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
-`CALL` | `CHARAT` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `TEXTAT` 
+`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `TEXTAT` 
 
 More commands are coming soon!
 
@@ -129,6 +138,21 @@ Outputs a character at the given column and row on the screen. Accepts integers 
 	charat 20, 10, 65 
 	
 Note that the runtime library will not check if the values are within the screen boundaries. As `CHARAT` is just a convenience wrapper around `POKE`, it can overwrite memory locations other than the screen memory, thus damaging the program or data. Use it with special care.
+
+### CONST
+
+The `CONST` statement defines a constant. Syntax:
+
+	const varname = number
+	
+The constant can be subsequently used as a regular variable, except that it is read-only. The value may not be an expression.
+
+Example:
+
+	const BORDER = 53280
+	const WHITE = 1
+	
+	poke BORDER, WHITE
 
 ### DATA
 

@@ -7,7 +7,8 @@ TINYBASIC:
     Program <- Line (NL* Line)+ EOI
     Line <- Line_id :WS? Statement?
 
-    Statement < Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt / Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt
+    Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt / Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt
+    Const_stmt <    "const" :WS? Var :WS? "=" :WS? Number
     Let_stmt <      "let" :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print" :WS? ExprList
     If_stmt <       "if" :WS? Expression :WS? Relop :WS? Expression :WS? "then" :WS? Statement :WS? ("else" :WS? Statement)?
@@ -41,7 +42,7 @@ TINYBASIC:
 
     T_OP < ("*" / "/")
     E_OP < ("+" / "-")
-    
+
     Varname <- !Reserved [a-zA-Z_] [a-zA-Z_0-9]*
     Id <- [a-zA-Z_] [a-zA-Z_0-9]*
     Vartype <- ("%" / "#" /  eps)
@@ -52,8 +53,8 @@ TINYBASIC:
 
     Unsigned   < [0-9]+
     Integer    < "-"? Unsigned
-    Hexa       < "$" [0-9a-fA-F]+    
-    
+    Hexa       < "$" [0-9a-fA-F]+
+
     Number < (Integer / Hexa)
 
     Label < [a-zA-Z_] [a-zA-Z_0-9]* ":"
@@ -62,10 +63,10 @@ TINYBASIC:
     Line_id < (Label / Unsigned / eps)
 
     Reserved < ("let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "end" / "rem" / "poke" / "peek" / "dim" / "data" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc")
-    
+
     WS < space*
     EOI < !.
 
     NL <- ('\r' / '\n' / '\r\n')+
-    Spacing <- :('\t')*  
+    Spacing <- :('\t')*
 `));

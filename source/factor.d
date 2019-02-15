@@ -36,43 +36,46 @@ class Factor
 
                 Variable var = this.program.findVariable(varname);
 
-                if(v.children.length > 2) {
-                    /* any variable can be accessed as an array
-                    if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
-                        this.program.error("Not an array");
-                    }
-                    */
-                    auto subscript = v.children[2];
-                    if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
-                        this.program.error("Bad subscript");
-                    }
-                    ushort[2] dimensions;
-                    ubyte i = 0;
-                    foreach(ref expr; subscript.children) {
-                        Expression Ex2 = new Expression(expr, this.program);
-                        Ex2.eval();
-                        this.asmcode ~= to!string(Ex2);
-                        
-                        if(i == 1) {
-                            // must multiply with first dimension length
-                            this.asmcode ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
-                                                        ~ "\tmulw\n"
-                                                        ~ "\taddw\n";
-                        }
-
-                        i++;
-                    }
-                    // must multiply with the variable length!
-                    this.asmcode ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
-                                                ~ "\tmulw\n" ;
-                    this.asmcode ~= "\tp" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
+                if(var.isConst) {
+                    this.asmcode ~= "\tpword #" ~ to!string(var.constValInt) ~ "\n";
                 }
                 else {
-                    this.asmcode ~= "\tp" ~ to!string(vartype) ~ "var " ~ var.getLabel() ~ "\n";
+                    if(v.children.length > 2) {
+                        /* any variable can be accessed as an array
+                        if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
+                            this.program.error("Not an array");
+                        }
+                        */
+                        auto subscript = v.children[2];
+                        if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
+                            this.program.error("Bad subscript");
+                        }
+                        ushort[2] dimensions;
+                        ubyte i = 0;
+                        foreach(ref expr; subscript.children) {
+                            Expression Ex2 = new Expression(expr, this.program);
+                            Ex2.eval();
+                            this.asmcode ~= to!string(Ex2);
+
+                            if(i == 1) {
+                                // must multiply with first dimension length
+                                this.asmcode ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
+                                                            ~ "\tmulw\n"
+                                                            ~ "\taddw\n";
+                            }
+
+                            i++;
+                        }
+                        // must multiply with the variable length!
+                        this.asmcode ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
+                                                    ~ "\tmulw\n" ;
+                        this.asmcode ~= "\tp" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
+                    }
+                    else {
+                        this.asmcode ~= "\tp" ~ to!string(vartype) ~ "var " ~ var.getLabel() ~ "\n";
+                    }
                 }
 
-
-                
             break;
 
             case "TINYBASIC.Number":
