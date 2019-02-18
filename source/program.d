@@ -243,8 +243,13 @@ class Program
 
 	Variable findVariable(string id)
 	{
+        bool global_mod = id[0] == '\\';
+        if(global_mod) {
+            id = stripLeft(id, "\\");
+        }
+
 		foreach(ref elem; this.variables) {
-			if(this.in_procedure) {
+			if(this.in_procedure && !global_mod) {
 				if(elem.name == id && elem.procname == this.current_proc_name) {
 					return elem;
 				}
@@ -272,7 +277,12 @@ class Program
 
 	void addVariable(Variable var)
 	{
-		if(this.in_procedure) {
+        bool global_mod = var.name[0] == '\\';
+        if(global_mod) {
+            var.name = stripLeft(var.name, "\\");
+        }
+
+		if(this.in_procedure && !global_mod) {
 			var.isGlobal = false;
 			var.procname = this.current_proc_name;
 		}
@@ -282,8 +292,13 @@ class Program
 
 	bool is_variable(string id)
 	{
+        bool global_mod = (id[0] == '\\');
+        if(global_mod) {
+            id = stripLeft(id, "\\");
+        }
+
 		foreach(ref elem; this.variables) {
-			if(this.in_procedure) {
+			if(this.in_procedure && !global_mod) {
 				if(id == elem.name && this.current_proc_name == elem.procname) {
 					return true;
 				}

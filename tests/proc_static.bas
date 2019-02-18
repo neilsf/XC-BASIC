@@ -1,7 +1,7 @@
 proc staticexample(firstrun)
-	dim a[1]
-	if firstrun = 1 then let a[0] = 1 else inc a[0]
-	print a[0]
+	dim a
+	if firstrun = 1 then let a = 1 else inc a[0]
+	print a
 endproc
     
 call staticexample(1)

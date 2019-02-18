@@ -30,7 +30,6 @@ class Factor
                 string varname = join(v.children[0].matches);
                 char vartype = this.program.type_conv(v.children[1].matches[0]);
                 if(!this.program.is_variable(varname)) {
-                    this.program.variables ~= Variable(0, varname, vartype);
                     this.program.error("Undefined variable: " ~ varname);
                 }
 

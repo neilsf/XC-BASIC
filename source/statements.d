@@ -231,21 +231,29 @@ class Dim_stmt:Stmt
 		ParseTree v = this.node.children[0].children[0];
 		string varname = join(v.children[0].matches);
 		char vartype = this.program.type_conv(v.children[1].matches[0]);
-		auto subscript = v.children[2];
-		ushort[2] dimensions;
-		ubyte i = 0;
-		foreach(ref expr; subscript.children) {
-			Expression Ex = new Expression(expr, this.program);
-			if(!Ex.is_numeric_constant()) {
-				this.program.error("Only numeric constants are accepted as array dimensions");
-			}
-			dimensions[i]=to!ushort(Ex.as_int());
-			i++;
-		}
 
-		if(dimensions[1] == 0) {
-			dimensions[1] = 1;
-		}
+        ushort[2] dimensions;
+        if(v.children.length > 2) {
+            auto subscript = v.children[2];
+
+            ubyte i = 0;
+            foreach(ref expr; subscript.children) {
+                Expression Ex = new Expression(expr, this.program);
+                if(!Ex.is_numeric_constant()) {
+                    this.program.error("Only numeric constants are accepted as array dimensions");
+                }
+                dimensions[i]=to!ushort(Ex.as_int());
+                i++;
+            }
+
+            if(dimensions[1] == 0) {
+                dimensions[1] = 1;
+            }
+        }
+        else {
+            dimensions[0]=1;
+            dimensions[1]=1;
+        }
 
 		if(this.program.is_variable(varname)) {
 			this.program.error("Variable "~varname~" is already defined/used.");
