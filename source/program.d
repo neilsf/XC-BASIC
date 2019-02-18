@@ -10,9 +10,13 @@ struct Variable {
 	string name;
 	char type;
 	ushort[2] dimensions = [1,1];
+    bool isConst = false;
 	bool isData = false;
 	bool isGlobal = true;
 	string procname;
+
+    int constValInt = 0;
+    float constValFloat = 0;
 
 	string getLabel()
 	{
@@ -87,7 +91,7 @@ class Program
 
 	bool labelExists(string str)
 	{
-        str = this.in_procedure ? this.current_proc_name ~ "." ~ str : str;
+		str = this.in_procedure ? this.current_proc_name ~ "." ~ str : str;
 
 		foreach(ref e; this.labels) {
 			if(e == str) {
@@ -98,7 +102,7 @@ class Program
 		return false;
 	}
 
-	void addLabel(string str) 
+	void addLabel(string str)
 	{
 		str = this.in_procedure ? this.current_proc_name ~ "." ~ str : str;
 
@@ -116,19 +120,19 @@ class Program
 		}
 		else if(type == "$") {
 			return 's';
-		} 
+		}
 		else {
 			return 'b';
 		}
 	}
-    
+
 	string getDataSegment()
 	{
 		string ret = "data_start:\n";
 		ret ~= this.data_segment ~ "data_end:\n";
 		return ret;
 	}
-    
+
 	string getVarSegment()
 	{
 		string varsegment;
@@ -138,15 +142,15 @@ class Program
 		varsegment ~= "\tORG data_end+1\n";
 
 		foreach(ref variable; this.variables) {
-			if(!variable.isData) {
+			if(!variable.isData && !variable.isConst) {
 				ubyte varlen = this.varlen[variable.type];
 				int array_length = variable.dimensions[0] * variable.dimensions[1];
 				int total_memory = array_length * this.varlen[variable.type];
 				varsegment ~= variable.getLabel() ~"\tDS.B " ~ to!string(total_memory) ~ "\n";
-			}		
+			}
 		}
 
-		return varsegment;  
+		return varsegment;
 	}
 
 	string getCodeSegment()
@@ -189,11 +193,11 @@ class Program
 	ubyte[3] intToBin(int number)
 	{
 		ubyte[3] data_bytes;
-    
+
 			if(number < 0) {
 					number = 16777216 + number;
 				}
-			
+
 			try {
 				data_bytes[0] = to!ubyte(number >> 16);
 				data_bytes[1] = to!ubyte((number & 65280) >> 8);
@@ -202,7 +206,7 @@ class Program
 			catch(Exception e) {
 				this.error("Compile error: number out of range: "~to!string(number));
 			}
-			
+
 			return data_bytes;
 	}
 
@@ -239,8 +243,13 @@ class Program
 
 	Variable findVariable(string id)
 	{
+        bool global_mod = id[0] == '\\';
+        if(global_mod) {
+            id = stripLeft(id, "\\");
+        }
+
 		foreach(ref elem; this.variables) {
-			if(this.in_procedure) {
+			if(this.in_procedure && !global_mod) {
 				if(elem.name == id && elem.procname == this.current_proc_name) {
 					return elem;
 				}
@@ -268,7 +277,12 @@ class Program
 
 	void addVariable(Variable var)
 	{
-		if(this.in_procedure) {
+        bool global_mod = var.name[0] == '\\';
+        if(global_mod) {
+            var.name = stripLeft(var.name, "\\");
+        }
+
+		if(this.in_procedure && !global_mod) {
 			var.isGlobal = false;
 			var.procname = this.current_proc_name;
 		}
@@ -278,8 +292,13 @@ class Program
 
 	bool is_variable(string id)
 	{
+        bool global_mod = (id[0] == '\\');
+        if(global_mod) {
+            id = stripLeft(id, "\\");
+        }
+
 		foreach(ref elem; this.variables) {
-			if(this.in_procedure) {
+			if(this.in_procedure && !global_mod) {
 				if(id == elem.name && this.current_proc_name == elem.procname) {
 					return true;
 				}
@@ -389,7 +408,7 @@ class Program
 				stmt.process();
 			}
 		}
-	    
+
 	}
 
 	void fetchLabels(ParseTree node)
@@ -402,7 +421,7 @@ class Program
 			if(child.name != "TINYBASIC.Line" || child.children.length == 0) {
 				continue;
 			}
-		    
+
 			auto Line_id = child.children[0];
 			string label_type = Line_id.children.length == 0 ? "TINYBASIC.none" : Line_id.children[0].name;
 			switch(label_type) {
@@ -453,13 +472,13 @@ class Program
 				break;
 			}
 		}
-	    
+
 		/* pass 1 */
 		walkAst(node, 1);
 
 		this.in_procedure = false;
 		this.current_proc_name = "";
-	    
+
 		/* pass 2 */
 		walkAst(node, 2);
 	}
