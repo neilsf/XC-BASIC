@@ -500,3 +500,7 @@ Or using a singe lline command:
 
 	xcbasic64 source.bas > target.asm && dasm target.asm
 	
+## Credits
+
+- XC-BASIC is using Philippe Sigaud's fantastic [Pegged library](https://github.com/PhilippeSigaud/Pegged) for grammar parsing
+- Many ML routines have been borrowed from miscellaneous sources, their authors - if known - are credited within the source code. If you find your piece and your name is not credited, please drop me a line or post an issue here on GitHub and I'll fix my mistake!
