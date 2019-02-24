@@ -8,6 +8,12 @@ Some of the advantages of programming in **XC-BASIC** are:
 
 **XC-BASIC** is based on Tiny BASIC, with many differences in syntax.
 
+# Contributors wanted!
+
+- If you've written a working XC-BASIC program, please add it to the examples/ directory in the develop branch and submit a PR. Or you can just send it to me to feketecsaba <at> gmail <dot> com
+- If you find a bug, please post a GitHub issue.
+- If you have any suggestions, ideas, critics, feel free to email me. Any feedback is warmly appreciated.
+
 # Language reference
 
 ## General syntax
@@ -500,7 +506,7 @@ Or using a singe lline command:
 
 	xcbasic64 source.bas > target.asm && dasm target.asm
 	
-## Credits
+# Credits
 
 - XC-BASIC is using Philippe Sigaud's fantastic [Pegged library](https://github.com/PhilippeSigaud/Pegged) for grammar parsing
 - Many ML routines have been borrowed from miscellaneous sources, their authors - if known - are credited within the source code. If you find your piece and your name is not credited, please drop me a line or post an issue here on GitHub and I'll fix my mistake!
