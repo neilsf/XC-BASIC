@@ -10,7 +10,7 @@ Some of the advantages of programming in **XC-BASIC** are:
 
 # Contributors wanted!
 
-- If you've written a working XC-BASIC program, please add it to the examples/ directory in the develop branch and submit a PR. Or you can just send it to me to feketecsaba <at> gmail <dot> com
+- If you've written a working XC-BASIC program, please add it to the examples/ directory in the develop branch and submit a PR. Or you can just send it to me to feketecsaba dot gmail dot com
 - If you've found a bug, please post a GitHub issue.
 - If you have any suggestions, ideas, critics or would like to develop the project, feel free to email me. Any feedback is warmly appreciated.
 
