@@ -10,95 +10,95 @@ Stmt StmtFactory(ParseTree node, Program program) {
 	string stmt_class =node.children[0].name;
 	Stmt stmt;
 	switch (stmt_class) {
-		case "TINYBASIC.Const_stmt":
+		case "XCBASIC.Const_stmt":
 			stmt = new Const_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Let_stmt":
+		case "XCBASIC.Let_stmt":
 			stmt = new Let_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Print_stmt":
+		case "XCBASIC.Print_stmt":
 			stmt = new Print_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Goto_stmt":
+		case "XCBASIC.Goto_stmt":
 			stmt = new Goto_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Gosub_stmt":
+		case "XCBASIC.Gosub_stmt":
 			stmt = new Gosub_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Return_stmt":
+		case "XCBASIC.Return_stmt":
 			stmt = new Return_stmt(node, program);
 		break;
 
-		case "TINYBASIC.End_stmt":
+		case "XCBASIC.End_stmt":
 			stmt = new End_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Rem_stmt":
+		case "XCBASIC.Rem_stmt":
 			stmt = new Rem_stmt(node, program);
 		break;
 
-		case "TINYBASIC.If_stmt":
+		case "XCBASIC.If_stmt":
 			stmt = new If_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Poke_stmt":
+		case "XCBASIC.Poke_stmt":
 			stmt = new Poke_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Input_stmt":
+		case "XCBASIC.Input_stmt":
 			stmt = new Input_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Dim_stmt":
+		case "XCBASIC.Dim_stmt":
 			stmt = new Dim_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Charat_stmt":
+		case "XCBASIC.Charat_stmt":
 			stmt = new Charat_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Textat_stmt":
+		case "XCBASIC.Textat_stmt":
 			stmt = new Textat_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Data_stmt":
+		case "XCBASIC.Data_stmt":
 			stmt = new Data_stmt(node, program);
 		break;
 
-		case "TINYBASIC.For_stmt":
+		case "XCBASIC.For_stmt":
 			stmt = new For_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Next_stmt":
+		case "XCBASIC.Next_stmt":
 			stmt = new Next_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Inc_stmt":
+		case "XCBASIC.Inc_stmt":
 			stmt = new Inc_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Dec_stmt":
+		case "XCBASIC.Dec_stmt":
 			stmt = new Dec_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Proc_stmt":
+		case "XCBASIC.Proc_stmt":
 			stmt = new Proc_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Endproc_stmt":
+		case "XCBASIC.Endproc_stmt":
 			stmt = new Endproc_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Call_stmt":
+		case "XCBASIC.Call_stmt":
 			stmt = new Call_stmt(node, program);
 		break;
 
-		case "TINYBASIC.Sys_stmt":
+		case "XCBASIC.Sys_stmt":
 			stmt = new Sys_stmt(node, program);
 		break;
 
@@ -277,14 +277,14 @@ class Print_stmt:Stmt
 		ParseTree exlist = this.node.children[0].children[0];
 		for(char i=0; i< exlist.children.length; i++) {
 			final switch(exlist.children[i].name) {
-				case "TINYBASIC.Expression":
+				case "XCBASIC.Expression":
 					auto Ex = new Expression(exlist.children[i], this.program);
 					Ex.eval();
 					this.program.program_segment ~= to!string(Ex);
 					this.program.program_segment ~= "\tstdlib_printw\n";
 				break;
 
-				case "TINYBASIC.String":
+				case "XCBASIC.String":
 					string str = join(exlist.children[i].matches[1..$-1]);
 					Stringliteral sl = new Stringliteral(str, this.program);
 					sl.register();
@@ -316,7 +316,7 @@ class Textat_stmt:Stmt
 		row.eval();
 
 
-		if(exlist.children[2].name == "TINYBASIC.Expression") {
+		if(exlist.children[2].name == "XCBASIC.Expression") {
 
 			this.program.program_segment ~= to!string(row); // rownum
 			// multiply by 40

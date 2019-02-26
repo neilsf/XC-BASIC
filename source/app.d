@@ -23,10 +23,11 @@ void main(string[] args)
         source = source ~ infile.readln();
     }
 
-    auto ast = TINYBASIC(source);
+    auto ast = XCBASIC(source);
     if(!ast.successful) {
         stderr.writeln("Parser error");
         stderr.writeln(ast);
+
         exit(1);
     }
     auto program = new Program();

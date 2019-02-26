@@ -105,10 +105,10 @@ class UsrFun:Fun
         for(int i=0; i < arg_count; i++) {
             int index = arg_count - 1 - i;
             auto e = e_list[i];
-            if(e.name == "TINYBASIC.Expression") {
+            if(e.name == "XCBASIC.Expression") {
                 this.arglist[index] = new Expression(e, this.program);
             }
-            else if(e.name == "TINYBASIC.String") {
+            else if(e.name == "XCBASIC.String") {
                 this.arglist[index] = new StringExpression(e, this.program);
             }
 

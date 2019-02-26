@@ -3,7 +3,7 @@ module tbgrammar;
 import pegged.grammar;
 
 mixin(grammar(`
-TINYBASIC:
+XCBASIC:
     Program <- Line (NL* Line)+ EOI
     Line <- Line_id :WS? Statement?
 

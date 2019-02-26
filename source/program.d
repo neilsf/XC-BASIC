@@ -365,17 +365,17 @@ class Program
 	{
 		if(pass == 1) {
 			// Check if within procedure
-			if(node.children.length > 1 && node.children[1].children[0].name == "TINYBASIC.Proc_stmt") {
+			if(node.children.length > 1 && node.children[1].children[0].name == "XCBASIC.Proc_stmt") {
 				this.in_procedure = true;
 				this.current_proc_name = join(node.children[1].children[0].children[0].matches);
 			}
-			else if(node.children.length > 1 && node.children[1].children[0].name == "TINYBASIC.Endproc_stmt"){
+			else if(node.children.length > 1 && node.children[1].children[0].name == "XCBASIC.Endproc_stmt"){
 				this.in_procedure = false;
 				this.current_proc_name = "";
 			}
 
 			// line has statement and it's a DATA statement
-			if(node.children.length > 1 && node.children[1].children[0].name == "TINYBASIC.Data_stmt") {
+			if(node.children.length > 1 && node.children[1].children[0].name == "XCBASIC.Data_stmt") {
 				Stmt stmt = StmtFactory(node.children[1], this);
 				stmt.process();
 			}
@@ -384,15 +384,15 @@ class Program
 		else {
 			//writeln(node);
 			auto Line_id = node.children[0];
-			string label_type = Line_id.children.length == 0 ? "TINYBASIC.none" : Line_id.children[0].name;
+			string label_type = Line_id.children.length == 0 ? "XCBASIC.none" : Line_id.children[0].name;
 			switch(label_type) {
-				case "TINYBASIC.Unsigned":
+				case "XCBASIC.Unsigned":
 				string line_no = join(Line_id.children[0].matches);
 				line_no = this.in_procedure ? this.current_proc_name ~ "." ~ line_no : line_no;
 				this.program_segment ~= "_L" ~ line_no ~ ":\n";
 				break;
 
-				case "TINYBASIC.Label":
+				case "XCBASIC.Label":
 				string label = join(Line_id.children[0].matches[0..$-1]);
 				label = this.in_procedure ? this.current_proc_name ~ "." ~ label : label;
 				this.program_segment ~= "_L" ~ label ~ ":\n";
@@ -403,7 +403,7 @@ class Program
 			}
 
 			// line has statement excluding a DATA statement
-			if(node.children.length > 1 && node.children[1].children[0].name != "TINYBASIC.Data_stmt") {
+			if(node.children.length > 1 && node.children[1].children[0].name != "XCBASIC.Data_stmt") {
 				Stmt stmt = StmtFactory(node.children[1], this);
 				stmt.process();
 			}
@@ -418,19 +418,19 @@ class Program
 		foreach(ref child; node.children[0].children) {
 
 			// empty row?
-			if(child.name != "TINYBASIC.Line" || child.children.length == 0) {
+			if(child.name != "XCBASIC.Line" || child.children.length == 0) {
 				continue;
 			}
 
 			auto Line_id = child.children[0];
-			string label_type = Line_id.children.length == 0 ? "TINYBASIC.none" : Line_id.children[0].name;
+			string label_type = Line_id.children.length == 0 ? "XCBASIC.none" : Line_id.children[0].name;
 			switch(label_type) {
-				case "TINYBASIC.Unsigned":
+				case "XCBASIC.Unsigned":
 				string line_no = join(Line_id.children[0].matches);
 				this.addLabel(line_no);
 				break;
 
-				case "TINYBASIC.Label":
+				case "XCBASIC.Label":
 				string label = join(Line_id.children[0].matches[0..$-1]);
 				this.addLabel(label);
 				break;
@@ -441,11 +441,11 @@ class Program
 
 			if(child.children.length > 1) {
 				auto Stmt = child.children[1].children[0];
-				if(Stmt.name == "TINYBASIC.Proc_stmt") {
+				if(Stmt.name == "XCBASIC.Proc_stmt") {
 					this.in_procedure = true;
 					this.current_proc_name = join(Stmt.children[0].matches);
 				}
-				else if(Stmt.name == "TINYBASIC.Endproc_stmt") {
+				else if(Stmt.name == "XCBASIC.Endproc_stmt") {
 					this.in_procedure = false;
 					this.current_proc_name = "";
 				}
@@ -461,7 +461,7 @@ class Program
 		{
 			this.current_node = node;
 			switch(node.name) {
-				case "TINYBASIC.Line":
+				case "XCBASIC.Line":
 					this.processLine(node, pass);
 					break;
 

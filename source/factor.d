@@ -25,7 +25,7 @@ class Factor
     {
     	string ftype = this.node.children[0].name;
         final switch(ftype) {
-            case "TINYBASIC.Var":
+            case "XCBASIC.Var":
                 ParseTree v = this.node.children[0];
                 string varname = join(v.children[0].matches);
                 char vartype = this.program.type_conv(v.children[1].matches[0]);
@@ -77,7 +77,7 @@ class Factor
 
             break;
 
-            case "TINYBASIC.Number":
+            case "XCBASIC.Number":
                 ParseTree v = this.node.children[0];
                 string num_str = join(v.children[0].matches);
                 int num = to!int(num_str);
@@ -87,14 +87,14 @@ class Factor
                 this.asmcode ~= "\tpword #" ~ num_str ~ "\n";
             break;
 
-            case "TINYBASIC.Expression":
+            case "XCBASIC.Expression":
                 ParseTree ex = this.node.children[0];
                 auto Ex = new Expression(ex, this.program);
                 Ex.eval();
                 this.asmcode ~= to!string(Ex);
             break;
 
-            case "TINYBASIC.Fn_call":
+            case "XCBASIC.Fn_call":
                 ParseTree fn = this.node.children[0];
                 auto fun = FunFactory(fn, this.program);
                 fun.process();
