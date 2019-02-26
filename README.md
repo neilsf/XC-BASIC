@@ -64,7 +64,7 @@ Please see the documentation for the `PROC ... ENDPROC` statements for more deta
 
 Arrays must be defined using the `DIM` statement. As of the current version, maximum two-dimensional arrays are supported and both dimensions are limited to a length of 32767 elements. However, this is just a theoretical limit, in practice you'll run out of memory earlier. Arrays are zero-based (the first index is 0) and only integers may be used as indices.
 
-The syntax to define array is the following (not square brackets):
+The syntax to define array is the following (note the square brackets):
 
 	dim variable[x_len, y_len]
 	
