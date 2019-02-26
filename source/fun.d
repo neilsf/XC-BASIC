@@ -4,6 +4,8 @@ import pegged.grammar;
 import program;
 import std.string, std.conv, std.stdio;
 import expression;
+import std.algorithm.mutation;
+import stringliteral;
 
 Fun FunFactory(ParseTree node, Program program) {
     string funName = join(node.children[0].matches);
@@ -19,6 +21,10 @@ Fun FunFactory(ParseTree node, Program program) {
 
         case "rnd":
             fun = new RndFun(node, program);
+        break;
+
+        case "usr":
+            fun = new UsrFun(node, program);
         break;
 
         default:
@@ -83,6 +89,49 @@ class PeekFun:Fun
     void process()
     {
         this.fncode ~= "\tpeek\n";
+    }
+}
+
+class UsrFun:Fun
+{
+    // This function can take any number of parameters
+    protected ubyte arg_count = 0;
+
+    this(ParseTree node, Program program)
+    {
+        super(node, program);
+        auto e_list = this.node.children[1].children;
+        int arg_count = to!int(e_list.length);
+        for(int i=0; i < arg_count; i++) {
+            int index = arg_count - 1 - i;
+            auto e = e_list[i];
+            if(e.name == "TINYBASIC.Expression") {
+                this.arglist[index] = new Expression(e, this.program);
+            }
+            else if(e.name == "TINYBASIC.String") {
+                this.arglist[index] = new StringExpression(e, this.program);
+            }
+
+            this.arglist[index].eval();
+        }
+    }
+
+    void process()
+    {
+        this.fncode ~= "\tusr\n";
+    }
+
+    override string toString()
+    {
+        string asmcode;
+        foreach(ref e; this.arglist) {
+            if(e is null) {
+                continue;
+            }
+            asmcode ~= to!string(e);
+        }
+        asmcode ~= fncode;
+        return asmcode;
     }
 }
 

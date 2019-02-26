@@ -837,6 +837,20 @@ NUCL_DIVU16 SUBROUTINE
     jsr $0000
     ENDM
 
+    MAC usr
+    pla                 ; get function address
+    sta .selfmod+2
+    pla
+    sta .selfmod+1
+    lda #<.return_addr
+    sta $02fe
+    lda #>.return_addr
+    sta $02ff
+.selfmod
+    jmp $0000
+.return_addr
+    ENDM
+
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
 
 RUNTIME_ERROR	SUBROUTINE

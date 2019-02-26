@@ -118,7 +118,7 @@ For the sake of execution speed, there is only one error condition that is check
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
-`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SYS` | `TEXTAT` 
+`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SYS` | `TEXTAT` | `USR`
 
 More commands are coming soon!
 
@@ -479,6 +479,46 @@ Outputs a string or a number a the given column and row on the screen. Accepts i
 	textat 15, 10, 200
 
 Note: the runtime library will not prevent the text from overflowing outside the screen thus damaging data or code. The programmer has to make sure the text fits within the screen RAM ($0400-$07E7).
+
+### USR
+
+The `USR` function passes an arbitrary length of parameters to a machine language routine, executes it, and then uses the return value of the machine language routine as the value of the function.
+
+Usage:
+
+	let retval = usr(address, arg1, arg2, ...)
+	
+The arguments are available on the stack for the machine language routine. The routine can access them in the same order as they're passed, but in reverse byte order. The routine is then supposed to push the return value back to the stack in normal order and exit using `JMP ($02fe)` (NOT `RTS`!) For example:
+
+	; this is the ML routine
+	ORG $c000
+	PLA ; get x high byte
+	STA arg1+1
+	PLA ; get x low byte
+	STA arg1
+	PLA ; get y high byte
+	STA arg2+1
+	PLA ; get y low byte
+	STA arg2
+	
+	<do whatever>
+	
+	LDA result
+	PHA
+	LDA result+1
+	PHA
+	JMP ($02fe) ; note this is the only valid way to return from an user function
+	
+	rem ***
+	rem *** XC-BASIC program starts here
+	const MY_FUNC = 49152
+	let x = 1
+	let y = 2
+	print usr(MY_FUNC, x, y)
+
+Note #1: For string arguments, the two-byte address of the string will be passed to the ML routine. Strings are nullbyte-terminated.
+
+Note #2: The callee *must* pull all arguments from the stack and *must* push exactly 2 bytes (as of current version). The program will break otherwise.
 
 # Using the compiler
 

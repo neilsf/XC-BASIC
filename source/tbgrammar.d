@@ -63,7 +63,7 @@ TINYBASIC:
 
     Line_id < (Label / Unsigned / eps)
 
-    Reserved < ("let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "end" / "rem" / "poke" / "peek" / "dim" / "data" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc")
+    Reserved < ("let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "end" / "rem" / "poke" / "peek" / "dim" / "data" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr")
 
     WS < space*
     EOI < !.

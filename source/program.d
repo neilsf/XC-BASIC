@@ -10,13 +10,13 @@ struct Variable {
 	string name;
 	char type;
 	ushort[2] dimensions = [1,1];
-    bool isConst = false;
+	bool isConst = false;
 	bool isData = false;
 	bool isGlobal = true;
 	string procname;
 
-    int constValInt = 0;
-    float constValFloat = 0;
+	int constValInt = 0;
+	float constValFloat = 0;
 
 	string getLabel()
 	{
@@ -243,10 +243,10 @@ class Program
 
 	Variable findVariable(string id)
 	{
-        bool global_mod = id[0] == '\\';
-        if(global_mod) {
-            id = stripLeft(id, "\\");
-        }
+		bool global_mod = id[0] == '\\';
+		if(global_mod) {
+			id = stripLeft(id, "\\");
+		}
 
 		foreach(ref elem; this.variables) {
 			if(this.in_procedure && !global_mod) {
@@ -277,10 +277,10 @@ class Program
 
 	void addVariable(Variable var)
 	{
-        bool global_mod = var.name[0] == '\\';
-        if(global_mod) {
-            var.name = stripLeft(var.name, "\\");
-        }
+		bool global_mod = var.name[0] == '\\';
+		if(global_mod) {
+			var.name = stripLeft(var.name, "\\");
+		}
 
 		if(this.in_procedure && !global_mod) {
 			var.isGlobal = false;
@@ -292,10 +292,10 @@ class Program
 
 	bool is_variable(string id)
 	{
-        bool global_mod = (id[0] == '\\');
-        if(global_mod) {
-            id = stripLeft(id, "\\");
-        }
+		bool global_mod = (id[0] == '\\');
+		if(global_mod) {
+			id = stripLeft(id, "\\");
+		}
 
 		foreach(ref elem; this.variables) {
 			if(this.in_procedure && !global_mod) {
