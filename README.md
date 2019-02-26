@@ -258,7 +258,7 @@ Note #1: make sure to use the `END` command before your routines if you don't wa
 
 Note #2: there is no runtime call stack checking (e. g. no `?RETURN WITHOUT GOSUB ERROR`). If your call stack is corrupted, the program is likely to break.
 
-Note #3: Unlike procedures, subroutines are part of the *global* scope.
+Note #3: Unlike procedures, subroutines do not open a new local scope.
 
 ### IF ... THEN ... ELSE
 
