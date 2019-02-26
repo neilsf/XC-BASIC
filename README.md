@@ -320,15 +320,13 @@ Assigns the value of an expression to a variable. The keyword `LET` can not be o
 	let somevar = 5
 	let somearray[n] = x * 2
 	
-
-ASCII strings will be converted to PETSCII in compile-time.
-
 ### PEEK
 
-The `PEEK` function returns the value that is read from a memory address. The same conversions apply to the address as discussed above. Example:
+The `PEEK` function returns the value that is read from a memory address. Example:
 
 	let value = peek(n)
 
+The same number conversions apply as discussed further in the next section.
 
 ### POKE
 
@@ -365,6 +363,8 @@ Prints strings or numbers (values of any expression) on the screen using the KER
 	print "the value of myvar is ", myvar, " and that of anothervar is ", anothervar
 	print "let's print the value of an expression: ", (486 + y) * 3
 	
+ASCII strings will be converted to PETSCII in compile-time.
+
 ### PROC ... ENDPROC
 
 The `PROC` statement introduces a new procedure that spans until the `ENDPROC` statement. Procedures are named subroutines that have a unique variable and label scope. Procedures may have one or more parameters that are passed to by the `CALL` statement. The `CALL` statement is the only way to execute a procedure (you can't `GOTO` into a procedure, for example). You can use `RETURN` to early exit a procedure.
