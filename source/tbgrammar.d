@@ -9,7 +9,7 @@ TINYBASIC:
 
     Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt / Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt
     Const_stmt <    "const" :WS? Var :WS? "=" :WS? Number
-    Let_stmt <      "let" :WS? Var :WS? "=" :WS? Expression
+    Let_stmt <      ("let" / eps) :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print" :WS? ExprList
     If_stmt <       "if" :WS? Expression :WS? Relop :WS? Expression :WS? "then" :WS? Statement :WS? ("else" :WS? Statement)?
     Goto_stmt <     "goto" :WS? (Label_ref / Unsigned)
