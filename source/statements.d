@@ -10,11 +10,11 @@ Stmt StmtFactory(ParseTree node, Program program) {
 	string stmt_class =node.children[0].name;
 	Stmt stmt;
 	switch (stmt_class) {
-        case "TINYBASIC.Const_stmt":
-            stmt = new Const_stmt(node, program);
-        break;
+		case "TINYBASIC.Const_stmt":
+			stmt = new Const_stmt(node, program);
+		break;
 
-        case "TINYBASIC.Let_stmt":
+		case "TINYBASIC.Let_stmt":
 			stmt = new Let_stmt(node, program);
 		break;
 
@@ -98,6 +98,10 @@ Stmt StmtFactory(ParseTree node, Program program) {
 			stmt = new Call_stmt(node, program);
 		break;
 
+		case "TINYBASIC.Sys_stmt":
+			stmt = new Sys_stmt(node, program);
+		break;
+
 		default:
 		assert(0);
 	}
@@ -132,36 +136,36 @@ abstract class Stmt:StmtInterface
 
 class Const_stmt:Stmt
 {
-    mixin StmtConstructor;
+	mixin StmtConstructor;
 
-    void process()
-    {
-        ParseTree v = this.node.children[0].children[0];
-        ParseTree num = this.node.children[0].children[1];
-        string varname = join(v.children[0].matches);
-        char vartype = this.program.type_conv(v.children[1].matches[0]);
+	void process()
+	{
+		ParseTree v = this.node.children[0].children[0];
+		ParseTree num = this.node.children[0].children[1];
+		string varname = join(v.children[0].matches);
+		char vartype = this.program.type_conv(v.children[1].matches[0]);
 
-        string num_str = join(num.matches);
-        int inum = to!int(num_str);
+		string num_str = join(num.matches);
+		int inum = to!int(num_str);
 
-        if(inum < -32768 || inum > 65535) {
-            this.program.error("Number out of range");
-        }
+		if(inum < -32768 || inum > 65535) {
+			this.program.error("Number out of range");
+		}
 
-        Variable var = {
-            name: varname,
-            type: vartype,
-            isConst: true,
-            constValInt: inum
-        };
+		Variable var = {
+			name: varname,
+			type: vartype,
+			isConst: true,
+			constValInt: inum
+		};
 
-        if(!this.program.is_variable(varname)) {
-            this.program.addVariable(var);
-        }
-        else {
-            this.program.error("Can't redefine constant or variable already exists");
-        }
-    }
+		if(!this.program.is_variable(varname)) {
+			this.program.addVariable(var);
+		}
+		else {
+			this.program.error("Can't redefine constant or variable already exists");
+		}
+	}
 }
 
 class Let_stmt:Stmt
@@ -178,9 +182,9 @@ class Let_stmt:Stmt
 			this.program.addVariable(Variable(0, varname, vartype));
 		}
 		Variable var = this.program.findVariable(varname);
-        if(var.isConst) {
-            this.program.error("Can't assign value to a constant");
-        }
+		if(var.isConst) {
+			this.program.error("Can't assign value to a constant");
+		}
 		Expression Ex = new Expression(ex, this.program);
 		Ex.eval();
 		this.program.program_segment ~= to!string(Ex);
@@ -232,28 +236,28 @@ class Dim_stmt:Stmt
 		string varname = join(v.children[0].matches);
 		char vartype = this.program.type_conv(v.children[1].matches[0]);
 
-        ushort[2] dimensions;
-        if(v.children.length > 2) {
-            auto subscript = v.children[2];
+		ushort[2] dimensions;
+		if(v.children.length > 2) {
+			auto subscript = v.children[2];
 
-            ubyte i = 0;
-            foreach(ref expr; subscript.children) {
-                Expression Ex = new Expression(expr, this.program);
-                if(!Ex.is_numeric_constant()) {
-                    this.program.error("Only numeric constants are accepted as array dimensions");
-                }
-                dimensions[i]=to!ushort(Ex.as_int());
-                i++;
-            }
+			ubyte i = 0;
+			foreach(ref expr; subscript.children) {
+				Expression Ex = new Expression(expr, this.program);
+				if(!Ex.is_numeric_constant()) {
+					this.program.error("Only numeric constants are accepted as array dimensions");
+				}
+				dimensions[i]=to!ushort(Ex.as_int());
+				i++;
+			}
 
-            if(dimensions[1] == 0) {
-                dimensions[1] = 1;
-            }
-        }
-        else {
-            dimensions[0]=1;
-            dimensions[1]=1;
-        }
+			if(dimensions[1] == 0) {
+				dimensions[1] = 1;
+			}
+		}
+		else {
+			dimensions[0]=1;
+			dimensions[1]=1;
+		}
 
 		if(this.program.is_variable(varname)) {
 			this.program.error("Variable "~varname~" is already defined/used.");
@@ -610,9 +614,9 @@ class Input_stmt:Stmt
 			}
 			Variable var = this.program.findVariable(varname);
 
-            if(var.isConst) {
-                this.program.error("Can't INPUT to a constant");
-            }
+			if(var.isConst) {
+				this.program.error("Can't INPUT to a constant");
+			}
 
 			this.program.program_segment~="\tinput\n";
 			this.program.program_segment~="\tplw2var " ~ var.getLabel() ~ "\n";
@@ -636,9 +640,9 @@ class Data_stmt:Stmt
 		}
 		Variable var = this.program.findVariable(varname);
 
-        if(var.isConst) {
-            this.program.error(varname ~ " is a constant");
-        }
+		if(var.isConst) {
+			this.program.error(varname ~ " is a constant");
+		}
 
 		this.program.data_segment ~= var.getLabel() ~"\tDC.W ";
 		for(char i=0; i< list.children.length; i++) {
@@ -707,9 +711,9 @@ class Inc_stmt:Stmt
 		ParseTree v = this.node.children[0].children[0];
 		string varname = join(v.children[0].matches);
 		Variable var = this.program.findVariable(varname);
-        if(var.isConst) {
-            this.program.error(varname ~ " is a constant");
-        }
+		if(var.isConst) {
+			this.program.error(varname ~ " is a constant");
+		}
 		this.program.program_segment ~= "\tiinc "~var.getLabel()~"\n";
 	}
 }
@@ -724,9 +728,9 @@ class Dec_stmt:Stmt
 		ParseTree v = this.node.children[0].children[0];
 		string varname = join(v.children[0].matches);
 		Variable var = this.program.findVariable(varname);
-        if(var.isConst) {
-            this.program.error(varname ~ " is a constant");
-        }
+		if(var.isConst) {
+			this.program.error(varname ~ " is a constant");
+		}
 		this.program.program_segment ~= "\tidec "~var.getLabel()~"\n";
 	}
 }
@@ -787,5 +791,21 @@ class Endproc_stmt:Stmt
 
 		this.program.in_procedure = false;
 		this.program.current_proc_name = "";
+	}
+}
+
+class Sys_stmt:Stmt
+{
+	mixin StmtConstructor;
+
+	void process()
+	{
+		auto e1 = this.node.children[0].children[0];
+
+		auto Ex1 = new Expression(e1, this.program);
+		Ex1.eval();
+
+		this.program.program_segment ~= to!string(Ex1);
+		this.program.program_segment~="\tsys\n";
 	}
 }

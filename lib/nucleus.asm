@@ -828,6 +828,15 @@ NUCL_DIVU16 SUBROUTINE
 .skip
 	ENDM
 
+    MAC sys
+    pla
+    sta .selfmod+2
+    pla
+    sta .selfmod+1
+.selfmod
+    jsr $0000
+    ENDM
+
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
 
 RUNTIME_ERROR	SUBROUTINE

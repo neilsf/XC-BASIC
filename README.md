@@ -118,7 +118,7 @@ For the sake of execution speed, there is only one error condition that is check
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
-`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `TEXTAT` 
+`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SYS` | `TEXTAT` 
 
 More commands are coming soon!
 
@@ -315,10 +315,15 @@ Calls a built-in routine that allows the user to input numbers using the keyboar
 	
 ### LET
 
-Assigns the value of an expression to a variable. The keyword `LET` can not be omitted as in other BASIC dialects. Examples:
+Assigns the value of an expression to a variable. Examples:
 
 	let somevar = 5
 	let somearray[n] = x * 2
+	
+Important! **Prior to version 1.0, the `LET` keyword may not be omited** as in other BASIC dialects.
+
+	rem ** works in v1.0+ only **
+	x = 5
 	
 ### PEEK
 
@@ -446,6 +451,16 @@ The `RND` function returns a pseudo-random integer between -32768 and +32767. Ex
 	if rnd() < 0 then print "heads" else print "tails"
 	
 Note: needless to say that the number returned by `RND` is not a true random number.
+
+### SYS
+
+The `SYS` command calls a machine language routine at a apecified address. Syntax:
+
+	sys expression
+	
+The expression must return an integer and will be treated as unsigned. Once the machine language routine returns using the `RTS` opcode, the XC-BASIC program will continue at the next line.
+
+Note that `SYS` can't pass parameters to the machine language routine, nor has any return value. For calling machine language functions, see `USR`.
 
 ### TEXTAT
 

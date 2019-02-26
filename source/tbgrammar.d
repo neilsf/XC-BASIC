@@ -7,7 +7,7 @@ TINYBASIC:
     Program <- Line (NL* Line)+ EOI
     Line <- Line_id :WS? Statement?
 
-    Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt / Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt
+    Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt / Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt / Sys_stmt
     Const_stmt <    "const" :WS? Var :WS? "=" :WS? Number
     Let_stmt <      ("let" / eps) :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print" :WS? ExprList
@@ -30,6 +30,7 @@ TINYBASIC:
     Dec_stmt <      "dec" :WS? Var
     Proc_stmt <     "proc" :WS Label_ref :WS? (:"(" :WS? VarList :WS? :")")?
     Endproc_stmt <  "endproc"
+    Sys_stmt <      "sys" :WS? Expression
 
     ExprList < (String / Expression) :WS? ("," :WS? (String / Expression) )*
     VarList < Var (:WS? "," :WS? Var)*
