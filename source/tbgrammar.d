@@ -11,7 +11,7 @@ XCBASIC:
     Const_stmt <    "const" :WS? Var :WS? "=" :WS? Number
     Let_stmt <      ("let" / eps) :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print" :WS? ExprList
-    If_stmt <       "if" :WS? Expression :WS? Relop :WS? Expression :WS? "then" :WS? Statement :WS? ("else" :WS? Statement)?
+    If_stmt <       "if" :WS? Relation :WS? (Logop :WS? Relation)? :WS? "then" :WS? Statement :WS? ("else" :WS? Statement)?
     Goto_stmt <     "goto" :WS? (Label_ref / Unsigned)
     Input_stmt <    "input" :WS? VarList
     Gosub_stmt <    "gosub" :WS? (Label_ref / Unsigned)
@@ -32,6 +32,7 @@ XCBASIC:
     Endproc_stmt <  "endproc"
     Sys_stmt <      "sys" :WS? Expression
 
+    Relation < Expression :WS? Relop :WS? Expression
     ExprList < (String / Expression) :WS? ("," :WS? (String / Expression) )*
     VarList < Var (:WS? "," :WS? Var)*
     Datalist < Number (:WS? "," :WS? Number)*
@@ -49,6 +50,7 @@ XCBASIC:
     Vartype <- ("%" / "#" /  eps)
     Subscript <- "[" Expression (:WS? "," :WS? Expression)? "]"
 
+    Logop < "and" | "or"
     Relop < "<" | "<=" | "=" | "<>" | ">" | ">="
     String < doublequote (!doublequote . / ^' ')* doublequote
 
@@ -63,7 +65,7 @@ XCBASIC:
 
     Line_id < (Label / Unsigned / eps)
 
-    Reserved < ("let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "end" / "rem" / "poke" / "peek" / "dim" / "data" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr")
+    Reserved < ("let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "end" / "rem" / "poke" / "peek" / "dim" / "data" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr" / "and" / "or")
 
     WS < space*
     EOI < !.

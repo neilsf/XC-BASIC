@@ -465,57 +465,90 @@ class If_stmt:Stmt
 
 	void process()
 	{
-		auto e1 = this.node.children[0].children[0];
-		string rel = join(this.node.children[0].children[1].matches);
-		auto e2 = this.node.children[0].children[2];
-		auto st = this.node.children[0].children[3];
+        ParseTree[] relations;
+        int rel_count = 1;
+        bool logop_present = false;
 
+        auto statement = this.node.children[0];
+        //writeln(statement); this.program.error("Now stop here");
+        relations ~= statement.children[0];
+
+        if(statement.children[1].name == "XCBASIC.Logop") {
+            relations ~= statement.children[2];
+            rel_count++;
+            logop_present = true;
+        }
+
+        for(int i; i < rel_count; i++) {
+            auto e1 = relations[i].children[0];
+            string rel = join(relations[i].children[1].matches);
+            auto e2 = relations[i].children[2];
+
+            auto Ex1 = new Expression(e1, this.program);
+            Ex1.eval();
+            auto Ex2 = new Expression(e2, this.program);
+            Ex2.eval();
+
+            this.program.program_segment ~= to!string(Ex1);
+            this.program.program_segment ~= to!string(Ex2);
+
+            string rel_type;
+
+            final switch(rel) {
+                case "<":
+                    rel_type = "lt";
+                    break;
+
+                case "<=":
+                    rel_type = "lte";
+                    break;
+
+                case "<>":
+                    rel_type = "neq";
+                    break;
+
+                case ">":
+                    rel_type = "gt";
+                    break;
+
+                case ">=":
+                    rel_type = "gte";
+                    break;
+
+                case "=":
+                    rel_type = "eq";
+                    break;
+            }
+
+            this.program.program_segment~="\tcmpw"~rel_type~"\n";
+        }
+
+        // relations are evaluated, now the comes logical op if present
+
+        if(logop_present) {
+            string logop = join(statement.children[1].matches);
+            final switch(logop) {
+                case "and":
+                    this.program.program_segment~="\tandb\n";
+                break;
+
+                case "or":
+                    this.program.program_segment~="\torb\n";
+                break;
+            }
+        }
+
+        int cursor = logop_present ? 3 : 1;
+        auto st = statement.children[cursor];
 		bool else_present = false;
 
 		ParseTree else_st;
 
-		if(this.node.children[0].children.length > 4) {
+		if(statement.children.length > cursor + 1) {
 			else_present = true;
-			else_st = this.node.children[0].children[4];
+			else_st = statement.children[cursor + 1];
 		}
 
-		auto Ex1 = new Expression(e1, this.program);
-		Ex1.eval();
-		auto Ex2 = new Expression(e2, this.program);
-		Ex2.eval();
-
-		this.program.program_segment ~= to!string(Ex1);
-		this.program.program_segment ~= to!string(Ex2);
-
-		string rel_type;
-
-		final switch(rel) {
-			case "<":
-				rel_type = "lt";
-				break;
-
-			case "<=":
-				rel_type = "lte";
-				break;
-
-			case "<>":
-				rel_type = "neq";
-				break;
-
-			case ">":
-				rel_type = "gt";
-				break;
-
-			case ">=":
-				rel_type = "gte";
-				break;
-
-			case "=":
-				rel_type = "eq";
-				break;
-		}
-
-		this.program.program_segment~="\tcmpw"~rel_type~"\n";
 		string ret;
 		ret ~= "\tpla\n"
 			 ~ "\tbne *+5\n";

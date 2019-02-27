@@ -258,20 +258,23 @@ Note #3: Unlike procedures, subroutines are part of the *global* scope.
 
 Syntax:
 
-	if condition then statement <else statement>
+	if relation <and/or relation> then statement <else statement>
 	
 Conditional structure. Executes the statement after `THEN` if the expression evaluates to true, otherwise the statement after `ELSE`, if present. `ELSE` is optional.
 
 Current limitations:
 
-- Expressions do not support logical operators (`OR`, `AND` - *coming soon!*)
-- Only one command can be executed after `THEN` and `ELSE`
+- Only one logical operation is supported
+- Only one command can be executed after `THEN` and `ELSE` each
 - `THEN` may not be omitted
+
+Expressions support logical operators (`AND` and `OR`) since version 1.0.
 
 Examples:
 
 	if x >= y/z then print "yes, expression is true"
 	if a = b then print "they are equal" else print "they are not equal"
+	if a = b or a < 2 then print "they are equal or a is less than two"
 	
 The supported relational operators are:
 
@@ -281,6 +284,11 @@ The supported relational operators are:
 - `<` (less than)
 - `<=` (less than or equal)
 - `<>` (not equal)
+
+The supported logical operators are:
+
+- `AND`
+- `OR`
 
 ### INC
 

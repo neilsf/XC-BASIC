@@ -425,6 +425,33 @@ stack 		EQU $0100
 	sta.wx stack+1
 	ENDM
 
+    ; Perform OR on top 2 bytes of stack
+    MAC orb
+    pla
+    sta reserved1
+    pla
+    ora reserved1
+    pha
+    ENDM
+
+    ; Perform AND on top 2 bytes of stack
+    MAC andb
+    pla
+    sta reserved1
+    pla
+    and reserved1
+    pha
+    ENDM
+
+    ; Perform XOR on top 2 bytes of stack
+    MAC xorb
+    pla
+    sta reserved1
+    pla
+    eor reserved1
+    pha
+    ENDM
+
 	; Add words on stack
 	MAC addw
 	tsx
