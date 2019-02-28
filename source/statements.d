@@ -199,45 +199,45 @@ class Let_stmt:Stmt
 			this.program.error("Type mismatch: expression value will be converted to " ~this.program.vartype_names[vartype], true);
 		}
 
-
 		Ex.eval();
 		this.program.program_segment ~= to!string(Ex);
 
 		if(v.children.length > 2) {
 			if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
-			/* any variable can be accessed as an array
-			if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
-				this.program.error("Not an array");
-			}
-			*/
-
-			auto subscript = v.children[2];
-			if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
-				this.program.error("Bad subscript");
-			}
-			ushort[2] dimensions;
-			ubyte i = 0;
-			foreach(ref expr; subscript.children) {
-				Expression Ex2 = new Expression(expr, this.program);
-				Ex2.eval();
-				this.program.program_segment ~= to!string(Ex2);
-
-				if(i == 1) {
-					// must multiply with first dimension length
-					this.program.program_segment ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
-												  ~ "\tmulw\n"
-												  ~ "\taddw\n";
+				/* any variable can be accessed as an array
+				if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
+					this.program.error("Not an array");
 				}
+				*/
 
-				i++;
+				auto subscript = v.children[2];
+				if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
+					this.program.error("Bad subscript");
+				}
+				ushort[2] dimensions;
+				ubyte i = 0;
+				foreach(ref expr; subscript.children) {
+					Expression Ex2 = new Expression(expr, this.program);
+					Ex2.eval();
+					this.program.program_segment ~= to!string(Ex2);
+
+					if(i == 1) {
+						// must multiply with first dimension length
+						this.program.program_segment ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
+													  ~ "\tmulw\n"
+													  ~ "\taddw\n";
+					}
+
+					i++;
+				}
+				// must multiply with the variable length!
+				this.program.program_segment ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
+											  ~ "\tmulw\n" ;
+				this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
 			}
-			// must multiply with the variable length!
-			this.program.program_segment ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
-										  ~ "\tmulw\n" ;
-			this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
-		}
-		else {
-			this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n";
+			else {
+				this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n";
+			}
 		}
 	}
 }
