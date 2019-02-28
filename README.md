@@ -8,6 +8,12 @@ Some of the advantages of programming in **XC-BASIC** are:
 
 **XC-BASIC** is based on Tiny BASIC, with many differences in syntax.
 
+# Contributors wanted!
+
+- If you've written a working XC-BASIC program, please add it to the examples/ directory in the develop branch and submit a PR. Or you can just send it to me to feketecsaba dot gmail dot com
+- If you've found a bug, please post a GitHub issue.
+- If you have any suggestions, ideas, critics or would like to develop the project, feel free to email me. Any feedback is warmly appreciated.
+
 # Language reference
 
 ## General syntax
@@ -58,7 +64,7 @@ Please see the documentation for the `PROC ... ENDPROC` statements for more deta
 
 Arrays must be defined using the `DIM` statement. As of the current version, maximum two-dimensional arrays are supported and both dimensions are limited to a length of 32767 elements. However, this is just a theoretical limit, in practice you'll run out of memory earlier. Arrays are zero-based (the first index is 0) and only integers may be used as indices.
 
-The syntax to define array is the following (not square brackets):
+The syntax to define array is the following (note the square brackets):
 
 	dim variable[x_len, y_len]
 	
@@ -252,7 +258,7 @@ Note #1: make sure to use the `END` command before your routines if you don't wa
 
 Note #2: there is no runtime call stack checking (e. g. no `?RETURN WITHOUT GOSUB ERROR`). If your call stack is corrupted, the program is likely to break.
 
-Note #3: Unlike procedures, subroutines are part of the *global* scope.
+Note #3: Unlike procedures, subroutines do not open a new local scope.
 
 ### IF ... THEN ... ELSE
 
@@ -563,3 +569,7 @@ Or using a singe lline command:
 
 	xcbasic64 source.bas > target.asm && dasm target.asm
 	
+# Credits
+
+- XC-BASIC is using Philippe Sigaud's fantastic [Pegged library](https://github.com/PhilippeSigaud/Pegged) for grammar parsing
+- Many ML routines have been borrowed from miscellaneous sources, their authors - if known - are credited within the source code. If you find your piece and your name is not credited, please drop me a line or post an issue here on GitHub and I'll fix my mistake!
