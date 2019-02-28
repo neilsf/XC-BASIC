@@ -1,0 +1,7 @@
+const BORDER = 53280
+const BACKGROUND = 53281
+const BLACK = 0
+const WHITE = 1
+
+poke BORDER, BLACK
+poke BACKGROUND, WHITE+1

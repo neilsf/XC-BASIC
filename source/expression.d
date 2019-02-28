@@ -7,6 +7,7 @@ import std.conv;
 import std.stdio;
 import std.string;
 import core.stdc.stdlib;
+import stringliteral;
 
 class Expression
 {
@@ -108,6 +109,26 @@ class Expression
     override string toString()
     {
         return this.asmcode;
+    }
+}
+
+class StringExpression: Expression
+{
+    this(ParseTree node, Program program)
+    {
+        super(node, program);
+    }
+
+    override void eval()
+    {
+        // only single string literals for now
+        auto sl = new Stringliteral(join(this.node.matches), this.program);
+        sl.register();
+        this.asmcode =
+            "\tlda #<_S" ~ to!string(Stringliteral.id) ~ "\n" ~
+            "\tpha\n" ~
+            "\tlda #>_S" ~ to!string(Stringliteral.id) ~ "\n" ~
+            "\tpha\n";
     }
 }
 

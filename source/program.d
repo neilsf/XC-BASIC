@@ -11,11 +11,39 @@ struct Variable {
 	string name;
 	char type;
 	ushort[2] dimensions = [1,1];
+	bool isConst = false;
 	bool isData = false;
+	bool isGlobal = true;
+	string procname;
+
+	int constValInt = 0;
+	float constValFloat = 0;
 
 	string getLabel()
 	{
-		return "_" ~ this.name;
+		if(this.isGlobal) {
+			return "_" ~ this.name;
+		}
+		else {
+			return "_" ~ this.procname ~ "." ~ this.name;
+		}
+	}
+}
+
+struct Procedure {
+	string name;
+	Variable[] arguments;
+
+	string getLabel()
+	{
+		return "_P" ~ this.name;
+	}
+
+	void addArgument(Variable var)
+	{
+		var.isGlobal = false;
+		var.procname = this.name;
+		this.arguments ~= var;
 	}
 }
 
@@ -39,8 +67,8 @@ class Program
 	Variable[] program_data;
 
 	string[] labels;
-    
-	//Procedure[] procedures;
+
+	Procedure[] procedures;
 
 	ushort stringlit_counter = 0;
 	string program_segment;
@@ -49,6 +77,9 @@ class Program
 	char last_type;
 
 	ParseTree current_node;
+
+	bool in_procedure = false;
+	string current_proc_name = "";
 
 	bool use_floats = true;
 
@@ -67,6 +98,7 @@ class Program
 
 	bool labelExists(string str)
 	{
+		str = this.in_procedure ? this.current_proc_name ~ "." ~ str : str;
 		foreach(ref e; this.labels) {
 			if(e == str) {
 				return true;
@@ -76,8 +108,9 @@ class Program
 		return false;
 	}
 
-	void addLabel(string str) 
+	void addLabel(string str)
 	{
+		str = this.in_procedure ? this.current_proc_name ~ "." ~ str : str;
 		if(this.labelExists(str)) {
 			this.error("Label "~str~" already defined");
 		}
@@ -100,14 +133,14 @@ class Program
 			return 'b';
 		}
 	}
-    
+
 	string getDataSegment()
 	{
 		string ret = "data_start:\n";
 		ret ~= this.data_segment ~ "data_end:\n";
 		return ret;
 	}
-    
+
 	string getVarSegment()
 	{
 		string varsegment;
@@ -117,15 +150,15 @@ class Program
 		varsegment ~= "\tORG data_end+1\n";
 
 		foreach(ref variable; this.variables) {
-			if(!variable.isData) {
+			if(!variable.isData && !variable.isConst) {
 				ubyte varlen = this.varlen[variable.type];
 				int array_length = variable.dimensions[0] * variable.dimensions[1];
 				int total_memory = array_length * this.varlen[variable.type];
 				varsegment ~= variable.getLabel() ~"\tDS.B " ~ to!string(total_memory) ~ "\n";
-			}		
+			}
 		}
 
-		return varsegment;  
+		return varsegment;
 	}
 
 	string getCodeSegment()
@@ -157,6 +190,7 @@ class Program
 		asm_code ~= "\t;--------------------\n";
 		asm_code ~= nucleus.code;
 		asm_code ~= basicstdlib.code;
+
 		if(this.use_floats) {
 			asm_code ~= floatlib.code;
 		}
@@ -171,21 +205,20 @@ class Program
 	ubyte[3] intToBin(int number)
 	{
 		ubyte[3] data_bytes;
-    
-			if(number < 0) {
-					number = 16777216 + number;
-				}
-			
-			try {
-				data_bytes[0] = to!ubyte(number >> 16);
-				data_bytes[1] = to!ubyte((number & 65280) >> 8);
-				data_bytes[2] = to!ubyte(number & 255);
+		if(number < 0) {
+				number = 16777216 + number;
 			}
-			catch(Exception e) {
-				this.error("Compile error: number out of range: "~to!string(number));
-			}
-			
-			return data_bytes;
+
+		try {
+			data_bytes[0] = to!ubyte(number >> 16);
+			data_bytes[1] = to!ubyte((number & 65280) >> 8);
+			data_bytes[2] = to!ubyte(number & 255);
+		}
+		catch(Exception e) {
+			this.error("Compile error: number out of range: "~to!string(number));
+		}
+
+		return data_bytes;
 	}
 
 	float parseFloat(string strval)
@@ -221,8 +254,31 @@ class Program
 
 	Variable findVariable(string id)
 	{
+		bool global_mod = id[0] == '\\';
+		if(global_mod) {
+			id = stripLeft(id, "\\");
+		}
+
 		foreach(ref elem; this.variables) {
-			if(id == elem.name) {
+			if(this.in_procedure && !global_mod) {
+				if(elem.name == id && elem.procname == this.current_proc_name) {
+					return elem;
+				}
+			}
+			else {
+				if(elem.isGlobal && id == elem.name) {
+					return elem;
+				}
+			}
+		}
+
+		assert(0);
+	}
+
+	Procedure findProcedure(string name)
+	{
+		foreach(ref elem; this.procedures) {
+			if(name == elem.name) {
 				return elem;
 			}
 		}
@@ -230,11 +286,38 @@ class Program
 		assert(0);
 	}
 
+	void addVariable(Variable var)
+	{
+		bool global_mod = var.name[0] == '\\';
+		if(global_mod) {
+			var.name = stripLeft(var.name, "\\");
+		}
+
+		if(this.in_procedure && !global_mod) {
+			var.isGlobal = false;
+			var.procname = this.current_proc_name;
+		}
+
+		this.variables ~= var;
+	}
+
 	bool is_variable(string id)
 	{
+		bool global_mod = (id[0] == '\\');
+		if(global_mod) {
+			id = stripLeft(id, "\\");
+		}
+
 		foreach(ref elem; this.variables) {
-			if(id == elem.name) {
-				return true;
+			if(this.in_procedure && !global_mod) {
+				if(id == elem.name && this.current_proc_name == elem.procname) {
+					return true;
+				}
+			}
+			else {
+				if(elem.isGlobal && id == elem.name) {
+					return true;
+				}
 			}
 		}
 
@@ -244,6 +327,18 @@ class Program
 	bool idExists(string id)
 	{
 		return (this.is_variable(id));
+	}
+
+
+	bool procExists(string name)
+	{
+		foreach(ref elem; this.procedures) {
+			if(elem.name == name) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	char guessTheType(string number)
@@ -283,8 +378,18 @@ class Program
 	void processLine(ParseTree node, ubyte pass)
 	{
 		if(pass == 1) {
+			// Check if within procedure
+			if(node.children.length > 1 && node.children[1].children[0].name == "XCBASIC.Proc_stmt") {
+				this.in_procedure = true;
+				this.current_proc_name = join(node.children[1].children[0].children[0].matches);
+			}
+			else if(node.children.length > 1 && node.children[1].children[0].name == "XCBASIC.Endproc_stmt"){
+				this.in_procedure = false;
+				this.current_proc_name = "";
+			}
+
 			// line has statement and it's a DATA statement
-			if(node.children.length > 1 && node.children[1].children[0].name == "TINYBASIC.Data_stmt") {
+			if(node.children.length > 1 && node.children[1].children[0].name == "XCBASIC.Data_stmt") {
 				Stmt stmt = StmtFactory(node.children[1], this);
 				stmt.process();
 			}
@@ -293,15 +398,17 @@ class Program
 		else {
 			//writeln(node);
 			auto Line_id = node.children[0];
-			string label_type = Line_id.children.length == 0 ? "TINYBASIC.none" : Line_id.children[0].name;
+			string label_type = Line_id.children.length == 0 ? "XCBASIC.none" : Line_id.children[0].name;
 			switch(label_type) {
-				case "TINYBASIC.Unsigned":
+				case "XCBASIC.Unsigned":
 				string line_no = join(Line_id.children[0].matches);
+				line_no = this.in_procedure ? this.current_proc_name ~ "." ~ line_no : line_no;
 				this.program_segment ~= "_L" ~ line_no ~ ":\n";
 				break;
 
-				case "TINYBASIC.Label":
+				case "XCBASIC.Label":
 				string label = join(Line_id.children[0].matches[0..$-1]);
+				label = this.in_procedure ? this.current_proc_name ~ "." ~ label : label;
 				this.program_segment ~= "_L" ~ label ~ ":\n";
 				break;
 
@@ -310,39 +417,51 @@ class Program
 			}
 
 			// line has statement excluding a DATA statement
-			if(node.children.length > 1 && node.children[1].children[0].name != "TINYBASIC.Data_stmt") {
+			if(node.children.length > 1 && node.children[1].children[0].name != "XCBASIC.Data_stmt") {
 				Stmt stmt = StmtFactory(node.children[1], this);
 				stmt.process();
 			}
 		}
-	    
 	}
 
 	void fetchLabels(ParseTree node)
 	{
-	    
+		this.in_procedure = false;
+		this.current_proc_name = "";
 		foreach(ref child; node.children[0].children) {
 
 			// empty row?
-			if(child.name != "TINYBASIC.Line" || child.children.length == 0) {
+			if(child.name != "XCBASIC.Line" || child.children.length == 0) {
 				continue;
 			}
-		    
+
 			auto Line_id = child.children[0];
-			string label_type = Line_id.children.length == 0 ? "TINYBASIC.none" : Line_id.children[0].name;
+			string label_type = Line_id.children.length == 0 ? "XCBASIC.none" : Line_id.children[0].name;
 			switch(label_type) {
-				case "TINYBASIC.Unsigned":
+				case "XCBASIC.Unsigned":
 				string line_no = join(Line_id.children[0].matches);
 				this.addLabel(line_no);
 				break;
 
-				case "TINYBASIC.Label":
+				case "XCBASIC.Label":
 				string label = join(Line_id.children[0].matches[0..$-1]);
 				this.addLabel(label);
 				break;
 
 				default:
 				break;
+			}
+
+			if(child.children.length > 1) {
+				auto Stmt = child.children[1].children[0];
+				if(Stmt.name == "XCBASIC.Proc_stmt") {
+					this.in_procedure = true;
+					this.current_proc_name = join(Stmt.children[0].matches);
+				}
+				else if(Stmt.name == "XCBASIC.Endproc_stmt") {
+					this.in_procedure = false;
+					this.current_proc_name = "";
+				}
 			}
 		}
 	}
@@ -354,7 +473,7 @@ class Program
 		{
 			this.current_node = node;
 			switch(node.name) {
-				case "TINYBASIC.Line":
+				case "XCBASIC.Line":
 					this.processLine(node, pass);
 					break;
 
@@ -365,10 +484,13 @@ class Program
 				break;
 			}
 		}
-	    
+
 		/* pass 1 */
 		walkAst(node, 1);
-	    
+
+		this.in_procedure = false;
+		this.current_proc_name = "";
+
 		/* pass 2 */
 		walkAst(node, 2);
 	}

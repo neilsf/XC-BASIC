@@ -1,4 +1,5 @@
-import std.string, std.conv;
+import std.string, std.conv, std.array;
+import std.regex;
 
 char[] petscii = [
     0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7, 0x8, 0x9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf,
@@ -30,23 +31,60 @@ ubyte ascii_to_petscii(char ascii_char)
     return 0;
 }
 
-string str_ascii_to_petscii(string ascii_string)
+char[] replace_petscii_escapes(string s)
 {
-    char[] petscii_string = ascii_string.dup;
-    for(ubyte i=0; i<ascii_string.length; i++) {
-        petscii_string[i] = ascii_to_petscii(ascii_string[i]);
+    string ret;
+    ret = replace(s,     "{CLR}", "\x93");
+    ret = replace(ret,   "{HOME}", "\x13");
+    ret = replace(ret,   "{INSERT}", "\x94");
+    ret = replace(ret,   "{DEL}", "\x14");
+    ret = replace(ret,   "{CR}", "\x0d");
+    ret = replace(ret,   "{REV_ON}", "\x12");
+    ret = replace(ret,   "{REV_OFF}", "\x92");
+    ret = replace(ret,   "{CRSR_UP}", "\x91");
+    ret = replace(ret,   "{CRSR_DOWN}", "\x11");
+    ret = replace(ret,   "{CRSR_LEFT}", "\x9d");
+    ret = replace(ret,   "{CRSR_RIGHT}", "\x1d");
+
+    return ret.dup;
+}
+
+char[] replace_numeric_escapes(char[] s) {
+    char[] r;
+    bool esc = false;
+    ubyte chr=0;
+    string num = "";
+    for (ubyte i=0; i < s.length; i++) {
+        if(!esc && s[i] != '{' && s[i] != '}') {
+            r ~= s[i];
+        }
+        else if(s[i] == '{') {
+            esc = true;
+        }
+        else if(s[i] == '}') {
+            r ~= to!ubyte(num);
+            esc = false;
+            num = "";
+        }
+        else {
+            num = num ~ to!string(s[i]);
+        }
     }
-    return to!string(petscii_string);
+    
+    return r;
 }
 
 string ascii_to_petscii_hex(string ascii_string, bool newline = true)
 {
+    char[] ascii_repl = replace_numeric_escapes(replace_petscii_escapes(ascii_string));
     string hex = "";
-    for(ubyte i=0; i<ascii_string.length; i++) {
-        hex ~= to!string(ascii_to_petscii(ascii_string[i]), 16) ~ " ";
+
+    for(ubyte i=0; i<ascii_repl.length; i++) {
+        hex ~= rightJustify(to!string(ascii_to_petscii(ascii_repl[i]), 16), 2, '0') ~ " ";
     }
+
     if(newline) {
-        hex ~= "0D ";    
+        hex ~= "0D ";
     }
     hex ~= "00";
     return hex;

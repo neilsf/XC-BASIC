@@ -69,54 +69,59 @@ class Factor
     {
     	string ftype = this.node.children[0].name;
         final switch(ftype) {
-            case "TINYBASIC.Var":
+            case "XCBASIC.Var":
                 ParseTree v = this.node.children[0];
                 string varname = join(v.children[0].matches);
                 char vartype = this.program.type_conv(v.children[1].matches[0]);
                 if(!this.program.is_variable(varname)) {
-                    this.program.variables ~= Variable(0, varname, vartype);
                     this.program.error("Undefined variable: " ~ varname);
                 }
+
                 Variable var = this.program.findVariable(varname);
 
-                if(v.children.length > 2) {
-                    if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
-                        this.program.error("Not an array");
-                    }
-                    auto subscript = v.children[2];
-                    if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
-                        this.program.error("Bad subscript");
-                    }
-                    ushort[2] dimensions;
-                    ubyte i = 0;
-                    foreach(ref expr; subscript.children) {
-                        Expression Ex2 = new Expression(expr, this.program);
-                        Ex2.eval();
-                        this.asmcode ~= to!string(Ex2);
-                        
-                        if(i == 1) {
-                            // must multiply with first dimension length
-                            this.asmcode ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
-                                                        ~ "\tmulw\n"
-                                                        ~ "\taddw\n";
-                        }
-
-                        i++;
-                    }
-                    // must multiply with the variable length!
-                    this.asmcode ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
-                                                ~ "\tmulw\n" ;
-                    this.asmcode ~= "\tp" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
+                if(var.isConst) {
+                    this.asmcode ~= "\tpword #" ~ to!string(var.constValInt) ~ "\n";
                 }
                 else {
-                    this.asmcode ~= "\tp" ~ to!string(vartype) ~ "var " ~ var.getLabel() ~ "\n";
+                    if(v.children.length > 2) {
+                        /* any variable can be accessed as an array
+                        if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
+                            this.program.error("Not an array");
+                        }
+                        */
+                        auto subscript = v.children[2];
+                        if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
+                            this.program.error("Bad subscript");
+                        }
+                        ushort[2] dimensions;
+                        ubyte i = 0;
+                        foreach(ref expr; subscript.children) {
+                            Expression Ex2 = new Expression(expr, this.program);
+                            Ex2.eval();
+                            this.asmcode ~= to!string(Ex2);
+
+                            if(i == 1) {
+                                // must multiply with first dimension length
+                                this.asmcode ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
+                                                            ~ "\tmulw\n"
+                                                            ~ "\taddw\n";
+                            }
+
+                            i++;
+                        }
+                        // must multiply with the variable length!
+                        this.asmcode ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
+                                                    ~ "\tmulw\n" ;
+                        this.asmcode ~= "\tp" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
+                    }
+                    else {
+                        this.asmcode ~= "\tp" ~ to!string(vartype) ~ "var " ~ var.getLabel() ~ "\n";
+                    }
                 }
 
-
-                
             break;
 
-            case "TINYBASIC.Number":
+            case "XCBASIC.Number":
                 ParseTree v = this.node.children[0];
                 string num_str = join(v.children[0].matches);
                 final switch(v.children[0].name) {
@@ -155,14 +160,14 @@ class Factor
 
             break;
 
-            case "TINYBASIC.Expression":
+            case "XCBASIC.Expression":
                 ParseTree ex = this.node.children[0];
                 auto Ex = new Expression(ex, this.program);
                 Ex.eval();
                 this.asmcode ~= to!string(Ex);
             break;
 
-            case "TINYBASIC.Fn_call":
+            case "XCBASIC.Fn_call":
                 ParseTree fn = this.node.children[0];
                 auto fun = FunFactory(fn, this.program);
                 fun.process();

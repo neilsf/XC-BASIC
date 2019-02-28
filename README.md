@@ -8,6 +8,12 @@ Some of the advantages of programming in **XC-BASIC** are:
 
 **XC-BASIC** is based on Tiny BASIC, with many differences in syntax.
 
+# Contributors wanted!
+
+- If you've written a working XC-BASIC program, please add it to the examples/ directory in the develop branch and submit a PR. Or you can just send it to me to feketecsaba dot gmail dot com
+- If you've found a bug, please post a GitHub issue.
+- If you have any suggestions, ideas, critics or would like to develop the project, feel free to email me. Any feedback is warmly appreciated.
+
 # Language reference
 
 ## General syntax
@@ -36,11 +42,29 @@ Variables are automatically declared upon the first `LET`, `DIM` or `ḊATA` sta
 
 Variable names can be of any length, they can consist of letters and numbers, but they may not start with a number. Variable names are case-sensitive.
 
+## Constants
+
+Constants are special variables that are initialized in compile time and may not change value during runtime. The benefit of using constants instead of variables are:
+
+- Constants do not reserve space in memory
+- Constants are *faster* to evaluate
+
+Always prefer constants over variables, whenever possible. See the documentation for `CONST` for more information.
+
+## Scope
+
+Variables, constants and labels can be **global** or **local**.
+
+- Any variable or constant declared using a `CONST`,  `LET`, `DIM` or `ḊATA` statement outside a `PROC ... ENDPROC` pair is considered to be a global variable and can only be accessed from the global scope. Global variables are accessible from within a procedure by using the global modifier (`\`).
+- Any variable or constant declared using a `CONST`, `LET`, `DIM` or `ḊATA` statement inside a `PROC ... ENDPROC` pair, including the procedure's parameters, is considered to be a local variable and can only be accessed within that procedure.
+
+Please see the documentation for the `PROC ... ENDPROC` statements for more details.
+
 ## Arrays
 
 Arrays must be defined using the `DIM` statement. As of the current version, maximum two-dimensional arrays are supported and both dimensions are limited to a length of 32767 elements. However, this is just a theoretical limit, in practice you'll run out of memory earlier. Arrays are zero-based (the first index is 0) and only integers may be used as indices.
 
-The syntax to define array is the following (not square brackets):
+The syntax to define array is the following (note the square brackets):
 
 	dim variable[x_len, y_len]
 	
@@ -92,8 +116,6 @@ Examples:
 	print "this is line one{CR}and this is line two"
 	print "{5}white text"
 
-As for the screencodes (used by `TEXTAT`), you can use the `{num}` escape sequence - remember to use screencodes instead of PETSCII.
-
 ## Error conditions
 
 For the sake of execution speed, there is only one error condition that is checked in runtime, the **division by zero**. The compiler will try to detect static (compile time) errors in code, but naturally it can't predict runtime error conditions. In each statement's documentation you can read the possible error conditions that you, the programmer have to take care of.
@@ -102,9 +124,13 @@ For the sake of execution speed, there is only one error condition that is check
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
-`CHARAT` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE`  | `REM` | `RND` | `TEXTAT` 
+`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SYS` | `TEXTAT` | `USR`
 
 More commands are coming soon!
+
+### CALL
+
+Please see `PROC ... ENDPROC`
 
 ### CHARAT
 
@@ -118,6 +144,21 @@ Outputs a character at the given column and row on the screen. Accepts integers 
 	charat 20, 10, 65 
 	
 Note that the runtime library will not check if the values are within the screen boundaries. As `CHARAT` is just a convenience wrapper around `POKE`, it can overwrite memory locations other than the screen memory, thus damaging the program or data. Use it with special care.
+
+### CONST
+
+The `CONST` statement defines a constant. Syntax:
+
+	const varname = number
+	
+The constant can be subsequently used as a regular variable, except that it is read-only. The value may not be an expression.
+
+Example:
+
+	const BORDER = 53280
+	const WHITE = 1
+	
+	poke BORDER, WHITE
 
 ### DATA
 
@@ -166,6 +207,11 @@ The above will output 9.
 
 Defines an array. See the Arrays section for more information.
 
+`DIM` can also be used to define a single variable without having to assign a value. For example:
+
+	dim x
+	rem ** x is now an uninitalized variable
+
 ### END
 
 Ends execution. Can be used within the normal program flow. It can be used in the end of the program, but it is not necessary. See `GOSUB` for an example.
@@ -212,24 +258,29 @@ Note #1: make sure to use the `END` command before your routines if you don't wa
 
 Note #2: there is no runtime call stack checking (e. g. no `?RETURN WITHOUT GOSUB ERROR`). If your call stack is corrupted, the program is likely to break.
 
+Note #3: Unlike procedures, subroutines do not open a new local scope.
+
 ### IF ... THEN ... ELSE
 
 Syntax:
 
-	if condition then statement <else statement>
+	if relation <and/or relation> then statement <else statement>
 	
 Conditional structure. Executes the statement after `THEN` if the expression evaluates to true, otherwise the statement after `ELSE`, if present. `ELSE` is optional.
 
 Current limitations:
 
-- Expressions do not support logical operators (`OR`, `AND` - *coming soon!*)
-- Only one command can be executed after `THEN` and `ELSE`
+- Only one logical operation is supported
+- Only one command can be executed after `THEN` and `ELSE` each
 - `THEN` may not be omitted
+
+Expressions support logical operators (`AND` and `OR`) since version 1.0.
 
 Examples:
 
 	if x >= y/z then print "yes, expression is true"
 	if a = b then print "they are equal" else print "they are not equal"
+	if a = b or a < 2 then print "they are equal or a is less than two"
 	
 The supported relational operators are:
 
@@ -239,6 +290,11 @@ The supported relational operators are:
 - `<` (less than)
 - `<=` (less than or equal)
 - `<>` (not equal)
+
+The supported logical operators are:
+
+- `AND`
+- `OR`
 
 ### INC
 
@@ -273,20 +329,23 @@ Calls a built-in routine that allows the user to input numbers using the keyboar
 	
 ### LET
 
-Assigns the value of an expression to a variable. The keyword `LET` can not be omitted as in other BASIC dialects. Examples:
+Assigns the value of an expression to a variable. Examples:
 
 	let somevar = 5
 	let somearray[n] = x * 2
 	
-### PRINT
+Important! **Prior to version 1.0, the `LET` keyword may not be omited** as in other BASIC dialects.
 
-Prints strings or numbers (values of any expression) on the screen using the KERNAL CHAROUT routine. Any number of arguments are accepted. The arguments must be separated with a colon (`,`). Examples:
-
-	print "hello world"
-	print "the value of myvar is ", myvar, " and that of anothervar is ", anothervar
-	print "let's print the value of an expression: ", (486 + y) * 3
+	rem ** works in v1.0+ only **
+	x = 5
 	
-ASCII strings will be converted to PETSCII in compile-time.
+### PEEK
+
+The `PEEK` function returns the value that is read from a memory address. Example:
+
+	let value = peek(n)
+
+The same number conversions apply as discussed further in the next section.
 
 ### POKE
 
@@ -315,12 +374,85 @@ Examples:
 	rem ** will be the same as
 	poke 53820, 255
 
-### PEEK
+### PRINT
 
-The `PEEK` function returns the value that is read from a memory address. The same conversions apply to the address as discussed above. Example:
+Prints strings or numbers (values of any expression) on the screen using the KERNAL CHAROUT routine. Any number of arguments are accepted. The arguments must be separated with a colon (`,`). Examples:
 
-	let value = peek(n)
+	print "hello world"
+	print "the value of myvar is ", myvar, " and that of anothervar is ", anothervar
+	print "let's print the value of an expression: ", (486 + y) * 3
+	
+ASCII strings will be converted to PETSCII in compile-time.
 
+### PROC ... ENDPROC
+
+The `PROC` statement introduces a new procedure that spans until the `ENDPROC` statement. Procedures are named subroutines that have a unique variable and label scope. Procedures may have one or more parameters that are passed to by the `CALL` statement. The `CALL` statement is the only way to execute a procedure (you can't `GOTO` into a procedure, for example). You can use `RETURN` to early exit a procedure.
+
+Syntax:
+
+	proc proc_name (parameter_list)
+	endproc
+	call proc_name (argument_list)
+
+Example:
+
+	rem ** procedure example **
+	rem ** these variables are global **
+	let a = 1
+	let b = 2
+	
+	proc printmin(x, y)
+		rem ** x, y and a are local variables **
+		let a = 3
+		if x < y then print x else print y
+	endproc
+
+	call printmin(a, b)
+	call printmin(-1, -5)
+	print a
+
+The above program will output (note that the value of `a` remained 1 in the global scope):
+
+	1
+	-5
+	1
+	
+To access global variables from within a procedure, prefix the variable name with the `\` modifier. Example:
+
+	let a=1
+	proc someproc
+		let a=2
+		print \a
+	endproc
+
+	rem ** will display: 1	
+	call someproc
+
+
+Local variables of a procedure are *static* which means they are not dinamically allocated on each procedure call. This also means they keep their values through subsequent executions of the same procedure. Take the following example.
+
+	proc staticexample(firstrun)
+		dim a
+		if firstrun = 1 then let a = 1 else inc a[0]
+		print a
+	endproc
+	
+	call staticexample(1)
+	call staticexample(0)
+	
+The above program will output:
+
+	1
+	2
+	
+To declare and call parameterless procedures, just omit the parentheses:
+
+	proc simpleproc
+		print "simpleproc called"
+	endproc
+	
+	call simpleproc
+		
 ### REM
 
 A remark, just as you'd expect. Everything until the end of line is ignored.
@@ -333,6 +465,16 @@ The `RND` function returns a pseudo-random integer between -32768 and +32767. Ex
 	if rnd() < 0 then print "heads" else print "tails"
 	
 Note: needless to say that the number returned by `RND` is not a true random number.
+
+### SYS
+
+The `SYS` command calls a machine language routine at a apecified address. Syntax:
+
+	sys expression
+	
+The expression must return an integer and will be treated as unsigned. Once the machine language routine returns using the `RTS` opcode, the XC-BASIC program will continue at the next line.
+
+Note that `SYS` can't pass parameters to the machine language routine, nor has any return value. For calling machine language functions, see `USR`.
 
 ### TEXTAT
 
@@ -351,6 +493,46 @@ Outputs a string or a number a the given column and row on the screen. Accepts i
 	textat 15, 10, 200
 
 Note: the runtime library will not prevent the text from overflowing outside the screen thus damaging data or code. The programmer has to make sure the text fits within the screen RAM ($0400-$07E7).
+
+### USR
+
+The `USR` function passes an arbitrary length of parameters to a machine language routine, executes it, and then uses the return value of the machine language routine as the value of the function.
+
+Usage:
+
+	let retval = usr(address, arg1, arg2, ...)
+	
+The arguments are available on the stack for the machine language routine. The routine can access them in the same order as they're passed, but in reverse byte order. The routine is then supposed to push the return value back to the stack in normal order and exit using `JMP ($02fe)` (NOT `RTS`!) For example:
+
+	; this is the ML routine
+	ORG $c000
+	PLA ; get x high byte
+	STA arg1+1
+	PLA ; get x low byte
+	STA arg1
+	PLA ; get y high byte
+	STA arg2+1
+	PLA ; get y low byte
+	STA arg2
+	
+	<do whatever>
+	
+	LDA result
+	PHA
+	LDA result+1
+	PHA
+	JMP ($02fe) ; note this is the only valid way to return from an user function
+	
+	rem ***
+	rem *** XC-BASIC program starts here
+	const MY_FUNC = 49152
+	let x = 1
+	let y = 2
+	print usr(MY_FUNC, x, y)
+
+Note #1: For string arguments, the two-byte address of the string will be passed to the ML routine. Strings are nullbyte-terminated.
+
+Note #2: The callee *must* pull all arguments from the stack and *must* push exactly 2 bytes (as of current version). The program will break otherwise.
 
 # Using the compiler
 
@@ -387,3 +569,7 @@ Or using a singe lline command:
 
 	xcbasic64 source.bas > target.asm && dasm target.asm
 	
+# Credits
+
+- XC-BASIC is using Philippe Sigaud's fantastic [Pegged library](https://github.com/PhilippeSigaud/Pegged) for grammar parsing
+- Many ML routines have been borrowed from miscellaneous sources, their authors - if known - are credited within the source code. If you find your piece and your name is not credited, please drop me a line or post an issue here on GitHub and I'll fix my mistake!

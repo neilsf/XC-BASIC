@@ -1,6 +1,1 @@
-print 0
-print 9
-print 10
-print 523
-print 30012
-print -14652
+print "{CLR}{5}new screen {REV_ON}this is reverse{REV_OFF}{33}{34}{35}"
