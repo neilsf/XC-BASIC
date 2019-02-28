@@ -363,7 +363,7 @@ Examples:
 
 ### PRINT
 
-Prints strings or numbers (values of any expression) on the screen using the KERNAL CHAROUT routine. Any number of arguments are accepted. The arguments must be separated with a colon (`,`). Examples:
+Prints strings or numbers (values of any expression) on the screen using the KERNAL CHAROUT routine. Any number of arguments are accepted. The arguments must be separated with a comma (`,`). Examples:
 
 	print "hello world"
 	print "the value of myvar is ", myvar, " and that of anothervar is ", anothervar
