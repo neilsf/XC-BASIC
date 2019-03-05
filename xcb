@@ -7,16 +7,9 @@ if test "$1" = "-h"; then
     echo "This script compiles an XC-BASIC source to binary executable."
     echo ""
     echo "USAGE:"
-    echo "$script_name infile.bas outfile.prg [options]"
-    echo ""
-    echo "[options] - These will be passed to DASM. See the DASM docs for more information."
+    echo "$script_name infile.bas outfile.prg"
     echo ""
     exit
 fi
-if [ -z "$3" ]
-    then
-    params = "$3"
-    else
-    params = ""
-fi
-bin/linux_x86_64/xcbasic64 "$1" > /tmp/xcbtmp.asm && third_party/dasm-2.20.11/dasm.Linux.x86 /tmp/xcbtmp.asm -o"$2" "$params"
+bin/linux_x86_64/xcbasic64 "$1" > /tmp/xcbtmp.asm && third_party/dasm-2.20.11/dasm.Linux.x86 /tmp/xcbtmp.asm -o"$2"
+rm /tmp/xcbtmp.asm
