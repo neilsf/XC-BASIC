@@ -876,9 +876,6 @@ NUCL_DIVU16 SUBROUTINE
 .selfmod
     jmp $0000
 .return_addr
-	IF <* == $ff
-	nop
-	ENDIF
     ENDM
 
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
