@@ -2,6 +2,7 @@ import std.stdio, std.file, std.array, std.string, std.getopt, std.path;
 import core.stdc.stdlib;
 import tbgrammar;
 import program;
+import std.conv;
 
 void main(string[] args)
 {
@@ -23,10 +24,11 @@ void main(string[] args)
         source = source ~ infile.readln();
     }
 
-    auto ast = TINYBASIC(source);
+    auto ast = XCBASIC(source);
     if(!ast.successful) {
-        stderr.writeln("Parser error");
-        stderr.writeln(ast);
+        auto lines = splitLines(to!string(ast));
+        string line = lines[$-1];
+        stderr.writeln("Parser error: " ~ strip(line, " +-"));
         exit(1);
     }
     auto program = new Program();

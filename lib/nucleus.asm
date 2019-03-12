@@ -425,6 +425,33 @@ stack 		EQU $0100
 	sta.wx stack+1
 	ENDM
 
+    ; Perform OR on top 2 bytes of stack
+    MAC orb
+    pla
+    sta reserved1
+    pla
+    ora reserved1
+    pha
+    ENDM
+
+    ; Perform AND on top 2 bytes of stack
+    MAC andb
+    pla
+    sta reserved1
+    pla
+    and reserved1
+    pha
+    ENDM
+
+    ; Perform XOR on top 2 bytes of stack
+    MAC xorb
+    pla
+    sta reserved1
+    pla
+    eor reserved1
+    pha
+    ENDM
+
 	; Add words on stack
 	MAC addw
 	tsx
@@ -827,6 +854,29 @@ NUCL_DIVU16 SUBROUTINE
 	dec {1}+1
 .skip
 	ENDM
+
+    MAC sys
+    pla
+    sta .selfmod+2
+    pla
+    sta .selfmod+1
+.selfmod
+    jsr $0000
+    ENDM
+
+    MAC usr
+    pla                 ; get function address
+    sta .selfmod+2
+    pla
+    sta .selfmod+1
+    lda #<.return_addr
+    sta $02fe
+    lda #>.return_addr
+    sta $02ff
+.selfmod
+    jmp $0000
+.return_addr
+    ENDM
 
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
 

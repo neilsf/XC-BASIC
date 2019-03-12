@@ -3,15 +3,15 @@ module tbgrammar;
 import pegged.grammar;
 
 mixin(grammar(`
-TINYBASIC:
+XCBASIC:
     Program <- Line (NL* Line)+ EOI
     Line <- Line_id :WS? Statement?
 
-    Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt / Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt
+    Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt / Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt / Sys_stmt
     Const_stmt <    "const" :WS? Var :WS? "=" :WS? Number
-    Let_stmt <      "let" :WS? Var :WS? "=" :WS? Expression
+    Let_stmt <      ("let" / eps) :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print" :WS? ExprList
-    If_stmt <       "if" :WS? Expression :WS? Relop :WS? Expression :WS? "then" :WS? Statement :WS? ("else" :WS? Statement)?
+    If_stmt <       "if" :WS? Relation :WS? (Logop :WS? Relation)? :WS? "then" :WS? Statement :WS? ("else" :WS? Statement)?
     Goto_stmt <     "goto" :WS? (Label_ref / Unsigned)
     Input_stmt <    "input" :WS? VarList
     Gosub_stmt <    "gosub" :WS? (Label_ref / Unsigned)
@@ -30,7 +30,9 @@ TINYBASIC:
     Dec_stmt <      "dec" :WS? Var
     Proc_stmt <     "proc" :WS Label_ref :WS? (:"(" :WS? VarList :WS? :")")?
     Endproc_stmt <  "endproc"
+    Sys_stmt <      "sys" :WS? Expression
 
+    Relation < Expression :WS? Relop :WS? Expression
     ExprList < (String / Expression) :WS? ("," :WS? (String / Expression) )*
     VarList < Var (:WS? "," :WS? Var)*
     Datalist < Number (:WS? "," :WS? Number)*
@@ -48,6 +50,7 @@ TINYBASIC:
     Vartype <- ("%" / "#" /  eps)
     Subscript <- "[" Expression (:WS? "," :WS? Expression)? "]"
 
+    Logop < "and" | "or"
     Relop < "<" | "<=" | "=" | "<>" | ">" | ">="
     String < doublequote (!doublequote . / ^' ')* doublequote
 
@@ -62,7 +65,7 @@ TINYBASIC:
 
     Line_id < (Label / Unsigned / eps)
 
-    Reserved < ("let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "end" / "rem" / "poke" / "peek" / "dim" / "data" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc")
+    Reserved < ("let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "end" / "rem" / "poke" / "peek" / "dim" / "data" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr" / "and" / "or")
 
     WS < space*
     EOI < !.

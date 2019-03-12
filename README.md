@@ -124,7 +124,7 @@ For the sake of execution speed, there is only one error condition that is check
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
-`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `TEXTAT` 
+`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SYS` | `TEXTAT` | `USR`
 
 More commands are coming soon!
 
@@ -264,20 +264,23 @@ Note #3: Unlike procedures, subroutines do not open a new local scope.
 
 Syntax:
 
-	if condition then statement <else statement>
+	if relation <and/or relation> then statement <else statement>
 	
 Conditional structure. Executes the statement after `THEN` if the expression evaluates to true, otherwise the statement after `ELSE`, if present. `ELSE` is optional.
 
 Current limitations:
 
-- Expressions do not support logical operators (`OR`, `AND` - *coming soon!*)
-- Only one command can be executed after `THEN` and `ELSE`
+- Only one logical operation is supported
+- Only one command can be executed after `THEN` and `ELSE` each
 - `THEN` may not be omitted
+
+Expressions support logical operators (`AND` and `OR`) since version 1.0.
 
 Examples:
 
 	if x >= y/z then print "yes, expression is true"
 	if a = b then print "they are equal" else print "they are not equal"
+	if a = b or a < 2 then print "they are equal or a is less than two"
 	
 The supported relational operators are:
 
@@ -287,6 +290,11 @@ The supported relational operators are:
 - `<` (less than)
 - `<=` (less than or equal)
 - `<>` (not equal)
+
+The supported logical operators are:
+
+- `AND`
+- `OR`
 
 ### INC
 
@@ -321,10 +329,15 @@ Calls a built-in routine that allows the user to input numbers using the keyboar
 	
 ### LET
 
-Assigns the value of an expression to a variable. The keyword `LET` can not be omitted as in other BASIC dialects. Examples:
+Assigns the value of an expression to a variable. Examples:
 
 	let somevar = 5
 	let somearray[n] = x * 2
+	
+Important! **Prior to version 1.0, the `LET` keyword may not be omited** as in other BASIC dialects.
+
+	rem ** works in v1.0+ only **
+	x = 5
 	
 ### PEEK
 
@@ -453,6 +466,16 @@ The `RND` function returns a pseudo-random integer between -32768 and +32767. Ex
 	
 Note: needless to say that the number returned by `RND` is not a true random number.
 
+### SYS
+
+The `SYS` command calls a machine language routine at a apecified address. Syntax:
+
+	sys expression
+	
+The expression must return an integer and will be treated as unsigned. Once the machine language routine returns using the `RTS` opcode, the XC-BASIC program will continue at the next line.
+
+Note that `SYS` can't pass parameters to the machine language routine, nor has any return value. For calling machine language functions, see `USR`.
+
 ### TEXTAT
 
 Syntax:
@@ -470,6 +493,46 @@ Outputs a string or a number a the given column and row on the screen. Accepts i
 	textat 15, 10, 200
 
 Note: the runtime library will not prevent the text from overflowing outside the screen thus damaging data or code. The programmer has to make sure the text fits within the screen RAM ($0400-$07E7).
+
+### USR
+
+The `USR` function passes an arbitrary length of parameters to a machine language routine, executes it, and then uses the return value of the machine language routine as the value of the function.
+
+Usage:
+
+	let retval = usr(address, arg1, arg2, ...)
+	
+The arguments are available on the stack for the machine language routine. The routine can access them in the same order as they're passed, but in reverse byte order. The routine is then supposed to push the return value back to the stack in normal order and exit using `JMP ($02fe)` (NOT `RTS`!) For example:
+
+	; this is the ML routine
+	ORG $c000
+	PLA ; get x high byte
+	STA arg1+1
+	PLA ; get x low byte
+	STA arg1
+	PLA ; get y high byte
+	STA arg2+1
+	PLA ; get y low byte
+	STA arg2
+	
+	<do whatever>
+	
+	LDA result
+	PHA
+	LDA result+1
+	PHA
+	JMP ($02fe) ; note this is the only valid way to return from an user function
+	
+	rem ***
+	rem *** XC-BASIC program starts here
+	const MY_FUNC = 49152
+	let x = 1
+	let y = 2
+	print usr(MY_FUNC, x, y)
+
+Note #1: For string arguments, the two-byte address of the string will be passed to the ML routine. Strings are nullbyte-terminated.
+
+Note #2: The callee *must* pull all arguments from the stack and *must* push exactly 2 bytes (as of current version). The program will break otherwise.
 
 # Using the compiler
 
@@ -492,7 +555,19 @@ There are pre-built binaries in the `dist/` directory of this repo (currently fo
 
 ## Usage
 
-Command line usage is:
+Since version 1.0, the DASM executable is included in the project and XC-BASIC sources can be compiled to machine code using a single command.
+
+Usage in Windows:
+
+	xcb.bat source.bas target.prg
+	
+Usage in Linux:
+
+	./xcb source.bas target.prg
+	
+That's all you have to use in most of the cases. However, you can still use the binaries in the `bin/` directory to see and debug the intermediate assembly listing.
+
+The command line usage of the binarry is:
 
 	xcbasic64 source.bas > target.asm
 	
@@ -509,4 +584,6 @@ Or using a singe lline command:
 # Credits
 
 - XC-BASIC is using Philippe Sigaud's fantastic [Pegged library](https://github.com/PhilippeSigaud/Pegged) for grammar parsing
+- Since version 1.0, the [DASM](http://dasm-dillon.sourceforge.net/) executable is included in the project, please see `third_party/dasm-2.20.11/LICENSE` for more information.
 - Many ML routines have been borrowed from miscellaneous sources, their authors - if known - are credited within the source code. If you find your piece and your name is not credited, please drop me a line or post an issue here on GitHub and I'll fix my mistake!
+
