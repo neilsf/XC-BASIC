@@ -17,8 +17,11 @@ reserved9	EQU $07
 reservedA	EQU $08
 reservedB	EQU $09
 
-
 stack 		EQU $0100
+
+MOVFM		EQU $bba2
+CONUPK		EQU $ba8c
+MOVMF		EQU $bbd4
 
 	PROCESSOR 6502
 	
@@ -63,12 +66,36 @@ stack 		EQU $0100
 	pha
 	ENDM
 	
+	; Push a float on the stack (floats go reversed!)
+	MAC pfloat
+	lda {5}
+	pha
+	lda {4}
+	pha
+	lda {3}
+	pha
+	lda {2}
+	pha
+	lda {1}
+	pha
+	ENDM
+	
 	; Push one word variable on the stack
 	MAC pwvar
 	lda.w {1}
 	pha
 	lda.w {1}+1
 	pha
+	ENDM
+	
+	; Push one float variable on the stack (floats go reversed!)
+	MAC pfvar
+	ldy #$04
+.loop	
+	lda {1},1
+	pha
+	dey
+	bpl .loop
 	ENDM
 
 	;Push one word variable (indexed) on the stack
@@ -91,6 +118,28 @@ stack 		EQU $0100
 	iny
 	lda (reserved0),y
 	pha
+	ENDM
+	
+	;Push one float variable (indexed) on the stack
+	;Expects array index being on top of stack
+	MAC pfarray
+	pla
+	sta reserved1
+	pla
+	sta reserved0
+	lda #<{1}
+	clc
+	adc reserved0
+	sta reserved0
+	lda #>{1}
+	adc reserved1
+	sta reserved1
+	ldy #$04
+.loop	
+	lda (reserved0),y
+	pha
+	dey
+	bpl .loop
 	ENDM
 
 	MAC psvar
@@ -116,6 +165,21 @@ stack 		EQU $0100
 	sta {1}
 	ENDM
 	
+	; Pull float to variable
+	MAC plf2var
+	pla
+	sta {1}
+	pla
+	sta {1}+1
+	pla
+	sta {1}+2
+	pla
+	sta {1}+3
+	pla
+	sta {1}+4
+	ENDM
+	
+	
 	;Pull one word variable (indexed)
 	;Expects array index on top of stack
 	MAC plwarray
@@ -137,7 +201,72 @@ stack 		EQU $0100
 	pla
 	sta (reserved0),y
 	ENDM
-
+	
+	; Pull one float variable (indexed)
+	; Expects array index on top of stack
+	MAC plfarray
+	pla
+	sta reserved1
+	pla
+	sta reserved0
+	lda #<{1}
+	clc
+	adc reserved0
+	sta reserved0
+	lda #>{1}
+	adc reserved1
+	sta reserved1
+	ldy #$00
+	REPEAT 5	
+	pla
+	sta (reserved0),y
+	iny
+	REPEND
+	ENDM
+	
+	; Move float on stack to FAC
+	; Call basicin first!
+	MAC pullfac
+	tsx
+	inx
+	txa
+	ldy #$01
+	jsr MOVFM
+	tsx
+	REPEAT 5
+	inx
+	REPEND
+	txs
+	ENDM
+	
+	; Move float on stack to ARG
+	; Call basicin first!
+	MAC pullarg
+	tsx
+	inx
+	txa
+	ldy #$01
+	jsr CONUPK
+	REPEAT 5
+	inx
+	REPEND
+	txs
+	ENDM
+	
+	; Move float in FAC to stack
+	; Call basicin first!
+	MAC pushfac
+	tsx
+	inx
+	ldy #$01
+	jsr MOVMF
+	tsx
+	REPEAT 5
+	dex
+	REPEND
+	txs
+	ENDM
+	
 	; Compare two bytes on stack for less than
 	MAC cmpblt
 	pla
@@ -229,7 +358,7 @@ stack 		EQU $0100
 .phf: pla
 	pzero
 	ENDM
-
+	
 	; Compare two words on stack for inequality
 	MAC cmpwneq
 	pla
@@ -414,6 +543,77 @@ stack 		EQU $0100
 	inx
 	txs
 	pzero
+	ENDM
+	
+	; Common macro for floa comparisons
+	; Must call basicout afterwards!
+	MAC floatcmp
+	plf2var tmp_floatvar
+	pullfac
+	lda #<tmp_floatvar
+	ldy #>tmp_floatvar
+	jsr FCOMP
+	ENDM
+	
+	; Compare two floats on stack for equality
+	MAC cmpfeq
+	floatcmp
+	eor #%11111111
+	and #%00000001
+	pha
+	ENDM
+
+	; Compare two floats on stack for inequality
+	MAC cmpfneq
+	basicin
+	floatcmp
+	and #%00000001
+	pha
+	basicout
+	ENDM
+	
+	; Compare two floats on stack for less than (first on stack < second on stack)
+	MAC cmpflt
+	basicin
+	floatcmp
+	bpl .skip
+	eor #%11111111
+.skip
+	pha
+	basicout
+	ENDM
+	
+	; Compare two floats on stack for greater than (first on stack > second on stack)
+	MAC cmpfgt
+	basicin
+	floatcmp
+	lsr
+	and #%00000001
+	pha
+	basicout
+	ENDM
+	
+	; Compare two floats on stack for less than or equal (first on stack <= second on stack)
+	MAC cmpflte
+	basicin
+	floatcmp
+	eor #%11111111
+	lsr
+	and #%00000001
+	pha
+	basicout
+	ENDM
+	
+	; Compare two floats on stack for greater than or equal (first on stack >= second on stack)
+	MAC cmpfgte
+	basicin
+	floatcmp
+	bmi .skip
+	eor #%11111111
+.skip
+	and #%00000001
+	pha
+	basicout
 	ENDM
 	
 	; Add bytes on stack
@@ -889,4 +1089,6 @@ RUNTIME_ERROR	SUBROUTINE
     pla
     jsr STDLIB_PRINT
     halt
+    
+tmp_floatvar HEX 00 00 00 00 00
 	

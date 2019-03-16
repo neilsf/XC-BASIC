@@ -88,7 +88,7 @@ class Program
 		//this.varlen['b'] = 1; this.vartype[1] = 'b';
 		this.varlen['i'] = 2; this.vartype[2] = 'i';
 		//this.varlen['s'] = 2; this.vartype[2] = 's';
-		this.varlen['f'] = 4; this.vartype[4] = 'f';
+		this.varlen['f'] = 5; this.vartype[5] = 'f';
 		this.settings = ProgramSettings(0xc000, 0xcfff, 0x0801, 0x9999);
 
 		this.vartype_names['i'] = "integer";

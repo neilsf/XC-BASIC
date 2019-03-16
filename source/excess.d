@@ -6,10 +6,11 @@ import std.stdio;
 import std.string;
 import std.array;
 
-ubyte[4] float_to_hex(real value) {
-    string toBinary(real fraction) {
+ubyte[5] float_to_hex(real value) {
+
+  string toBinary(real fraction) {
       real exp = -1;
-      int precision = 22;
+      const int precision = 32;
       real div;
       real mod;
       string result = "";
@@ -19,8 +20,8 @@ ubyte[4] float_to_hex(real value) {
       }
 
       while(fraction > 0 && (-exp <= precision)) {
-          div = floor(fraction / pow(2.0,exp));
-          mod = fraction - div * pow(2.0,exp);
+          div = floor(fraction / pow(2,exp));
+          mod = fraction - div * pow(2,exp);
           result ~= to!string(div);
           fraction = mod;
           exp -= 1;
@@ -28,76 +29,40 @@ ubyte[4] float_to_hex(real value) {
 
       return result;
     }
-    int getExponent(real value) {
-        real result;
-        int exp = 0;
-        if(value < 1) {
-            for(int x=0; x>=-128; x--) {
-                result = value / pow(2.0, x);
-                if(result <2 && result >=1) {
-                    exp = x;
-                    break;
-                }
-            }
-        }
-        else {
-            for(int x=0; x<=127; x++) {
-                result = value / pow(2.0, x);
-                if(result <2 && result >=1) {
-                    exp = x;
-                    break;
-                }
-            }
-        }
 
-        return exp;
-    }
+    bool is_negative;
+    int whole;
+    real fraction;
+    string binary_fraction;
+    string binary_whole;
+    string mantissa;
+    string binary_exponent;
+    string m1, m2, m3, m4;
+    int exponent;
 
-    immutable bool negative = value < 0;
+    is_negative = value < 0;
     value = abs(value);
+    whole = to!int(floor(value));
+    fraction = value - whole;
 
-    immutable int exp = getExponent(value);
+    binary_fraction = toBinary(fraction);
+    binary_whole = to!string(to!int(whole), 2);
+    exponent = to!int(binary_whole.length) + 128;
+    mantissa = binary_whole ~ binary_fraction ~ ("0".replicate(32 - (binary_whole.length + binary_fraction.length)));
+    mantissa = (is_negative ? '1' : '0') ~ mantissa[1..32];
 
-    real mant = value/pow(2.0, exp);
-    string mantsign = "0";
-    if(negative) {
-        mantsign = "1";
-    }
-    immutable int whole_of_mant = to!int(floor(mant));
-    mant = mant-whole_of_mant;
+    m4 = mantissa[0..8];
+    m3 = mantissa[8..16];
+    m2 = mantissa[16..24];
+    m1 = mantissa[24..32];
 
-    string binary_fraction = toBinary(mant);
-    string mantstr = to!string(whole_of_mant) ~ binary_fraction ~ ("0".replicate(23 - (1 + binary_fraction.length)));
-    string final_mantstr = "";
-    if(negative) {
-        for(int l=0; l<23; l++) {
-            if(mantstr[l] == '1') {
-                final_mantstr ~= '0';
-            }
-            else {
-                final_mantstr ~= '1';
-            }
-        }
-    }
-    else {
-        final_mantstr = mantstr;
-    }
+    binary_exponent = to!string(exponent, 2);
 
-    final_mantstr = mantsign ~ final_mantstr;
-
-    ubyte[4] ret;
-
-    string mant1 = final_mantstr[0..8];
-    string mant2 = final_mantstr[8..16];
-    string mant3 = final_mantstr[16..24];
-
-    writeln(mant1 ~ " " ~ mant2 ~ " " ~ mant3);
-
-    ret[0] = to!ubyte(exp+128);
-    ret[1] = to!ubyte(mant1, 2);
-    ret[2] = to!ubyte(mant2, 2);
-    ret[3] = to!ubyte(mant3, 2);
-
-    return ret;
+    return [to!ubyte(exponent),
+        to!ubyte(to!int(m4,2)),
+        to!ubyte(to!int(m3,2)),
+        to!ubyte(to!int(m2,2)),
+        to!ubyte(to!int(m1,2))
+    ];
 }
 

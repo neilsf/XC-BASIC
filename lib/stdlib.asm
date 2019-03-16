@@ -6,10 +6,21 @@ INPUT_MAXCHARS EQU $06
 
 RESERVED_STACK_POINTER DC.B 0
 
+	MAC basicin
+	lda $01
+	ora #%00000001
+	sta $01
+	ENDM
+	
+	MAC basicout
+	lda $01
+	and #%11111110
+	sta $01
+	ENDM
+
 ; setup default mem layout for xprom runtime environment
 STDLIB_MEMSETUP SUBROUTINE
-	lda #$36
-	sta $01
+	basicout
 	rts
 
 ; print null-terminated petscii string

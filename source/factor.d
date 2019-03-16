@@ -125,7 +125,7 @@ class Factor
                 ParseTree v = this.node.children[0];
                 string num_str = join(v.children[0].matches);
                 final switch(v.children[0].name) {
-                    case "TINYBASIC.Integer":
+                    case "XCBASIC.Integer":
                         int num = to!int(num_str);
                         if(num < -32768 || num > 65535) {
                             this.program.error("Number out of range");
@@ -133,7 +133,7 @@ class Factor
                         this.asmcode ~= "\tpword #" ~ num_str ~ "\n";
                         break;
 
-                    case "TINYBASIC.Hexa":
+                    case "XCBASIC.Hexa":
                         num_str = num_str[1..$];
                         int num = to!int(num_str, 16);
                         if(num > 65535) {
@@ -143,11 +143,12 @@ class Factor
 
                         break;
 
-                    case "TINYBASIC.Floating":
+                    case "XCBASIC.Floating":
                         try {
                             float num = to!float(num_str);
-                            ubyte[4] bytes = float_to_hex(to!real(num));
-                            this.asmcode ~= "\tpfloat $" ~ to!string(bytes[0], 16) ~ ", $" ~ to!string(bytes[1], 16) ~ ", $" ~ to!string(bytes[2], 16) ~ ", $" ~ to!string(bytes[3], 16) ~ "\n";
+                            ubyte[5] bytes = float_to_hex(to!real(num));
+                            this.asmcode ~= "\tpfloat $" ~ to!string(bytes[0], 16) ~ ", $" ~ to!string(bytes[1], 16) ~ ", $" 
+                            ~ to!string(bytes[2], 16) ~ ", $" ~ to!string(bytes[3], 16)  ~ ", $" ~ to!string(bytes[4], 16) ~ "\n";
                         }
                         catch(Exception e) {
                             this.program.error("Can't parse number "~num_str);
