@@ -1,0 +1,22 @@
+XC-BASIC Release Notes
+
+Current Release Number:
+   1.0-beta
+Release Date:
+  12/03/2019
+
+Whats new in version 1.0-beta?
+==============================
+
+(1) The DASM binaries are now included in the project + batch/sh scripts
+    are added in order to compile XC-BASIC source to machine code in a
+    single command.
+
+(2) IF ... THEN now supports simple logical expressions
+
+(3) The LET keyword can now be omitted
+
+(4) Parser errors are truncated to a single line instead of dumping the
+    whole AST.
+
+(5) New statements: SYS command and USR function
