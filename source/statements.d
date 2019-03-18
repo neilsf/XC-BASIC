@@ -489,7 +489,6 @@ class If_stmt:Stmt
             string exp_type;
 
             if(Ex1.detect_type() == Ex2.detect_type()) {
-                writeln(Ex1.type);
                 exp_type = to!string(Ex1.type);
             }
             else {

@@ -168,7 +168,7 @@ class Program
 		codesegment ~= "\tinit_program\n";
 		codesegment ~= this.program_segment;
 		codesegment ~= "prg_end:\n";
-		codesegment ~= "\trts\n";
+		codesegment ~= "\thalt\n";
 		return codesegment;
 	}
 

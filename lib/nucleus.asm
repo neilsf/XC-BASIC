@@ -93,7 +93,7 @@ FCOMP		EQU	$bc5b
 	MAC pfvar
 	ldy #$04
 .loop	
-	lda {1},1
+	lda.wy {1}
 	pha
 	dey
 	bpl .loop
@@ -558,10 +558,12 @@ FCOMP		EQU	$bc5b
 	
 	; Compare two floats on stack for equality
 	MAC cmpfeq
+	basicin
 	floatcmp
 	eor #%11111111
 	and #%00000001
 	pha
+	basicout
 	ENDM
 
 	; Compare two floats on stack for inequality
@@ -573,8 +575,8 @@ FCOMP		EQU	$bc5b
 	basicout
 	ENDM
 	
-	; Compare two floats on stack for less than (first on stack < second on stack)
-	MAC cmpflt
+	; Compare two floats on stack for greater than (first on stack > second on stack)
+	MAC cmpfgt
 	basicin
 	floatcmp
 	bpl .skip
@@ -584,8 +586,8 @@ FCOMP		EQU	$bc5b
 	basicout
 	ENDM
 	
-	; Compare two floats on stack for greater than (first on stack > second on stack)
-	MAC cmpfgt
+	; Compare two floats on stack for less than (first on stack < second on stack)
+	MAC cmpflt
 	basicin
 	floatcmp
 	lsr
@@ -594,8 +596,8 @@ FCOMP		EQU	$bc5b
 	basicout
 	ENDM
 	
-	; Compare two floats on stack for less than or equal (first on stack <= second on stack)
-	MAC cmpflte
+	; Compare two floats on stack for greater than or equal (first on stack >= second on stack)
+	MAC cmpfgte
 	basicin
 	floatcmp
 	eor #%11111111
@@ -605,8 +607,8 @@ FCOMP		EQU	$bc5b
 	basicout
 	ENDM
 	
-	; Compare two floats on stack for greater than or equal (first on stack >= second on stack)
-	MAC cmpfgte
+	; Compare two floats on stack for less than or equal (first on stack <= second on stack)
+	MAC cmpflte
 	basicin
 	floatcmp
 	bmi .skip
@@ -1026,20 +1028,6 @@ NUCL_DIVU16 SUBROUTINE
 	pha
 	ENDM
 
-; init program: save stack pointer and seed rnd
-	MAC init_program
-	tsx
-	stx RESERVED_STACK_POINTER
-	seed_rnd
-	ENDM
-
-; end program: restorre stack pointer and exit
-	MAC halt
-	ldx RESERVED_STACK_POINTER
-	txs
-	rts
-	ENDM
-
 	MAC iinc
 	inc {1}
 	bne .skip
@@ -1079,6 +1067,34 @@ NUCL_DIVU16 SUBROUTINE
 .return_addr
     ENDM
 
+	MAC basicin
+	lda $01
+	ora #%00000001
+	sta $01
+	ENDM
+	
+	MAC basicout
+	lda $01
+	and #%11111110
+	sta $01
+	ENDM
+	
+	; init program: save stack pointer and seed rnd
+	MAC init_program
+	tsx
+	stx RESERVED_STACK_POINTER
+	seed_rnd
+	basicout
+	ENDM
+
+	; end program: restorre stack pointer and exit
+	MAC halt
+	basicin
+	ldx RESERVED_STACK_POINTER
+	txs
+	rts
+	ENDM
+
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
 
 RUNTIME_ERROR	SUBROUTINE
@@ -1089,4 +1105,5 @@ RUNTIME_ERROR	SUBROUTINE
     halt
     
 tmp_floatvar HEX 00 00 00 00 00
+RESERVED_STACK_POINTER DC.B 0
 	
