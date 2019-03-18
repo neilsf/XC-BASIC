@@ -352,7 +352,7 @@ class Program
 		string partial = this.current_node.input[0..error_location];
 		auto lines = splitLines(partial);
 		ulong line_no = lines.length + 1;
-		writeln("ERROR: " ~ error_message ~ " in line " ~ to!string(lines.length));
+		stderr.writeln("ERROR: " ~ error_message ~ " in line " ~ to!string(lines.length));
 		exit(1);
 	}
 
