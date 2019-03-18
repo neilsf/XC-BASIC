@@ -669,7 +669,7 @@ class Data_stmt:Stmt
 		ushort dimension = to!ushort(list.children.length);
 
 		if(!this.program.is_variable(varname)) {
-			this.program.addVariable(Variable(0, varname, vartype, [dimension, 1], true));
+			this.program.addVariable(Variable(0, varname, vartype, [dimension, 1], false, true));
 		}
 		Variable var = this.program.findVariable(varname);
 
