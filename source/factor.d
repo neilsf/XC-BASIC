@@ -28,34 +28,34 @@ class Factor
         string ftype = this.node.children[0].name;
         char ret;
         final switch(ftype) {
-            case "TINYBASIC.Var":
+            case "XCBASIC.Var":
                 ParseTree v = this.node.children[0];
                 string varname = join(v.children[0].matches);
                 char vartype = this.program.type_conv(v.children[1].matches[0]);
                 ret = vartype;
             break;
 
-            case "TINYBASIC.Number":
+            case "XCBASIC.Number":
                 ParseTree v = this.node.children[0].children[0];
                 final switch(v.name) {
-                    case "TINYBASIC.Integer":
-                    case "TINYBASIC.Hexa":
-                        ret = 'i';
+                    case "XCBASIC.Integer":
+                    case "XCBASIC.Hexa":
+                        ret = 'w';
                         break;
 
-                    case "TINYBASIC.Floating":
+                    case "XCBASIC.Floating":
                         ret = 'f';
                         break;
                 }
             break;
 
-            case "TINYBASIC.Fn_call":
+            case "XCBASIC.Fn_call":
                 ParseTree fn = this.node.children[0];
                 auto fun = FunFactory(fn, this.program);
                 ret = fun.type;
             break;
 
-            case "TINYBASIC.Expression":
+            case "XCBASIC.Expression":
                 ParseTree ex = this.node.children[0];
                 auto Ex = new Expression(ex, this.program);
                 ret = Ex.detect_type();

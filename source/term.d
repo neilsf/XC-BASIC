@@ -22,9 +22,9 @@ class Term
     char detect_type()
     {
         Factor tmpFact;
-        char tmptype = 'i';
+        char tmptype = 'w';
         foreach(ref child; this.node.children) {
-            if(child.name == "TINYBASIC.Factor") {
+            if(child.name == "XCBASIC.Factor") {
                 tmpFact = new Factor(child, this.program);
                 if(tmpFact.detect_type() == 'f') {
                     // if only one factor is a float,

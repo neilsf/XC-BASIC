@@ -175,70 +175,54 @@ class Let_stmt:Stmt
 	void process()
 	{
 		ParseTree v = this.node.children[0].children[0];
-		ParseTree ex = this.node.children[0].children[1];
-		string varname = join(v.children[0].matches);
-		char vartype = this.program.type_conv(v.children[1].matches[0]);
-		if(!this.program.is_variable(varname)) {
-			this.program.addVariable(Variable(0, varname, vartype));
-		}
+        ParseTree ex = this.node.children[0].children[1];
+        string varname = join(v.children[0].matches);
+        char vartype = this.program.type_conv(v.children[1].matches[0]);
+        if(!this.program.is_variable(varname)) {
+            this.program.addVariable(Variable(0, varname, vartype));
+        }
+        Variable var = this.program.findVariable(varname);
+        if(var.isConst) {
+            this.program.error("Can't assign value to a constant");
+        }
+        Expression Ex = new Expression(ex, this.program);
+        Ex.eval();
+        this.program.program_segment ~= to!string(Ex);
 
-		Variable var = this.program.findVariable(varname);
+        if(v.children.length > 2) {
+            /* any variable can be accessed as an array
+            if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
+                this.program.error("Not an array");
+            }
+            */
+            auto subscript = v.children[2];
+            if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
+                this.program.error("Bad subscript");
+            }
+            ushort[2] dimensions;
+            ubyte i = 0;
+            foreach(ref expr; subscript.children) {
+                Expression Ex2 = new Expression(expr, this.program);
+                Ex2.eval();
+                this.program.program_segment ~= to!string(Ex2);
 
-		if(var.isConst) {
-			this.program.error("Can't assign value to a constant");
-		}
+                if(i == 1) {
+                    // must multiply with first dimension length
+                    this.program.program_segment ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
+                                                  ~ "\tmulw\n"
+                                                  ~ "\taddw\n";
+                }
 
-		if(vartype != var.type) {
-			this.program.error("Type mismatch: "~varname~" is not a(n) "~this.program.vartype_names[vartype]);
-		}
-
-		Expression Ex = new Expression(ex, this.program);
-
-		char extype = Ex.detect_type();
-		if(extype != vartype) {
-			this.program.error("Type mismatch: expression value will be converted to " ~this.program.vartype_names[vartype], true);
-		}
-
-		Ex.eval();
-		this.program.program_segment ~= to!string(Ex);
-
-		if(v.children.length > 2) {
-			if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
-				/* any variable can be accessed as an array
-				if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
-					this.program.error("Not an array");
-				}
-				*/
-
-				auto subscript = v.children[2];
-				if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
-					this.program.error("Bad subscript");
-				}
-				ushort[2] dimensions;
-				ubyte i = 0;
-				foreach(ref expr; subscript.children) {
-					Expression Ex2 = new Expression(expr, this.program);
-					Ex2.eval();
-					this.program.program_segment ~= to!string(Ex2);
-
-					if(i == 1) {
-						// must multiply with first dimension length
-						this.program.program_segment ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
-													  ~ "\tmulw\n"
-													  ~ "\taddw\n";
-					}
-
-					i++;
-				}
-				// must multiply with the variable length!
-				this.program.program_segment ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
-											  ~ "\tmulw\n" ;
-				this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
-			}
-			else {
-				this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n";
-			}
-		}
+                i++;
+            }
+            // must multiply with the variable length!
+            this.program.program_segment ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
+                                          ~ "\tmulw\n" ;
+            this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
+        }
+        else {
+            this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n";
+        }
 	}
 }
 
@@ -502,6 +486,16 @@ class If_stmt:Stmt
 			auto Ex2 = new Expression(e2, this.program);
 			Ex2.eval();
 
+            string exp_type;
+
+            if(Ex1.detect_type() == Ex2.detect_type()) {
+                writeln(Ex1.type);
+                exp_type = to!string(Ex1.type);
+            }
+            else {
+                this.program.error("Expression types in relation mismatch.");
+            }
+
 			this.program.program_segment ~= to!string(Ex1);
 			this.program.program_segment ~= to!string(Ex2);
 
@@ -533,7 +527,7 @@ class If_stmt:Stmt
 					break;
 			}
 
-			this.program.program_segment~="\tcmpw"~rel_type~"\n";
+			this.program.program_segment~="\tcmp" ~ exp_type ~rel_type~"\n";
 		}
 
 		// relations are evaluated, now the comes logical op if present

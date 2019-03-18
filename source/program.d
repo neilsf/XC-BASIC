@@ -86,12 +86,12 @@ class Program
 	this() {
 		/* As of now, vartypes with the same length are not allowed. Needs refactoring if it is a must */
 		//this.varlen['b'] = 1; this.vartype[1] = 'b';
-		this.varlen['i'] = 2; this.vartype[2] = 'i';
+		this.varlen['w'] = 2; this.vartype[2] = 'w';
 		//this.varlen['s'] = 2; this.vartype[2] = 's';
 		this.varlen['f'] = 5; this.vartype[5] = 'f';
 		this.settings = ProgramSettings(0xc000, 0xcfff, 0x0801, 0x9999);
 
-		this.vartype_names['i'] = "integer";
+		this.vartype_names['w'] = "integer";
 		this.vartype_names['s'] = "string";
 		this.vartype_names['f'] = "float";
 	}
@@ -121,7 +121,7 @@ class Program
 	char type_conv(string type)
 	{
 		if(type == "" || type == "#") {
-			return 'i';
+			return 'w';
 		}
 		else if(type == "$") {
 			return 's';
@@ -192,7 +192,7 @@ class Program
 		asm_code ~= basicstdlib.code;
 
 		if(this.use_floats) {
-			asm_code ~= floatlib.code;
+			//asm_code ~= floatlib.code;
 		}
 
 		asm_code ~= this.getCodeSegment();
@@ -346,17 +346,9 @@ class Program
 		if(number.indexOfAny(".") > -1) {
 			return 'f';
 		}
-		int numericval = this.parseInt(number);
-		if(numericval < 0 ||  numericval > 65535) {
-			return 'i';
-		}
-		else if(numericval > 255) {
-			return 'w';
-		}
-		else {
-			return 'b';
-		}
-	}
+
+        return 'w';
+    }
 
 	void error(string error_message, bool is_warning = false)
 	{

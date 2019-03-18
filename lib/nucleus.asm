@@ -5,25 +5,26 @@ reserved1	EQU $fc
 reserved2	EQU $fd
 reserved3	EQU $fe
 
-reserved4	EQU $02
-reserved5	EQU $03
+reserved4	EQU $3f
+reserved5	EQU $40
 
-reserved6	EQU $04
-reserved7	EQU $05
+reserved6	EQU $41
+reserved7	EQU $42
 
-reserved8	EQU $06
-reserved9	EQU $07
+reserved8	EQU $43                              
+reserved9	EQU $44
 
-reservedA	EQU $08
-reservedB	EQU $09
+reservedA	EQU $45
+reservedB	EQU $46
 
 stack 		EQU $0100
 
 MOVFM		EQU $bba2
 CONUPK		EQU $ba8c
 MOVMF		EQU $bbd4
+FCOMP		EQU	$bc5b
 
-	PROCESSOR 6502
+	PROCESSOR 6502                               
 	
 	; Push a zero on the stack
 	; EXAMINE REFS BEFORE CHANGING!
@@ -68,15 +69,15 @@ MOVMF		EQU $bbd4
 	
 	; Push a float on the stack (floats go reversed!)
 	MAC pfloat
-	lda {5}
+	lda #{5}
 	pha
-	lda {4}
+	lda #{4}
 	pha
-	lda {3}
+	lda #{3}
 	pha
-	lda {2}
+	lda #{2}
 	pha
-	lda {1}
+	lda #{1}
 	pha
 	ENDM
 	

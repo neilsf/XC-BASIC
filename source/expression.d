@@ -30,10 +30,10 @@ class Expression
 
     char detect_type()
     {
-        this.type = 'i';
+        this.type = 'w';
         Term tmpTerm;
         foreach(ref child; this.node.children) {
-            if(child.name == "TINYBASIC.Term") {
+            if(child.name == "XCBASIC.Term") {
                 tmpTerm = new Term(child, this.program);
                 if(tmpTerm.detect_type() == 'f') {
                     // if only one term is a float,
@@ -53,14 +53,17 @@ class Expression
 
     void eval()
     {
-    	this.negateFirstTerm = (this.node.matches[0] == "-");
+    	//this.negateFirstTerm = (this.node.matches[0] == "-");
         char i = 0; 
     	Term t1 = new Term(this.node.children[i], this.program);
         t1.eval();
         this.asmcode ~= to!string(t1);
+/*
         if(this.negateFirstTerm) {
             this.asmcode ~= "\tnegw\n";
         }
+
+    */
         if(this.node.children.length > 1) {
             for(i = 1; i < this.node.children.length; i += 2) {
                 string e_op = this.node.children[i].matches[0];
