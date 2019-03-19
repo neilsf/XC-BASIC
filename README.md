@@ -40,7 +40,7 @@ Variables are automatically declared upon the first `LET`, `DIM` or `ḊATA` sta
 - **Floating point numbers** (*coming soon!*), their identifiers are appended with the `%` modifier
 - **Strings** (*coming soon!*), their identifiers are appended with the `$` modifier
 
-Variable names can be of any length, they can consist of letters and numbers, but they may not start with a number. Variable names are case-sensitive.
+Variable names can be of any length, they can consist of letters and numbers, but they may not start with a number or reserved keyword (e. g. the names `letter` or `endpoint` are not allowed because both start with a keyword and would confuse the compiler). Variable names are case-sensitive.
 
 ## Constants
 
