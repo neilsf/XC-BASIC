@@ -1,9 +1,16 @@
 XC-BASIC Release Notes
 
 Current Release Number:
-   1.0-beta
+   1.0
 Release Date:
-  12/03/2019
+  19/03/2019
+
+Whats new in version 1.0?
+=========================
+
+(1) Bugifx: programs with DATA statements now compile fine
+
+(2) Bugfix: compiler errors now go to stdout
 
 Whats new in version 1.0-beta?
 ==============================
