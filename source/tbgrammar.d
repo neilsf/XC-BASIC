@@ -36,7 +36,8 @@ XCBASIC:
     ExprList < (String / Expression) :WS? ("," :WS? (String / Expression) )*
     VarList < Var (:WS? "," :WS? Var)*
     Datalist < Number (:WS? "," :WS? Number)*
-    Expression < ("+" / "-" / eps) :WS? Term :WS? (E_OP :WS? Term)*
+    Expression < Simplexp :WS? (BW_OP :WS? Simplexp)*
+    Simplexp < Term :WS? (E_OP :WS? Term)*
     Term < Factor :WS? (T_OP :WS? Factor)*
     Factor < (Var / Number / Expression / Fn_call)
     Fn_call < Id "(" :WS? (ExprList / eps) :WS? ")"
@@ -44,6 +45,7 @@ XCBASIC:
 
     T_OP < ("*" / "/")
     E_OP < ("+" / "-")
+    BW_OP < ("and" / "or" / "xor")
 
     Varname <- !Reserved "\\" ? [a-zA-Z_] [a-zA-Z_0-9]*
     Id <- [a-zA-Z_] [a-zA-Z_0-9]*
