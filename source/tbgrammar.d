@@ -38,7 +38,7 @@ XCBASIC:
     Datalist < Number (:WS? "," :WS? Number)*
     Expression < ("+" / "-" / eps) :WS? Term :WS? (E_OP :WS? Term)*
     Term < Factor :WS? (T_OP :WS? Factor)*
-    Factor < (Var / Number / Expression / Fn_call)
+    Factor < (Var / Number / Expression / Fn_call / Address)
     Fn_call < Id "(" :WS? (ExprList / eps) :WS? ")"
     Var < Varname Vartype Subscript?
 
@@ -46,6 +46,7 @@ XCBASIC:
     E_OP < ("+" / "-")
 
     Varname <- !Reserved "\\" ? [a-zA-Z_] [a-zA-Z_0-9]*
+    Address < "@" Varname
     Id <- [a-zA-Z_] [a-zA-Z_0-9]*
     Vartype <- ("%" / "#" /  eps)
     Subscript <- "[" Expression (:WS? "," :WS? Expression)? "]"

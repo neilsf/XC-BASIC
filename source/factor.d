@@ -77,6 +77,21 @@ class Factor
 
             break;
 
+            case "XCBASIC.Address":
+                ParseTree v = this.node.children[0];
+                string varname = join(v.children[0].matches);
+                if(!this.program.is_variable(varname)) {
+                    this.program.error("Undefined variable: " ~ varname);
+                }
+
+                Variable var = this.program.findVariable(varname);
+                if(var.isConst) {
+                    this.program.error("A constant has no address");
+                }
+
+                this.asmcode ~= "\tpaddr " ~ var.getLabel() ~ "\n";
+            break;
+
             case "XCBASIC.Number":
                 ParseTree v = this.node.children[0];
                 string num_str = join(v.children[0].matches);
