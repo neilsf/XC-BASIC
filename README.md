@@ -534,10 +534,6 @@ Note #1: For string arguments, the two-byte address of the string will be passed
 
 Note #2: The callee *must* pull all arguments from the stack and *must* push exactly 2 bytes (as of current version). The program will break otherwise.
 
-# Using the compiler
-
-Use **xcbasic64** to compile XC-BASIC source code to assembly source. Then use DASM (not included in the source) to assemble to machine code. 
-
 ## Installation
 
 ### Method 1: compile from source
