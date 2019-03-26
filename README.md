@@ -95,11 +95,40 @@ Arrays are not initialized, which means that if you read the value of an array m
 
 ## Expressions
 
-Numeric expressions are evaluated just like in BASIC V2 or any other BASIC dialects. The valid operators are `*`, `/`, `+` and `-`. Parentheses are also supported. Example:
+Numeric expressions are evaluated similarly to BASIC V2 or any other BASIC dialects, with some minor incompatibilities. The currently supported arithmetic operators are:
 
-	let x = (14 + y) *42 / (20 - z)
+### Arithmetic operators
 
-More operators coming soon.
+ - `*` (mutiplication)
+ - `/` (division)
+ - `+` (addition)
+ - `-` (substraction)
+
+### Relational operators
+
+- `=` (equal to)
+- `<>` (not equal to)
+- `>`  (greater than)
+- `>=`  (greater than or equal to)
+- `<` (less than)
+- `<=` (less than or equal to)
+
+### Conditional operators
+
+- `AND`
+- `OR`
+
+### Bitwise operators
+
+- `&` (and)
+- `|` (or)
+- `^` (exclusive or)
+
+Note that you are not allowed to use the `AND` or `OR` keywords for bitwise operations as in BASIC V2.
+
+### Unary operators
+
+- `@` (address of)
 
 ## Strings
 
@@ -270,11 +299,11 @@ Conditional structure. Executes the statement after `THEN` if the expression eva
 
 Current limitations:
 
-- Only one logical operation is supported
+- Only one conditional operation (`AND`/`OR`) is supported
 - Only one command can be executed after `THEN` and `ELSE` each
 - `THEN` may not be omitted
 
-Expressions support logical operators (`AND` and `OR`) since version 1.0.
+Expressions support conditional operators (`AND` and `OR`) since version 1.0.
 
 Examples:
 
@@ -282,19 +311,7 @@ Examples:
 	if a = b then print "they are equal" else print "they are not equal"
 	if a = b or a < 2 then print "they are equal or a is less than two"
 	
-The supported relational operators are:
-
-- `=` (equal)
-- `>` (greater than)
-- `>=` (greater than or equal)
-- `<` (less than)
-- `<=` (less than or equal)
-- `<>` (not equal)
-
-The supported logical operators are:
-
-- `AND`
-- `OR`
+Please refer to the "Expressions" section for the list of supported operators.
 
 ### INC
 

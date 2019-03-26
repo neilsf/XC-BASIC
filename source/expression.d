@@ -36,15 +36,15 @@ class Expression
                 s.eval();
                 this.asmcode ~= to!string(s);
                 final switch(bw_op) {
-                    case "and":
+                    case "&":
                         this.asmcode ~= "\tandw\n";
                     break;
 
-                    case "or":
+                    case "|":
                         this.asmcode ~= "\torw\n";
                     break;
 
-                    case "xor":
+                    case "^":
                         this.asmcode ~= "\txorw\n";
                     break;
                 }
