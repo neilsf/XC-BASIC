@@ -40,7 +40,7 @@ Variables are automatically declared upon the first `LET`, `DIM` or `ḊATA` sta
 - **Floating point numbers** (*coming soon!*), their identifiers are appended with the `%` modifier
 - **Strings** (*coming soon!*), their identifiers are appended with the `$` modifier
 
-Variable names can be of any length, they can consist of letters and numbers, but they may not start with a number. Variable names are case-sensitive.
+Variable names can be of any length, they can consist of letters and numbers, but they may not start with a number or reserved keyword (e. g. the names `letter` or `endpoint` are not allowed because both start with a keyword and would confuse the compiler). Variable names are case-sensitive.
 
 ## Constants
 
@@ -533,10 +533,6 @@ The arguments are available on the stack for the machine language routine. The r
 Note #1: For string arguments, the two-byte address of the string will be passed to the ML routine. Strings are nullbyte-terminated.
 
 Note #2: The callee *must* pull all arguments from the stack and *must* push exactly 2 bytes (as of current version). The program will break otherwise.
-
-# Using the compiler
-
-Use **xcbasic64** to compile XC-BASIC source code to assembly source. Then use DASM (not included in the source) to assemble to machine code. 
 
 ## Installation
 

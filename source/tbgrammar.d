@@ -65,7 +65,7 @@ XCBASIC:
 
     Line_id < (Label / Unsigned / eps)
 
-    Reserved < ("let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "end" / "rem" / "poke" / "peek" / "dim" / "data" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr" / "and" / "or")
+    Reserved < ("const" / "let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "call" / "end" / "rem" / "poke" / "peek" / "for" / "to" / "next" / "dim" / "data" / "charat" / "textat" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr" / "and" / "or")
 
     WS < space*
     EOI < !.
