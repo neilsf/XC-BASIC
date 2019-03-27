@@ -451,6 +451,45 @@ stack 		EQU $0100
     eor reserved1
     pha
     ENDM
+    
+    ; Perform OR on top 2 words of stack
+    MAC orw
+    pla
+    tay
+    pla
+    tsx
+    ora.wx stack+2
+    sta.wx stack+2
+    tya
+    ora.wx stack+3
+    sta.wx stack+3
+    ENDM
+
+    ; Perform AND on top 2 words of stack
+    MAC andw
+    pla
+    tay
+    pla
+    tsx
+    and.wx stack+2
+    sta.wx stack+2
+    tya
+    and.wx stack+3
+    sta.wx stack+3
+    ENDM
+
+    ; Perform XOR on top 2 words of stack
+    MAC xorw
+    pla
+    tay
+    pla
+    tsx
+    eor.wx stack+2
+    sta.wx stack+2
+    tya
+    eor.wx stack+3
+    sta.wx stack+3
+    ENDM
 
 	; Add words on stack
 	MAC addw

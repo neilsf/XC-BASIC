@@ -1,9 +1,18 @@
 XC-BASIC Release Notes
 
 Current Release Number:
-   1.0
+   1.1-beta
 Release Date:
-  19/03/2019
+  27/03/2019
+
+Whats new in version 1.1-beta?
+==============================
+
+(1) New bitwise operators: & | ^
+
+(2) New unary operator: @ (address of)
+
+(3) Memory information is displayed after successful compilation 
 
 Whats new in version 1.0?
 =========================

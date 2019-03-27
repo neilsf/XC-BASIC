@@ -95,11 +95,40 @@ Arrays are not initialized, which means that if you read the value of an array m
 
 ## Expressions
 
-Numeric expressions are evaluated just like in BASIC V2 or any other BASIC dialects. The valid operators are `*`, `/`, `+` and `-`. Parentheses are also supported. Example:
+Numeric expressions are evaluated similarly to BASIC V2 or any other BASIC dialects, with some minor incompatibilities. The currently supported arithmetic operators are:
 
-	let x = (14 + y) *42 / (20 - z)
+### Arithmetic operators
 
-More operators coming soon.
+ - `*` (mutiplication)
+ - `/` (division)
+ - `+` (addition)
+ - `-` (substraction)
+
+### Relational operators
+
+- `=` (equal to)
+- `<>` (not equal to)
+- `>`  (greater than)
+- `>=`  (greater than or equal to)
+- `<` (less than)
+- `<=` (less than or equal to)
+
+### Conditional operators
+
+- `AND`
+- `OR`
+
+### Bitwise operators
+
+- `&` (and)
+- `|` (or)
+- `^` (exclusive or)
+
+Note that you are not allowed to use the `AND` or `OR` keywords for bitwise operations as in BASIC V2.
+
+### Unary operators
+
+- `@` (address of)
 
 ## Strings
 
@@ -124,7 +153,7 @@ For the sake of execution speed, there is only one error condition that is check
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
-`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SYS` | `TEXTAT` | `USR`
+`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SYS` | `TEXTAT` | `USR` | `@`
 
 More commands are coming soon!
 
@@ -270,11 +299,11 @@ Conditional structure. Executes the statement after `THEN` if the expression eva
 
 Current limitations:
 
-- Only one logical operation is supported
+- Only one conditional operation (`AND`/`OR`) is supported
 - Only one command can be executed after `THEN` and `ELSE` each
 - `THEN` may not be omitted
 
-Expressions support logical operators (`AND` and `OR`) since version 1.0.
+Expressions support conditional operators (`AND` and `OR`) since version 1.0.
 
 Examples:
 
@@ -282,19 +311,7 @@ Examples:
 	if a = b then print "they are equal" else print "they are not equal"
 	if a = b or a < 2 then print "they are equal or a is less than two"
 	
-The supported relational operators are:
-
-- `=` (equal)
-- `>` (greater than)
-- `>=` (greater than or equal)
-- `<` (less than)
-- `<=` (less than or equal)
-- `<>` (not equal)
-
-The supported logical operators are:
-
-- `AND`
-- `OR`
+Please refer to the "Expressions" section for the list of supported operators.
 
 ### INC
 
@@ -533,6 +550,21 @@ The arguments are available on the stack for the machine language routine. The r
 Note #1: For string arguments, the two-byte address of the string will be passed to the ML routine. Strings are nullbyte-terminated.
 
 Note #2: The callee *must* pull all arguments from the stack and *must* push exactly 2 bytes (as of current version). The program will break otherwise.
+
+###@ (address of) operator
+
+Used within an expression, the `@` operator returns the memory address of the variable that it is prepended to, as an integer.
+
+Example:
+
+	rem define a new variable
+	let x=1
+	
+	rem retrieve information about the variable
+	print "the value of x is ", x
+	print "the address of x is ", @x
+
+# Using the compiler
 
 ## Installation
 
