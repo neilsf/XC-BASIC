@@ -1,9 +1,18 @@
 XC-BASIC Release Notes
 
 Current Release Number:
-   1.1-beta
+   1.1-beta2
 Release Date:
-  27/03/2019
+  29/03/2019
+
+Whats new in version 1.1-beta2?
+===============================
+
+(1) New LOAD statement
+
+(2) New SAVE statement
+
+(3) New FERR function
 
 Whats new in version 1.1-beta?
 ==============================
