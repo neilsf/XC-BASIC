@@ -27,6 +27,10 @@ Fun FunFactory(ParseTree node, Program program) {
             fun = new UsrFun(node, program);
         break;
 
+        case "ferr":
+            fun = new FerrFun(node, program);
+        break;
+
         default:
         assert(0);
     }
@@ -156,5 +160,17 @@ class InKeyFun:Fun
     void process()
     {
         this.fncode ~= "\tinkey\n";
+    }
+}
+
+class FerrFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 0;
+
+    void process()
+    {
+        this.fncode ~= "\tferr\n";
     }
 }

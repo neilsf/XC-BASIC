@@ -5,6 +5,7 @@ KERNAL_GETIN EQU $ffe4
 INPUT_MAXCHARS EQU $06
 
 RESERVED_STACK_POINTER DC.B 0
+FILE_ERROR_MSG		   DC.B 0
 
 ; setup default mem layout for xprom runtime environment
 STDLIB_MEMSETUP SUBROUTINE
@@ -421,4 +422,3 @@ random:  DC.B %10011101,%01011011
 	lda random+1
 	pha
 	ENDM
-

@@ -153,7 +153,7 @@ For the sake of execution speed, there is only one error condition that is check
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
-`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SYS` | `TEXTAT` | `USR` | `@`
+`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FERR` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` | `LOAD` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SAVE` | `SYS` | `TEXTAT` | `USR` | `@`
 
 More commands are coming soon!
 
@@ -260,6 +260,31 @@ Note #2: it is not possible to omit the varibale name after the `NEXT` statement
 
 Note #3: the runtime library will not check the consistency of your `FOR ... NEXT` blocks. If there is a `NEXT` without `FOR`, for example, the program will likely break.
 
+### FERR
+
+The `FERR` function returns error information subsequent to the last `LOAD` or `SAVE` statement.
+
+If the return value is zero, no error occurred. Otherwise the value will hold the matching KERNAL error code.
+
+Example:
+
+	load "myfile",8
+	err = ferr()
+	if err = 0 then print "success" else goto load_error
+	end
+	load_error:
+		print "an error occurred"
+		rem ** more error handling **
+
+Example error codes:
+
+- 4: file not found
+- 5: device not present
+- 8: missing file name
+- 9: illegal device number
+- 29: load error
+- 30: break (user pressed break button)
+
 ### GOTO
 
 Continues execution of the program from the given label. Syntax:
@@ -355,6 +380,16 @@ Important! **Prior to version 1.0, the `LET` keyword may not be omited** as in o
 
 	rem ** works in v1.0+ only **
 	x = 5
+	
+### LOAD
+
+Syntax:
+
+	load "filename", device_no <,start_address>
+	
+Loads a binary file from the given device into memory using the KERNAL load routine. If `start_address` is not specified, the first to bytes (LB/HB) of the file will be used as the start address. Otherwise the first two bytes of the file will be discarded and the rest will be loaded into the memory addres specified by `start_address`.
+
+Use the `FERR` function to get error information on the loading process.
 	
 ### PEEK
 
@@ -483,6 +518,22 @@ The `RND` function returns a pseudo-random integer between -32768 and +32767. Ex
 	
 Note: needless to say that the number returned by `RND` is not a true random number.
 
+### SAVE
+
+The `SAVE` command saves the given memory area into a file on the given device. Syntax:
+
+	save "filename", device_no, start_address, end_address
+	
+The first two bytes in the file will contain the start address.
+
+Note: The last byte written in the file will be `end_address - 1`.
+
+Note: Prepend the file name with `@0:` to overwrite an existing file on disk. Example:
+
+	save "@0:existingfile", 8, 49152, 49408
+
+Use the `FERR` function to get error information on the saving process.
+
 ### SYS
 
 The `SYS` command calls a machine language routine at a apecified address. Syntax:
@@ -551,7 +602,7 @@ Note #1: For string arguments, the two-byte address of the string will be passed
 
 Note #2: The callee *must* pull all arguments from the stack and *must* push exactly 2 bytes (as of current version). The program will break otherwise.
 
-###@ (address of) operator
+### @ (address of) operator
 
 Used within an expression, the `@` operator returns the memory address of the variable that it is prepended to, as an integer.
 
