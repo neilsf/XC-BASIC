@@ -24,7 +24,12 @@ CONUPK		EQU $ba8c
 MOVMF		EQU $bbd4
 FCOMP		EQU	$bc5b
 
-	PROCESSOR 6502                               
+SETNAM		EQU $ffbd
+SETLFS		EQU $ffba
+LOAD		EQU $ffd5
+SAVE		EQU $ffd8
+
+	PROCESSOR 6502
 	
 	; Push a zero on the stack
 	; EXAMINE REFS BEFORE CHANGING!
@@ -654,6 +659,45 @@ FCOMP		EQU	$bc5b
     eor reserved1
     pha
     ENDM
+    
+    ; Perform OR on top 2 words of stack
+    MAC orw
+    pla
+    tay
+    pla
+    tsx
+    ora.wx stack+2
+    sta.wx stack+2
+    tya
+    ora.wx stack+3
+    sta.wx stack+3
+    ENDM
+
+    ; Perform AND on top 2 words of stack
+    MAC andw
+    pla
+    tay
+    pla
+    tsx
+    and.wx stack+2
+    sta.wx stack+2
+    tya
+    and.wx stack+3
+    sta.wx stack+3
+    ENDM
+
+    ; Perform XOR on top 2 words of stack
+    MAC xorw
+    pla
+    tay
+    pla
+    tsx
+    eor.wx stack+2
+    sta.wx stack+2
+    tya
+    eor.wx stack+3
+    sta.wx stack+3
+    ENDM
 
 	; Add words on stack
 	MAC addw
@@ -1067,6 +1111,7 @@ NUCL_DIVU16 SUBROUTINE
 .return_addr
     ENDM
 
+
 	MAC basicin
 	lda $01
 	ora #%00000001
@@ -1095,6 +1140,82 @@ NUCL_DIVU16 SUBROUTINE
 	rts
 	ENDM
 
+	; Load routine
+	; load 1: load at address stored in file
+	; load 0: load at a specified address 
+	; arguments on stack: address (if any), device no, filename_length, filename 
+	MAC load
+	; get filename and length
+	pla
+	tay
+	pla
+	tax
+	pla
+	jsr SETNAM
+	; get device no
+	pla ; discard high byte
+	pla
+	tax
+	lda #$01
+	ldy #{1}
+	jsr SETLFS
+	; get address
+	IF {1} == 0
+	pla
+	tay
+	pla
+	tax
+	ENDIF
+	lda #$00
+	jsr LOAD
+	bcs .error
+	lda #$00
+.error
+	sta FILE_ERROR_MSG
+	ENDM
+	
+	; Save routine
+	; arguments on stack: address_end, address_start, device no, filename_length, filename 
+	MAC save
+	; get filename and length
+	pla
+	tay
+	pla
+	tax
+	pla
+	jsr SETNAM
+	; get device no
+	pla ; discard high byte
+	pla
+	tax
+	lda #$00
+	ldy #$00
+	jsr SETLFS
+	; get address
+	pla
+	sta reserved1
+	pla
+	sta reserved0
+	pla
+	tay
+	pla
+	tax
+	lda #reserved0
+	jsr SAVE
+	bcs .error
+	lda #$00
+.error
+	sta FILE_ERROR_MSG
+	ENDM
+	
+	; Get error code after file i/o
+	MAC ferr
+	lda FILE_ERROR_MSG
+	pha
+	lda #$00
+	pha
+	ENDM
+	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
 
 RUNTIME_ERROR	SUBROUTINE

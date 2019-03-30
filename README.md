@@ -40,7 +40,7 @@ Variables are automatically declared upon the first `LET`, `DIM` or `ḊATA` sta
 - **Floating point numbers** (*coming soon!*), their identifiers are appended with the `%` modifier
 - **Strings** (*coming soon!*), their identifiers are appended with the `$` modifier
 
-Variable names can be of any length, they can consist of letters and numbers, but they may not start with a number. Variable names are case-sensitive.
+Variable names can be of any length, they can consist of letters and numbers, but they may not start with a number or reserved keyword (e. g. the names `letter` or `endpoint` are not allowed because both start with a keyword and would confuse the compiler). Variable names are case-sensitive.
 
 ## Constants
 
@@ -95,11 +95,40 @@ Arrays are not initialized, which means that if you read the value of an array m
 
 ## Expressions
 
-Numeric expressions are evaluated just like in BASIC V2 or any other BASIC dialects. The valid operators are `*`, `/`, `+` and `-`. Parentheses are also supported. Example:
+Numeric expressions are evaluated similarly to BASIC V2 or any other BASIC dialects, with some minor incompatibilities. The currently supported arithmetic operators are:
 
-	let x = (14 + y) *42 / (20 - z)
+### Arithmetic operators
 
-More operators coming soon.
+ - `*` (mutiplication)
+ - `/` (division)
+ - `+` (addition)
+ - `-` (substraction)
+
+### Relational operators
+
+- `=` (equal to)
+- `<>` (not equal to)
+- `>`  (greater than)
+- `>=`  (greater than or equal to)
+- `<` (less than)
+- `<=` (less than or equal to)
+
+### Conditional operators
+
+- `AND`
+- `OR`
+
+### Bitwise operators
+
+- `&` (and)
+- `|` (or)
+- `^` (exclusive or)
+
+Note that you are not allowed to use the `AND` or `OR` keywords for bitwise operations as in BASIC V2.
+
+### Unary operators
+
+- `@` (address of)
 
 ## Strings
 
@@ -124,7 +153,7 @@ For the sake of execution speed, there is only one error condition that is check
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
-`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SYS` | `TEXTAT` | `USR`
+`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FERR` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` | `LOAD` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SAVE` | `SYS` | `TEXTAT` | `USR` | `@`
 
 More commands are coming soon!
 
@@ -231,6 +260,31 @@ Note #2: it is not possible to omit the varibale name after the `NEXT` statement
 
 Note #3: the runtime library will not check the consistency of your `FOR ... NEXT` blocks. If there is a `NEXT` without `FOR`, for example, the program will likely break.
 
+### FERR
+
+The `FERR` function returns error information subsequent to the last `LOAD` or `SAVE` statement.
+
+If the return value is zero, no error occurred. Otherwise the value will hold the matching KERNAL error code.
+
+Example:
+
+	load "myfile",8
+	err = ferr()
+	if err = 0 then print "success" else goto load_error
+	end
+	load_error:
+		print "an error occurred"
+		rem ** more error handling **
+
+Example error codes:
+
+- 4: file not found
+- 5: device not present
+- 8: missing file name
+- 9: illegal device number
+- 29: load error
+- 30: break (user pressed break button)
+
 ### GOTO
 
 Continues execution of the program from the given label. Syntax:
@@ -270,11 +324,11 @@ Conditional structure. Executes the statement after `THEN` if the expression eva
 
 Current limitations:
 
-- Only one logical operation is supported
+- Only one conditional operation (`AND`/`OR`) is supported
 - Only one command can be executed after `THEN` and `ELSE` each
 - `THEN` may not be omitted
 
-Expressions support logical operators (`AND` and `OR`) since version 1.0.
+Expressions support conditional operators (`AND` and `OR`) since version 1.0.
 
 Examples:
 
@@ -282,19 +336,7 @@ Examples:
 	if a = b then print "they are equal" else print "they are not equal"
 	if a = b or a < 2 then print "they are equal or a is less than two"
 	
-The supported relational operators are:
-
-- `=` (equal)
-- `>` (greater than)
-- `>=` (greater than or equal)
-- `<` (less than)
-- `<=` (less than or equal)
-- `<>` (not equal)
-
-The supported logical operators are:
-
-- `AND`
-- `OR`
+Please refer to the "Expressions" section for the list of supported operators.
 
 ### INC
 
@@ -339,6 +381,16 @@ Important! **Prior to version 1.0, the `LET` keyword may not be omited** as in o
 	rem ** works in v1.0+ only **
 	x = 5
 	
+### LOAD
+
+Syntax:
+
+	load "filename", device_no <,start_address>
+	
+Loads a binary file from the given device into memory using the KERNAL load routine. If `start_address` is not specified, the first to bytes (LB/HB) of the file will be used as the start address. Otherwise the first two bytes of the file will be discarded and the rest will be loaded into the memory addres specified by `start_address`.
+
+Use the `FERR` function to get error information on the loading process.
+	
 ### PEEK
 
 The `PEEK` function returns the value that is read from a memory address. Example:
@@ -376,7 +428,7 @@ Examples:
 
 ### PRINT
 
-Prints strings or numbers (values of any expression) on the screen using the KERNAL CHAROUT routine. Any number of arguments are accepted. The arguments must be separated with a colon (`,`). Examples:
+Prints strings or numbers (values of any expression) on the screen using the KERNAL CHAROUT routine. Any number of arguments are accepted. The arguments must be separated with a comma (`,`). Examples:
 
 	print "hello world"
 	print "the value of myvar is ", myvar, " and that of anothervar is ", anothervar
@@ -466,6 +518,22 @@ The `RND` function returns a pseudo-random integer between -32768 and +32767. Ex
 	
 Note: needless to say that the number returned by `RND` is not a true random number.
 
+### SAVE
+
+The `SAVE` command saves the given memory area into a file on the given device. Syntax:
+
+	save "filename", device_no, start_address, end_address
+	
+The first two bytes in the file will contain the start address.
+
+Note: The last byte written in the file will be `end_address - 1`.
+
+Note: Prepend the file name with `@0:` to overwrite an existing file on disk. Example:
+
+	save "@0:existingfile", 8, 49152, 49408
+
+Use the `FERR` function to get error information on the saving process.
+
 ### SYS
 
 The `SYS` command calls a machine language routine at a apecified address. Syntax:
@@ -534,9 +602,20 @@ Note #1: For string arguments, the two-byte address of the string will be passed
 
 Note #2: The callee *must* pull all arguments from the stack and *must* push exactly 2 bytes (as of current version). The program will break otherwise.
 
-# Using the compiler
+### @ (address of) operator
 
-Use **xcbasic64** to compile XC-BASIC source code to assembly source. Then use DASM (not included in the source) to assemble to machine code. 
+Used within an expression, the `@` operator returns the memory address of the variable that it is prepended to, as an integer.
+
+Example:
+
+	rem define a new variable
+	let x=1
+	
+	rem retrieve information about the variable
+	print "the value of x is ", x
+	print "the address of x is ", @x
+
+# Using the compiler
 
 ## Installation
 

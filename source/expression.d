@@ -8,12 +8,12 @@ import std.stdio;
 import std.string;
 import core.stdc.stdlib;
 import stringliteral;
+import simplexp;
 
 class Expression
 {
     ParseTree node;
     Program program;
-    bool negateFirstTerm;
     string asmcode;
     char type;
 
@@ -53,30 +53,28 @@ class Expression
 
     void eval()
     {
-    	//this.negateFirstTerm = (this.node.matches[0] == "-");
-        char i = 0; 
-    	Term t1 = new Term(this.node.children[i], this.program);
-        t1.eval();
-        this.asmcode ~= to!string(t1);
-/*
-        if(this.negateFirstTerm) {
-            this.asmcode ~= "\tnegw\n";
-        }
+        char i = 0;
+        Simplexp s1 = new Simplexp(this.node.children[i], this.program);
+        s1.eval();
+        this.asmcode ~= to!string(s1);
 
-    */
         if(this.node.children.length > 1) {
             for(i = 1; i < this.node.children.length; i += 2) {
-                string e_op = this.node.children[i].matches[0];
-                Term t = new Term(this.node.children[i+1], this.program);
-                t.eval();
-                this.asmcode ~= to!string(t);
-                final switch(e_op) {
-                    case "+":
-                        this.asmcode ~= "\taddw\n";
+                string bw_op = this.node.children[i].matches[0];
+                Simplexp s = new Simplexp(this.node.children[i+1], this.program);
+                s.eval();
+                this.asmcode ~= to!string(s);
+                final switch(bw_op) {
+                    case "&":
+                        this.asmcode ~= "\tandw\n";
                     break;
 
-                    case "-":
-                        this.asmcode ~= "\tsubw\n";
+                    case "|":
+                        this.asmcode ~= "\torw\n";
+                    break;
+
+                    case "^":
+                        this.asmcode ~= "\txorw\n";
                     break;
                 }
             }
@@ -85,7 +83,7 @@ class Expression
    
     void _type_error()
     {
-        this.program.error("Only byte types can make part of a logical expression");
+
     }
 
     bool is_numeric_constant()

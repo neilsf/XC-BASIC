@@ -102,6 +102,14 @@ Stmt StmtFactory(ParseTree node, Program program) {
 			stmt = new Sys_stmt(node, program);
 		break;
 
+        case "XCBASIC.Load_stmt":
+            stmt = new Load_stmt(node, program);
+        break;
+
+        case "XCBASIC.Save_stmt":
+            stmt = new Save_stmt(node, program);
+        break;
+
 		default:
 		assert(0);
 	}
@@ -673,7 +681,7 @@ class Data_stmt:Stmt
 		ushort dimension = to!ushort(list.children.length);
 
 		if(!this.program.is_variable(varname)) {
-			this.program.addVariable(Variable(0, varname, vartype, [dimension, 1], true));
+			this.program.addVariable(Variable(0, varname, vartype, [dimension, 1], false, true));
 		}
 		Variable var = this.program.findVariable(varname);
 
@@ -846,4 +854,74 @@ class Sys_stmt:Stmt
 		this.program.program_segment ~= to!string(Ex1);
 		this.program.program_segment~="\tsys\n";
 	}
+}
+
+class Load_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        string filename = join(this.node.children[0].children[0].matches)[1..$-1];
+        if(filename == "") {
+            this.program.error("Empty string");
+        }
+
+        auto sl = new Stringliteral(filename, this.program);
+        sl.register();
+
+        auto device_no = new Expression(this.node.children[0].children[1], this.program);
+        device_no.eval();
+
+        bool fixed_address = false;
+        if(this.node.children[0].children.length > 2) {
+            auto address = new Expression(this.node.children[0].children[2], this.program);
+            address.eval();
+            this.program.program_segment ~= to!string(address);
+            fixed_address = true;
+        }
+
+        this.program.program_segment ~= to!string(device_no);
+        this.program.program_segment ~= "\tpbyte #" ~ to!string(filename.length) ~ "\n";
+        this.program.program_segment ~= "\tlda #<_S" ~ to!string(Stringliteral.id) ~ "\n";
+        this.program.program_segment ~= "\tpha\n";
+        this.program.program_segment ~= "\tlda #>_S" ~ to!string(Stringliteral.id) ~ "\n";
+        this.program.program_segment ~= "\tpha\n";
+        this.program.program_segment~="\tload " ~ (fixed_address ? "0" : "1") ~ "\n";
+    }
+}
+
+class Save_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        string filename = join(this.node.children[0].children[0].matches)[1..$-1];
+        if(filename == "") {
+            this.program.error("Empty string");
+        }
+
+        auto sl = new Stringliteral(filename, this.program);
+        sl.register();
+
+        auto device_no = new Expression(this.node.children[0].children[1], this.program);
+        device_no.eval();
+
+        auto address1 = new Expression(this.node.children[0].children[2], this.program);
+        address1.eval();
+
+        auto address2 = new Expression(this.node.children[0].children[3], this.program);
+        address2.eval();
+
+        this.program.program_segment ~= to!string(address2);
+        this.program.program_segment ~= to!string(address1);
+        this.program.program_segment ~= to!string(device_no);
+        this.program.program_segment ~= "\tpbyte #" ~ to!string(filename.length) ~ "\n";
+        this.program.program_segment ~= "\tlda #<_S" ~ to!string(Stringliteral.id) ~ "\n";
+        this.program.program_segment ~= "\tpha\n";
+        this.program.program_segment ~= "\tlda #>_S" ~ to!string(Stringliteral.id) ~ "\n";
+        this.program.program_segment ~= "\tpha\n";
+        this.program.program_segment ~= "\tsave\n";
+    }
 }

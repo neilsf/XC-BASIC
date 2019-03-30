@@ -188,16 +188,26 @@ class Program
 		asm_code ~= "\tHEX 00\n";
 		asm_code ~= "next_line:\n\tHEX 00 00\n";
 		asm_code ~= "\t;--------------------\n";
+        asm_code ~= "\tECHO \"Memory information:\"\n";
+        asm_code ~= "\tECHO \"===================\"\n";
+        asm_code ~= "\tECHO \"BASIC loader: $801 -\", *-1\n";
+        asm_code ~= "library_start:\n";
 		asm_code ~= nucleus.code;
 		asm_code ~= basicstdlib.code;
+        asm_code ~= "\tECHO \"Library     :\",library_start,\"-\", *-1\n";
 
 		if(this.use_floats) {
 			//asm_code ~= floatlib.code;
 		}
 
 		asm_code ~= this.getCodeSegment();
+        asm_code ~= "\tECHO \"Code        :\",prg_start,\"-\", *-1\n";
 		asm_code ~= this.getDataSegment();
+        asm_code ~= "\tECHO \"Data        :\",data_start,\"-\", *-1\n";
 		asm_code ~= this.getVarSegment();
+        asm_code ~= "\tECHO \"Variables*  :\",data_end,\"-\", *\n";
+        asm_code ~= "\tECHO \"===================\"\n";
+        asm_code ~= "\tECHO \"*: uninitialized segment\"\n";
 
 		return asm_code;
 	}

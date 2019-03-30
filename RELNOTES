@@ -1,9 +1,34 @@
 XC-BASIC Release Notes
 
 Current Release Number:
-   1.0-beta
+   1.1-beta2
 Release Date:
-  12/03/2019
+  29/03/2019
+
+Whats new in version 1.1-beta2?
+===============================
+
+(1) New LOAD statement
+
+(2) New SAVE statement
+
+(3) New FERR function
+
+Whats new in version 1.1-beta?
+==============================
+
+(1) New bitwise operators: & | ^
+
+(2) New unary operator: @ (address of)
+
+(3) Memory information is displayed after successful compilation 
+
+Whats new in version 1.0?
+=========================
+
+(1) Bugifx: programs with DATA statements now compile fine
+
+(2) Bugfix: compiler errors now go to stdout
 
 Whats new in version 1.0-beta?
 ==============================
