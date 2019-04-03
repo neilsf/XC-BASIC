@@ -32,6 +32,13 @@ A **XC-BASIC** program consists of lines, allowing only one statement per line. 
 		if nx < max then goto loop
 	end
 
+Though only one statement is allowed in one line, line breaks are ignored if the last character of a line is a tilde (`~`) character. This can be useful in a `DATA` statement with a long list, for example:
+
+    data my_long_data[] = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ~
+                          11, 12, 13, 14, 15
+
+Note that no other character is allowed after the tilde, including whitespace.
+
 ## Variables
 
 Variables are automatically declared upon the first `LET`, `DIM` or `ḊATA` statement that the compiler encounters. Every variable has a type that cannot be changed after declaration. The variable type is defined by appending the variable type modifier to the variable name. The valid types are:
@@ -55,8 +62,8 @@ Always prefer constants over variables, whenever possible. See the documentation
 
 Variables, constants and labels can be **global** or **local**.
 
-- Any variable or constant declared using a `CONST`,  `LET`, `DIM` or `ḊATA` statement outside a `PROC ... ENDPROC` pair is considered to be a global variable and can only be accessed from the global scope. Global variables are accessible from within a procedure by using the global modifier (`\`).
-- Any variable or constant declared using a `CONST`, `LET`, `DIM` or `ḊATA` statement inside a `PROC ... ENDPROC` pair, including the procedure's parameters, is considered to be a local variable and can only be accessed within that procedure.
+- Any variable or constant declared using a `CONST`,  `LET`, `DIM` or `DATA` statement outside a `PROC ... ENDPROC` pair is considered to be a global variable and can only be accessed from the global scope. Global variables are accessible from within a procedure by using the global modifier (`\`).
+- Any variable or constant declared using a `CONST`, `LET`, `DIM` or `DATA` statement inside a `PROC ... ENDPROC` pair, including the procedure's parameters, is considered to be a local variable and can only be accessed within that procedure.
 
 Please see the documentation for the `PROC ... ENDPROC` statements for more details.
 

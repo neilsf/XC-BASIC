@@ -72,9 +72,9 @@ XCBASIC:
 
     Reserved < ("const" / "let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "call" / "end" / "rem" / "poke" / "peek" / "for" / "to" / "next" / "dim" / "data" / "charat" / "textat" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr" / "and" / "or" / "load" / "save" / "ferr")
 
-    WS < space*
+    WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 
-    NL <- ('\r' / '\n' / '\r\n')+
+    NL <- !"~" ('\r' / '\n' / '\r\n')+
     Spacing <- :('\t')*
 `));
