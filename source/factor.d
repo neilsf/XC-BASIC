@@ -115,6 +115,15 @@ class Factor
                 fun.process();
                 this.asmcode ~= to!string(fun);
             break;
+
+	    case "XCBASIC.Parenthesis":
+	        ParseTree ex = this.node.children[0].children[0];
+                auto Ex = new Expression(ex, this.program);
+                Ex.eval();
+                this.asmcode ~= to!string(Ex);
+            
+	    break;
+
         }
     }
    
