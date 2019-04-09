@@ -61,7 +61,7 @@ char[] replace_petscii_escapes(string s)
     ret = replace(ret,   "{PURPLE}", "\x9c");
     ret = replace(ret,   "{YELLOW}", "\x9e");
     ret = replace(ret,   "{CYAN}", "\x9f");
-    ret = replace(ret,   "{LOWER_CASE}", "\0e");
+    ret = replace(ret,   "{LOWER_CASE}", "\x0e");
     ret = replace(ret,   "{UPPER_CASE}", "\x8e");
     ret = replace(ret,   "{F1}", "\x85");
     ret = replace(ret,   "{F2}", "\x86");
