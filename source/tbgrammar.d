@@ -61,9 +61,9 @@ XCBASIC:
 
     Unsigned   < [0-9]+
     Integer    < "-"? Unsigned
-    Hexa       < "$" [0-9a-fA-F]+   
+    Hexa       < "$" [0-9a-fA-F]+
     Floating   < "-"? Unsigned "." Unsigned
-    
+
     Number < (Floating / Integer / Hexa)
 
     Label < [a-zA-Z_] [a-zA-Z_0-9]* ":"
@@ -72,9 +72,9 @@ XCBASIC:
     Line_id < (Label / Unsigned / eps)
 
     Reserved < ("const" / "let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "call" / "end" / "rem" / "poke" / "peek" / "for" / "to" / "next" / "dim" / "data" / "charat" / "textat" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr" / "and" / "or" / "load" / "save" / "ferr")
-    WS < space*
+    WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 
-    NL <- ('\r' / '\n' / '\r\n')+
-    Spacing <- :('\t')*  
+    NL <- !"~" ('\r' / '\n' / '\r\n')+
+    Spacing <- :('\t')*
 `));

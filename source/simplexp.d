@@ -23,7 +23,7 @@ class Simplexp
 
     char detect_type()
     {
-        this.type = 'w';
+        char type = 'w';
         Term tmpTerm;
         foreach(ref child; this.node.children) {
             if(child.name == "XCBASIC.Term") {
@@ -31,13 +31,13 @@ class Simplexp
                 if(tmpTerm.detect_type() == 'f') {
                     // if only one term is a float,
                     // the whole expr will be of type float
-                    this.type = 'f';
+                    type = 'f';
                     break;
                 }
             }
         }
 
-        return this.type;
+        return type;
     }
 
     void eval()
