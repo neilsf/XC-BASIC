@@ -1,9 +1,20 @@
 XC-BASIC Release Notes
 
 Current Release Number:
-   1.1-beta2
+   v1.1
 Release Date:
-  29/03/2019
+  10/04/2019
+
+What's new in version 1.1?
+==========================
+
+(1) Line concatenation character (~)
+
+(2) New PETSCII escape sequences
+
+(3) Fixed parenthesis support and many parser bugfixes
+
+(4) New example program: Maze Generator
 
 Whats new in version 1.1-beta2?
 ===============================
