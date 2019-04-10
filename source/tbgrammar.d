@@ -20,7 +20,7 @@ XCBASIC:
     Poke_stmt <     "poke" :WS? Expression :WS? "," :WS? Expression
     End_stmt <      "end"
     Rem_stmt <      "rem" (!eol .)*
-    For_stmt <      "for" :WS? Var :WS? "=" :WS? Expression "to" :WS? Expression
+    For_stmt <      "for" :WS? Var :WS? "=" :WS? Expression :WS? "to" :WS? Expression
     Next_stmt <     "next" :WS? Var
     Dim_stmt <      "dim" :WS? Var
     Data_stmt <     "data" :WS? Varname Vartype "[]" :WS? "=" :WS? Datalist
@@ -37,13 +37,14 @@ XCBASIC:
     Relation < Expression :WS? Relop :WS? Expression
     ExprList < (String / Expression) :WS? ("," :WS? (String / Expression) )*
     VarList < Var (:WS? "," :WS? Var)*
-    Datalist < Number (:WS? "," :WS? Number)*
-    Expression < Simplexp :WS? (BW_OP :WS? Simplexp)*
-    Simplexp < Term :WS? (E_OP :WS? Term)*
-    Term < Factor :WS? (T_OP :WS? Factor)*
-    Factor < (Var / Number / Expression / Fn_call / Address)
+    Datalist < Number (:WS? "," :WS? Number :WS?)*
+    Expression < Simplexp (:WS? BW_OP :WS? Simplexp :WS?)*
+    Simplexp < Term (:WS? E_OP :WS? Term :WS?)*
+    Term < Factor (:WS? T_OP :WS? Factor :WS?)*
+    Factor < ( Var / Number / Parenthesis / Expression / Fn_call / Address )
     Fn_call < Id "(" :WS? (ExprList / eps) :WS? ")"
     Var < Varname Vartype Subscript?
+    Parenthesis < "(" :WS? Expression :WS? ")"
 
     T_OP < ("*" / "/")
     E_OP < ("+" / "-")

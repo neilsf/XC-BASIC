@@ -31,8 +31,8 @@ void main(string[] args)
         stderr.writeln("Parser error: " ~ strip(line, " +-"));
         exit(1);
     }
-    auto program = new Program();
 
+    auto program = new Program();
     program.processAst(ast);
     writeln(program.getAsmCode());
 }
