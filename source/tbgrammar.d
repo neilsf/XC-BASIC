@@ -5,13 +5,14 @@ import pegged.grammar;
 mixin(grammar(`
 XCBASIC:
     Program <- Line (NL* Line)+ EOI
-    Line <- Line_id :WS? Statement?
+    Line <- Line_id :WS? Statements?
+    Statements < Statement :WS? (":" :WS? Statement :WS?)*
 
     Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt / Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt / Sys_stmt / Load_stmt / Save_stmt
     Const_stmt <    "const" :WS? Var :WS? "=" :WS? Number
     Let_stmt <      ("let" / eps) :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print" :WS? ExprList
-    If_stmt <       "if" :WS? Relation :WS? (Logop :WS? Relation)? :WS? "then" :WS? Statement :WS? ("else" :WS? Statement)?
+    If_stmt <       "if" :WS? Relation :WS? (Logop :WS? Relation)? :WS? "then" :WS? Statements :WS? ("else" :WS? Statements)?
     Goto_stmt <     "goto" :WS? (Label_ref / Unsigned)
     Input_stmt <    "input" :WS? VarList
     Gosub_stmt <    "gosub" :WS? (Label_ref / Unsigned)

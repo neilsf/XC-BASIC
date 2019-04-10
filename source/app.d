@@ -32,6 +32,8 @@ void main(string[] args)
         exit(1);
     }
 
+    //writeln(ast); exit(1);
+
     auto program = new Program();
     program.processAst(ast);
     writeln(program.getAsmCode());

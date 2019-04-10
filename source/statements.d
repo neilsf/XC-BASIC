@@ -570,16 +570,22 @@ class If_stmt:Stmt
 
 		this.program.program_segment~=ret;
 
-		Stmt stmt = StmtFactory(st, this.program);
-		stmt.process();
+        // can be multiple statements
+        foreach(ref child; st.children) {
+            Stmt stmt = StmtFactory(child, this.program);
+            stmt.process();
+        }
 
 		// else branch
 		if(else_present) {
 			this.program.program_segment ~= "\tjmp _J" ~ to!string(counter)  ~ "\n";
 			this.program.program_segment ~= "_E" ~to!string(counter)~ ":\n";
 
-			Stmt else_stmt = StmtFactory(else_st, this.program);
-			else_stmt.process();
+            // can be multiple statements
+            foreach(ref e_child; else_st.children) {
+                Stmt else_stmt = StmtFactory(e_child, this.program);
+                else_stmt.process();
+            }
 		}
 
 		this.program.program_segment ~= "_J" ~to!string(counter)~ ":\n";
