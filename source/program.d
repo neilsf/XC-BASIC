@@ -395,7 +395,7 @@ class Program
                 }
                 // line has statement and it's a DATA statement
                 if(statements.children[0].children[0].name == "XCBASIC.Data_stmt") {
-                    Stmt stmt = StmtFactory(node.children[1], this);
+                    Stmt stmt = StmtFactory(statements.children[0], this);
                     stmt.process();
                 }
             }

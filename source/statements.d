@@ -111,7 +111,8 @@ Stmt StmtFactory(ParseTree node, Program program) {
         break;
 
 		default:
-		assert(0);
+            stderr.writeln("Unknown statement "~node.name);
+		    assert(0);
 	}
 
 	return stmt;
