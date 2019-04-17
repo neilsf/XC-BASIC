@@ -17,22 +17,22 @@ Some of the advantages of programming in **XC-BASIC** are:
 # Language reference
 
 ## General syntax
-A **XC-BASIC** program consists of lines, allowing only one statement per line. A line may be prepended by a label or the label can be written in a separate line. For example:
+A **XC-BASIC** program is an ASCII text that is parsed line by line. Each line may have zero or more statements. If there are more than one statements in a line, they must be separated by a colon (`:`).
+
+ A line may be prepended by a label. Labels are appended with a colon (`:`). An example program:
 
 	rem ** fibonacci series **
-	let max = 32767
-	let t1 = 0
-	let t2 = 1
+	max = 32767
+	t1 = 0 : t2 = 1
 	print "fibonacci series:"
 	loop:
 		print t1, " "
-		let nx = t1 + t2
-		let t1 = t2
-		let t2 = nx
+		nx = t1 + t2
+		t1 = t2 : t2 = nx
 		if nx < max then goto loop
 	end
 
-Though only one statement is allowed in one line, line breaks are ignored if the last character of a line is a tilde (`~`) character. This can be useful in a `DATA` statement with a long list, for example:
+Line breaks are ignored if the last character of a line is a tilde (`~`) character. This can be useful in a `DATA` statement with a long list, for example:
 
     data my_long_data[] = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, ~
                           11, 12, 13, 14, 15
@@ -160,7 +160,7 @@ For the sake of execution speed, there is only one error condition that is check
 
 The following is the list of the commands supported by **XC-BASIC**, in alphabetical order:
 
-`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FERR` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INKEY` | `INPUT` | `LET` | `LOAD` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SAVE` | `SYS` | `TEXTAT` | `USR` | `@`
+`CALL` | `CHARAT` | `CONST` | `DATA` | `DEC` | `DIM` | `END` | `FERR` | `FOR ... NEXT` |  `GOSUB ... RETURN` | `GOTO` | `IF ... THEN ... ELSE` | `INC` | `INCBIN` | `INKEY` | `INPUT` | `LET` | `LOAD` | `ORIGIN` |  `PEEK` | `POKE` | `PRINT` | `PROC ... ENDPROC` | `REM` | `RND` | `SAVE` | `SYS` | `TEXTAT` | `USR` | `@`
 
 More commands are coming soon!
 
@@ -355,6 +355,46 @@ Increments the value of an integer variable by 1. This is considerably faster th
 
 The above will output 11.
 
+### INCBIN
+
+Syntax:
+
+	incbin "filename"
+
+The `INCBIN` comand instructs the assembler to include a custom binary file. This is useful to include graphics, music or any kind of data - even machine code routines - in your program.
+
+**Note**: the included file must be in the same folder where the XC-BASIC source is.
+
+**Important note**: you have to be very careful when using `INCBIN` as the binary stream will be "injected" into the program right at the point where the compiler finds the command. Make sure that the included data is outside the program flow (unless it's meant to be).
+
+An example of wrong usage:
+
+	rem program starts here
+	print "welcome to my buggy game"
+	incbin "sprites.bin"
+	print "now let's play"
+	
+In the example above, after printing the welcome message, the program will try to execute whatever is in "sprites.bin" which will likely result in a crash. The good practice is to separate your code and data or use a `GOTO` statement to skip unwanted parts of the program.
+
+The above example fixed:
+
+	rem program starts here
+	goto start
+	incbin "sprites.bin"
+	start:
+		print "welcome to my cool game"
+		print "now let's play"
+		
+Or:
+
+	rem program starts here
+	print "welcome to my cool game"
+	print "now let's play"
+	end
+	incbin "sprites.bin"
+		
+Although the compiler will let you know the exact addresses where the included files got assembled within the final executable, these addresses may be changing. In most cases you will want to use `INCBIN` in combination with `ORIGIN` to make sure that your included binaries are always located at the same address.
+
 ### INKEY
 
 Syntax:
@@ -397,6 +437,53 @@ Syntax:
 Loads a binary file from the given device into memory using the KERNAL load routine. If `start_address` is not specified, the first to bytes (LB/HB) of the file will be used as the start address. Otherwise the first two bytes of the file will be discarded and the rest will be loaded into the memory addres specified by `start_address`.
 
 Use the `FERR` function to get error information on the loading process.
+	
+### ORIGIN
+
+Syntax:
+
+	origin address
+
+The `ORIGIN` command instructs the underlying assembler to locate the code or data that follows to a specific location instead of the normal flow.
+
+- If the new address is less than the current address, the program won't compile.
+- If the new address is greater than the current address, the gap between the current and new address will be filled in with $FF bytes.
+
+The `ORIGIN` command can take a decimal or hexadecimal address, but no variables, constants or expressions are allowed here.
+
+Example:
+
+	rem the program starts here
+	goto start
+	incbin "sprites.bin"
+	origin $3800
+	incbin "charset.bin"
+	origin $4000
+	start:
+		rem the actual code starts here
+		print "welcome to my game"
+		
+In the example above, sprite data will start right after the `GOTO` statement. The gap between the sprites and the charset will be filled with $FF-s.
+
+It is very important that the program code must never execute the empty gaps between the different "segments" that you define with `ORIGIN`, because that would lead to a crash. Consider the following example:
+
+	rem segment #1
+	print "hello world"
+
+	origin $1000
+	rem segment #2
+	print "hello again"
+	
+The above program will break if there is a gap between the two segments. The good practice is the following:
+
+	rem segment #1
+	print "hello world"
+	goto seg2
+	
+	origin $1000
+	rem segment #2
+	seg2:
+	print "hello again"
 	
 ### PEEK
 

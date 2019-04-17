@@ -35,6 +35,7 @@ void main(string[] args)
     //writeln(ast); exit(1);
 
     auto program = new Program();
+    program.source_path = absolutePath(dirName(filename));
     program.processAst(ast);
     writeln(program.getAsmCode());
 }

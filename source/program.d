@@ -79,6 +79,8 @@ class Program
 	bool in_procedure = false;
 	string current_proc_name = "";
 
+    string source_path = "";
+
 	this() {
 		/* As of now, vartypes with the same length are not allowed. Needs refactoring if it is a must */
 		this.varlen['b'] = 1; this.vartype[1] = 'b';
@@ -169,6 +171,7 @@ class Program
 		string asm_code;
 
 		asm_code ~= "\tPROCESSOR 6502\n\n";
+        asm_code ~= "\tINCDIR \""~this.source_path~"\"\n";
 		asm_code ~= "\tSEG UPSTART\n";
 		asm_code ~= "\tORG $0801\n";
 		asm_code ~= "\tDC.W next_line\n";
