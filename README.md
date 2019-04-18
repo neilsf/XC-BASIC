@@ -332,7 +332,6 @@ Conditional structure. Executes the statement after `THEN` if the expression eva
 Current limitations:
 
 - Only one conditional operation (`AND`/`OR`) is supported
-- Only one command can be executed after `THEN` and `ELSE` each
 - `THEN` may not be omitted
 
 Expressions support conditional operators (`AND` and `OR`) since version 1.0.
@@ -344,6 +343,20 @@ Examples:
 	if a = b or a < 2 then print "they are equal or a is less than two"
 	
 Please refer to the "Expressions" section for the list of supported operators.
+
+Since version 1.2, multiple statements can be written in one line using the statement separator character (`:`). This, in combination with the line concatenation character allows you to write multi-line `IF ... THEN` blocks:
+
+	if x = y then ~
+		print "the numbers are equal" : ~
+		print "whatever else here" : ~
+		eq = 1 ~
+	else ~
+		print "the numbers are not equal" : ~
+		eq = 0
+		
+The above is technically a single line in XC-BASIC.
+
+Note that no other characters are allowed after the `~`, not even a whitespace!
 
 ### INC
 

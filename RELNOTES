@@ -1,9 +1,18 @@
 XC-BASIC Release Notes
 
 Current Release Number:
-   v1.1
+   v1.2-beta
 Release Date:
   10/04/2019
+
+What's new in version 1.2-beta?
+
+(1) Multiple statements can be written in one line using
+    the statement separator character (:)
+
+(2) Added ORIGIN statement
+
+(3) Added INCBIN statement
 
 What's new in version 1.1?
 ==========================
