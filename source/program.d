@@ -467,7 +467,7 @@ class Program
 			}
 
 			if(child.children.length > 1) {
-				auto Stmt = child.children[1].children[0];
+				auto Stmt = child.children[1].children[0].children[0];
 				if(Stmt.name == "XCBASIC.Proc_stmt") {
 					this.in_procedure = true;
 					this.current_proc_name = join(Stmt.children[0].matches);
@@ -477,7 +477,6 @@ class Program
 					this.current_proc_name = "";
 				}
 			}
-
 		}
 	}
 
