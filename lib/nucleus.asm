@@ -564,6 +564,9 @@ SAVE		EQU $ffd8
 	clc
 	adc #$01
 	sta {1}
+	bne .skip
+	inc {1}+1
+.skip
 	ENDM
 
 	; Signed 16-bit multiplication
@@ -720,6 +723,8 @@ NUCL_DIV8	SUBROUTINE
 
 	; Divide integers on stack
 	MAC divw
+	plw2var reserved0
+	plw2var reserved2
 	lda reserved0
 	bne .ok
 	lda reserved1
@@ -730,8 +735,6 @@ NUCL_DIV8	SUBROUTINE
 	pha
 	jmp RUNTIME_ERROR
 .ok
-	plw2var reserved0
-	plw2var reserved2
 	jsr NUCL_DIV16
 	pwvar reserved2
 	ENDM
