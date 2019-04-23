@@ -414,13 +414,15 @@ Syntax:
 
 	let key = inkey()
 	
-The `INKEY()` function returns the keyboard code of the currently pressed key. If no key is pressed, the return value is 0. Example:
+The `INKEY()` function returns the keyboard code of the last pressed key. If no key was pressed, the return value is 0. Example:
 
 	print "press a key"
 	loop:
 		let key = inkey()
 		if key = 0 then goto loop
 	print "you pressed: ", key
+	
+Note that once the keycode was returned by `INKEY()`, the input is "consumed", i.e. it won't be returned again on a subsequent function call, even if the key remained pressed.
 	
 ### INPUT
 
