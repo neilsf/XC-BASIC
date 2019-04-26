@@ -6,7 +6,7 @@ Some of the advantages of programming in **XC-BASIC** are:
 - Higher execution speed  - no interpreter, the source can be compiled to pure machine code in two steps.
 - More available memory - the program does not require the BASIC ROM to be present, which means the program code may span from $0801 to $CFFF - a total of 50K!
 
-**XC-BASIC** is based on Tiny BASIC, with many differences in syntax.
+**XC-BASIC** runs on Windows, Linux and macOS.
 
 # Contributors wanted!
 
