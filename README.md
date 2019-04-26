@@ -753,6 +753,10 @@ Usage in Linux:
 
 	./xcb source.bas target.prg
 	
+Usage in macOS:
+
+	./xcbmac source.bas target.prg
+	
 That's all you have to use in most of the cases. However, you can still use the binaries in the `bin/` directory to see and debug the intermediate assembly listing.
 
 The command line usage of the binarry is:
