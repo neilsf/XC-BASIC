@@ -777,11 +777,11 @@ Or using a singe lline command:
 	
 ## XC-BASIC language support for Visual Studio Code
 
-[https://github.com/Viza74](Viza74) created an XC-BASIC language support extension for Visual Studio. [https://marketplace.visualstudio.com/items?itemName=viza.xcbasiclanguagevscodeext](Grab it from here).
+[Viza74](https://github.com/Viza74) created an XC-BASIC language support extension for Visual Studio. [Grab it from here](https://marketplace.visualstudio.com/items?itemName=viza.xcbasiclanguagevscodeext).
 
 # Credits
 
 - XC-BASIC is using Philippe Sigaud's fantastic [Pegged library](https://github.com/PhilippeSigaud/Pegged) for grammar parsing
 - Since version 1.0, the [DASM](http://dasm-dillon.sourceforge.net/) executable is included in the project, please see `third_party/dasm-2.20.11/LICENSE` for more information.
 - Many ML routines have been borrowed from miscellaneous sources, their authors - if known - are credited within the source code. If you find your piece and your name is not credited, please drop me a line or post an issue here on GitHub and I'll fix my mistake!
-- Logo created by [https://github.com/Viza74](Viza74)
+- Logo created by [Viza74](https://github.com/Viza74)
