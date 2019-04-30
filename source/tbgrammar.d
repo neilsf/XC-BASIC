@@ -43,7 +43,7 @@ XCBASIC:
     Simplexp < Term :WS? (E_OP :WS? Term)*
     Term < Factor :WS? (T_OP :WS? Factor)*
     Factor < (Var / Number / Expression / Fn_call / Address)
-    Fn_call < Id "(" :WS? (ExprList / eps) :WS? ")"
+    Fn_call < Id Vartype  "(" :WS? (ExprList / eps) :WS? ")"
     Var < Varname Vartype Subscript?
 
     T_OP < ("*" / "/")
@@ -71,7 +71,10 @@ XCBASIC:
 
     Line_id < (Label / Unsigned / eps)
 
-    Reserved < ("const" / "let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "call" / "end" / "rem" / "poke" / "peek" / "for" / "to" / "next" / "dim" / "data" / "charat" / "textat" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr" / "and" / "or" / "load" / "save" / "ferr")
+    Reserved < ("const" / "let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "call" /
+                 "end" / "rem" / "poke" / "peek" / "for" / "to" / "next" / "dim" / "data" / "charat" / "textat" /
+                 "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr" / "and" / "or" / "load" / "save" / "ferr" /
+                 "abs" / "int" / "float" / "sin" / "cos" / "tan" / "atn")
     WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 

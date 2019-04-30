@@ -4,7 +4,6 @@ import core.stdc.stdlib;
 import statements;
 import basicstdlib;
 import nucleus;
-import floatlib;
 
 struct Variable {
 	ushort location;
@@ -17,7 +16,7 @@ struct Variable {
 	string procname;
 
 	int constValInt = 0;
-	float constValFloat = 0;
+	real constValFloat = 0;
 
 	string getLabel()
 	{
@@ -118,15 +117,15 @@ class Program
 		this.labels ~= str;
 	}
 
-	char type_conv(string type)
+	char resolve_sigil(string sigil)
 	{
-		if(type == "" || type == "#") {
+		if(sigil == "" || sigil == "#") {
 			return 'w';
 		}
-		else if(type == "$") {
+		else if(sigil == "$") {
 			return 's';
 		} 
-		else if(type == "%"){
+		else if(sigil == "%"){
 			return 'f';
 		}
 		else {
@@ -262,8 +261,10 @@ class Program
 		}
 	}
 
-	Variable findVariable(string id)
+	Variable findVariable(string id, string sigil)
 	{
+        char type = this.resolve_sigil(sigil);
+
 		bool global_mod = id[0] == '\\';
 		if(global_mod) {
 			id = stripLeft(id, "\\");
@@ -271,12 +272,12 @@ class Program
 
 		foreach(ref elem; this.variables) {
 			if(this.in_procedure && !global_mod) {
-				if(elem.name == id && elem.procname == this.current_proc_name) {
+				if(elem.name == id && elem.procname == this.current_proc_name && elem.type == type) {
 					return elem;
 				}
 			}
 			else {
-				if(elem.isGlobal && id == elem.name) {
+				if(elem.isGlobal && id == elem.name  && elem.type == type) {
 					return elem;
 				}
 			}
@@ -311,8 +312,10 @@ class Program
 		this.variables ~= var;
 	}
 
-	bool is_variable(string id)
+	bool is_variable(string id, string sigil)
 	{
+        char type = this.resolve_sigil(sigil);
+
 		bool global_mod = (id[0] == '\\');
 		if(global_mod) {
 			id = stripLeft(id, "\\");
@@ -320,12 +323,12 @@ class Program
 
 		foreach(ref elem; this.variables) {
 			if(this.in_procedure && !global_mod) {
-				if(id == elem.name && this.current_proc_name == elem.procname) {
+				if(id == elem.name && this.current_proc_name == elem.procname && elem.type == type) {
 					return true;
 				}
 			}
 			else {
-				if(elem.isGlobal && id == elem.name) {
+				if(elem.isGlobal && id == elem.name && elem.type == type) {
 					return true;
 				}
 			}
@@ -366,15 +369,15 @@ class Program
 		string partial = this.current_node.input[0..error_location];
 		auto lines = splitLines(partial);
 		ulong line_no = lines.length + 1;
-		writeln((is_warning ? "WARNING: " : "ERROR: ") ~ error_message ~ " in line " ~ to!string(line_no));
-		if(!is_warning) {
-			exit(1);
-		}
+		stderr.writeln((is_warning ? "WARNING: " : "ERROR: ") ~ error_message ~ " in line " ~ to!string(line_no));
+        if(!is_warning) {
+            exit(1);
+        }
 	}
 
 	void warning(string msg)
 	{
-		writeln("WARNING: "~msg);
+		this.error(msg, true);
 	}
 
 	void processLine(ParseTree node, ubyte pass)

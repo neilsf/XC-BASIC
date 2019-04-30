@@ -11,6 +11,9 @@ textat 14,16,"press a key"
 key_loop0:
 		if inkey() = 0 then goto key_loop0
 
+rem this is a remark
+rem it just fuckin works
+
 game_loop:
 	gosub cls
 	let snake_length = 4

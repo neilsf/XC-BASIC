@@ -12,6 +12,7 @@ class Term
     ParseTree node;
     Program program;
     string asmcode;
+    char expected_type = 'w';
 
     this(ParseTree node, Program program)
     { 
@@ -42,21 +43,24 @@ class Term
     {
         char i = 0; 
     	Factor f1 = new Factor(this.node.children[i], this.program);
+        f1.expected_type = this.expected_type;
         f1.eval();
         this.asmcode ~= to!string(f1);
         if(this.node.children.length > 1) {
             for(i = 1; i < this.node.children.length; i += 2) {
                 string t_op = this.node.children[i].matches[0];
                 Factor f = new Factor(this.node.children[i+1], this.program);
+                f.expected_type = this.expected_type;
                 f.eval();
                 this.asmcode ~= to!string(f);
+                string type = to!string(this.expected_type);
                 final switch(t_op) {
                     case "*":
-                        this.asmcode ~= "\tmulw\n";
+                        this.asmcode ~= "\tmul"~type~"\n";
                     break;
 
                     case "/":
-                        this.asmcode ~= "\tdivw\n";
+                        this.asmcode ~= "\tdiv"~type~"\n";
                     break;
                 }
             }

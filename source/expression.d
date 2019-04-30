@@ -31,11 +31,11 @@ class Expression
     char detect_type()
     {
         this.type = 'w';
-        Term tmpTerm;
+        Simplexp tmpSimplexp;
         foreach(ref child; this.node.children) {
-            if(child.name == "XCBASIC.Term") {
-                tmpTerm = new Term(child, this.program);
-                if(tmpTerm.detect_type() == 'f') {
+            if(child.name == "XCBASIC.Simplexp") {
+                tmpSimplexp = new Simplexp(child, this.program);
+                if(tmpSimplexp.detect_type() == 'f') {
                     // if only one term is a float,
                     // the whole expr will be of type float
                     this.type = 'f';
@@ -54,11 +54,16 @@ class Expression
     void eval()
     {
         char i = 0;
+        this.detect_type();
         Simplexp s1 = new Simplexp(this.node.children[i], this.program);
+        s1.expected_type = this.type;
         s1.eval();
         this.asmcode ~= to!string(s1);
 
         if(this.node.children.length > 1) {
+            if(this.type == 'f') {
+                this._type_error();
+            }
             for(i = 1; i < this.node.children.length; i += 2) {
                 string bw_op = this.node.children[i].matches[0];
                 Simplexp s = new Simplexp(this.node.children[i+1], this.program);
@@ -83,7 +88,7 @@ class Expression
    
     void _type_error()
     {
-
+        this.program.error("Bitwise operations cannot be performed on floats");
     }
 
     bool is_numeric_constant()

@@ -412,11 +412,3 @@ random:  DC.B %10011101,%01011011
 	lda $a2
 	sta random+1
 	ENDM
-
-	MAC rnd
-	jsr STDLIB_RND
-	lda random
-	pha
-	lda random+1
-	pha
-	ENDM

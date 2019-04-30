@@ -10,12 +10,14 @@ import std.stdio;
 import std.string;
 import core.stdc.stdlib;
 import excess;
+import term;
 
 class Factor
 {
     ParseTree node;
     Program program;
     string asmcode;
+    char expected_type = 'w';
     
     this(ParseTree node, Program program)
     { 
@@ -31,7 +33,7 @@ class Factor
             case "XCBASIC.Var":
                 ParseTree v = this.node.children[0];
                 string varname = join(v.children[0].matches);
-                char vartype = this.program.type_conv(v.children[1].matches[0]);
+                char vartype = this.program.resolve_sigil(v.children[1].matches[0]);
                 ret = vartype;
             break;
 
@@ -72,15 +74,25 @@ class Factor
             case "XCBASIC.Var":
                 ParseTree v = this.node.children[0];
                 string varname = join(v.children[0].matches);
-                char vartype = this.program.type_conv(v.children[1].matches[0]);
-                if(!this.program.is_variable(varname)) {
+                string sigil = v.children[1].matches[0];
+
+                if(!this.program.is_variable(varname, sigil)) {
                     this.program.error("Undefined variable: " ~ varname);
                 }
 
-                Variable var = this.program.findVariable(varname);
+                Variable var = this.program.findVariable(varname, sigil);
+                char vartype = var.type;
 
                 if(var.isConst) {
-                    this.asmcode ~= "\tpword #" ~ to!string(var.constValInt) ~ "\n";
+                    if(var.type == 'w') {
+                        this.asmcode ~= "\tpword #" ~ to!string(var.constValInt) ~ "\n";
+                    }
+                    else {
+                        ubyte[5] bytes = float_to_hex(to!real(var.constValFloat));
+                            this.asmcode ~= "\tpfloat $" ~ to!string(bytes[0], 16) ~ ", $" ~ to!string(bytes[1], 16) ~ ", $"
+                            ~ to!string(bytes[2], 16) ~ ", $" ~ to!string(bytes[3], 16)  ~ ", $" ~ to!string(bytes[4], 16) ~ "\n";
+                    }
+
                 }
                 else {
                     if(v.children.length > 2) {
@@ -124,11 +136,13 @@ class Factor
             case "XCBASIC.Address":
                 ParseTree v = this.node.children[0];
                 string varname = join(v.children[0].matches);
-                if(!this.program.is_variable(varname)) {
+                string sigil = join(v.children[1].matches);
+
+                if(!this.program.is_variable(varname, sigil)) {
                     this.program.error("Undefined variable: " ~ varname);
                 }
 
-                Variable var = this.program.findVariable(varname);
+                Variable var = this.program.findVariable(varname, sigil);
                 if(var.isConst) {
                     this.program.error("A constant has no address");
                 }
@@ -189,6 +203,11 @@ class Factor
                 fun.process();
                 this.asmcode ~= to!string(fun);
             break;
+        }
+
+        if(this.expected_type == 'f' && this.detect_type() == 'w') {
+            this.asmcode ~= "\twtof\n";
+            this.program.warning("Implicit type conversion");
         }
     }
    

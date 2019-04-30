@@ -23,6 +23,20 @@ MOVFM		EQU $bba2
 CONUPK		EQU $ba8c
 MOVMF		EQU $bbd4
 FCOMP		EQU	$bc5b
+FOUT		EQU $bddd
+FOUTDIRECT	EQU $aabc
+GIVAYF		EQU $b391
+FACINX		EQU	$b1bf
+FMULT		EQU $ba28
+FDIV		EQU $bb0f
+FADDT		EQU $b86a
+FSUBT		EQU $b853
+FRAND		EQU $e097
+FABS		EQU $bc58
+FSIN		EQU $e26b
+FCOS		EQU $e264
+FATN		EQU $e30e
+FTAN		EQU $e2b4
 
 SETNAM		EQU $ffbd
 SETLFS		EQU $ffba
@@ -253,6 +267,7 @@ SAVE		EQU $ffd8
 	txa
 	ldy #$01
 	jsr CONUPK
+	tsx
 	REPEAT 5
 	inx
 	REPEND
@@ -262,15 +277,19 @@ SAVE		EQU $ffd8
 	; Move float in FAC to stack
 	; Call basicin first!
 	MAC pushfac
-	tsx
-	inx
-	ldy #$01
+	ldx #<tmp_floatvar
+	ldy #>tmp_floatvar
 	jsr MOVMF
-	tsx
-	REPEAT 5
-	dex
-	REPEND
-	txs
+	lda tmp_floatvar+4
+	pha
+	lda tmp_floatvar+3
+	pha
+	lda tmp_floatvar+2
+	pha
+	lda tmp_floatvar+1
+	pha
+	lda tmp_floatvar
+	pha
 	ENDM
 	
 	; Compare two bytes on stack for less than
@@ -737,6 +756,51 @@ SAVE		EQU $ffd8
 	txs
 	ENDM
 	
+	; Convert word on stack to float
+	MAC wtof
+	basicin
+	pla
+	tax
+	pla
+	tay
+	txa
+	jsr GIVAYF
+	pushfac
+	basicout
+	ENDM
+	
+	; Convert float on stack to word
+	MAC ftow
+	basicin
+	pullfac
+	jsr FACINX
+	lda $65
+	pha
+	lda $64
+	pha
+	basicout
+	ENDM
+	
+	; Add floats on stack
+	MAC addf
+	basicin
+	pullfac
+	pullarg
+	jsr FADDT
+	pushfac
+	basicout
+	ENDM
+	
+	; Substract floats on stack
+	MAC subf
+	basicin
+	pullfac
+	pullarg
+	jsr FSUBT
+	pushfac
+	basicout
+	ENDM
+	
 	; Multiply bytes on stack
 	; by White Flame 20030207
 	MAC mulb
@@ -769,7 +833,7 @@ SAVE		EQU $ffd8
 	adc #$01
 	sta {1}
 	ENDM
-
+	
 	; Signed 16-bit multiplication
 NUCL_SMUL16
 	ldy #$00					; .y will hold the sign of product
@@ -830,6 +894,30 @@ NUCL_MUL16	SUBROUTINE
 	pha
 	lda reserved1
 	pha
+	ENDM
+	
+	; Multiply floats on stack
+	MAC mulf
+	basicin
+	plf2var tmp_floatvar
+	pullfac
+	lda #<tmp_floatvar
+	ldy #>tmp_floatvar
+	jsr FMULT
+	pushfac
+	basicout
+	ENDM
+	
+	; Divide floats on stack
+	MAC divf
+	basicin
+	pullfac
+	plf2var tmp_floatvar
+	lda #<tmp_floatvar
+	ldy #>tmp_floatvar
+	jsr FDIV
+	pushfac
+	basicout
 	ENDM
 	
 	; 8 bit division routine
@@ -1110,7 +1198,85 @@ NUCL_DIVU16 SUBROUTINE
     jmp $0000
 .return_addr
     ENDM
-
+    
+    ; Push random integer on stack
+    MAC rndw
+	jsr STDLIB_RND
+	lda random
+	pha
+	lda random+1
+	pha
+	ENDM
+	
+	; Push random float on stack
+	MAC rndf
+	basicin
+	jsr FRAND
+	pushfac
+	basicout
+	ENDM
+	
+	; Absolute value of integer
+	MAC absw
+	tsx
+	lda.wx stack+1
+	bpl .skip
+	eor #$ff
+	sta.wx stack+1
+	lda.wx stack+2
+	eor #$ff
+	clc
+	adc #$01
+	sta.wx stack+2
+	bne .skip
+	inc.wx stack+1
+.skip
+	ENDM
+	
+	; Absolute value of float
+	MAC absf
+	basicin
+	pullfac
+	jsr FABS
+	pushfac
+	basicout
+	ENDM
+	
+	; Sine of float
+	MAC sinf
+	basicin
+	pullfac
+	jsr FSIN
+	pushfac
+	basicout
+	ENDM
+	
+	; Cosine of float
+	MAC cosf
+	basicin
+	pullfac
+	jsr FCOS
+	pushfac
+	basicout
+	ENDM
+	
+	; Tangent of float
+	MAC tanf
+	basicin
+	pullfac
+	jsr FTAN
+	pushfac
+	basicout
+	ENDM
+	
+	; Arc tangent of float
+	MAC atnf
+	basicin
+	pullfac
+	jsr FATN
+	pushfac
+	basicout
+	ENDM
 
 	MAC basicin
 	lda $01
@@ -1124,6 +1290,20 @@ NUCL_DIVU16 SUBROUTINE
 	sta $01
 	ENDM
 	
+	; print float as decimal
+	MAC stdlib_printf
+	basicin
+	pullfac
+	jsr FOUT
+	ldx $0100
+	cpx #$20
+	bne .doprint
+	lda #$01	
+.doprint
+	jsr STDLIB_PRINT
+	basicout
+	ENDM
+	
 	; init program: save stack pointer and seed rnd
 	MAC init_program
 	tsx
@@ -1132,7 +1312,7 @@ NUCL_DIVU16 SUBROUTINE
 	basicout
 	ENDM
 
-	; end program: restorre stack pointer and exit
+	; end program: restore stack pointer and exit
 	MAC halt
 	basicin
 	ldx RESERVED_STACK_POINTER
@@ -1225,6 +1405,4 @@ RUNTIME_ERROR	SUBROUTINE
     jsr STDLIB_PRINT
     halt
     
-tmp_floatvar HEX 00 00 00 00 00
-RESERVED_STACK_POINTER DC.B 0
-	
+tmp_floatvar HEX 00 00 00 00 00	
