@@ -7,18 +7,66 @@ import fun;
 import std.array;
 import std.conv;
 import std.stdio;
+import std.string;
 import core.stdc.stdlib;
+import excess;
+import term;
+import number;
 
 class Factor
 {
     ParseTree node;
     Program program;
     string asmcode;
+    char expected_type = 'w';
     
     this(ParseTree node, Program program)
     { 
         this.node = node;
         this.program = program;
+    }
+
+    char detect_type()
+    {
+        string ftype = this.node.children[0].name;
+        char ret;
+        final switch(ftype) {
+            case "XCBASIC.Var":
+                ParseTree v = this.node.children[0];
+                string varname = join(v.children[0].matches);
+                char vartype = this.program.resolve_sigil(v.children[1].matches[0]);
+                ret = vartype;
+            break;
+
+            case "XCBASIC.Number":
+                ParseTree v = this.node.children[0].children[0];
+                final switch(v.name) {
+                    case "XCBASIC.Integer":
+                    case "XCBASIC.Hexa":
+                    case "XCBASIC.Binary":
+                        ret = 'w';
+                        break;
+
+                    case "XCBASIC.Floating":
+                        ret = 'f';
+                        break;
+                }
+            break;
+
+            case "XCBASIC.Fn_call":
+                ParseTree fn = this.node.children[0];
+                auto fun = FunFactory(fn, this.program);
+                ret = fun.type;
+            break;
+
+            case "XCBASIC.Expression":
+                ParseTree ex = this.node.children[0];
+                auto Ex = new Expression(ex, this.program);
+                ret = Ex.detect_type();
+            break;
+        }
+
+        return ret;
     }
 
     void eval()
@@ -28,15 +76,25 @@ class Factor
             case "XCBASIC.Var":
                 ParseTree v = this.node.children[0];
                 string varname = join(v.children[0].matches);
-                char vartype = this.program.type_conv(v.children[1].matches[0]);
-                if(!this.program.is_variable(varname)) {
+                string sigil = v.children[1].matches[0];
+
+                if(!this.program.is_variable(varname, sigil)) {
                     this.program.error("Undefined variable: " ~ varname);
                 }
 
-                Variable var = this.program.findVariable(varname);
+                Variable var = this.program.findVariable(varname, sigil);
+                char vartype = var.type;
 
                 if(var.isConst) {
-                    this.asmcode ~= "\tpword #" ~ to!string(var.constValInt) ~ "\n";
+                    if(var.type == 'w') {
+                        this.asmcode ~= "\tpword #" ~ to!string(var.constValInt) ~ "\n";
+                    }
+                    else {
+                        ubyte[5] bytes = float_to_hex(to!real(var.constValFloat));
+                            this.asmcode ~= "\tpfloat $" ~ to!string(bytes[0], 16) ~ ", $" ~ to!string(bytes[1], 16) ~ ", $"
+                            ~ to!string(bytes[2], 16) ~ ", $" ~ to!string(bytes[3], 16)  ~ ", $" ~ to!string(bytes[4], 16) ~ "\n";
+                    }
+
                 }
                 else {
                     if(v.children.length > 2) {
@@ -80,11 +138,13 @@ class Factor
             case "XCBASIC.Address":
                 ParseTree v = this.node.children[0];
                 string varname = join(v.children[0].matches);
-                if(!this.program.is_variable(varname)) {
+                string sigil = join(v.children[1].matches);
+
+                if(!this.program.is_variable(varname, sigil)) {
                     this.program.error("Undefined variable: " ~ varname);
                 }
 
-                Variable var = this.program.findVariable(varname);
+                Variable var = this.program.findVariable(varname, sigil);
                 if(var.isConst) {
                     this.program.error("A constant has no address");
                 }
@@ -94,12 +154,15 @@ class Factor
 
             case "XCBASIC.Number":
                 ParseTree v = this.node.children[0];
-                string num_str = join(v.children[0].matches);
-                int num = to!int(num_str);
-                if(num < -32768 || num > 65535) {
-                    this.program.error("Number out of range");
+                Number num = new Number(v, this.program);
+                if(num.type == 'w') {
+                    this.asmcode ~= "\tpword #" ~ to!string(num.intval) ~ "\n";
                 }
-                this.asmcode ~= "\tpword #" ~ num_str ~ "\n";
+                else {
+                    ubyte[5] bytes = float_to_hex(num.floatval);
+                    this.asmcode ~= "\tpfloat $" ~ to!string(bytes[0], 16) ~ ", $" ~ to!string(bytes[1], 16) ~ ", $"
+                    ~ to!string(bytes[2], 16) ~ ", $" ~ to!string(bytes[3], 16)  ~ ", $" ~ to!string(bytes[4], 16) ~ "\n";
+                }
             break;
 
             case "XCBASIC.Expression":
@@ -124,6 +187,11 @@ class Factor
             
 	    break;
 
+        }
+
+        if(this.expected_type == 'f' && this.detect_type() == 'w') {
+            this.asmcode ~= "\twtof\n";
+            this.program.warning("Implicit type conversion");
         }
     }
    

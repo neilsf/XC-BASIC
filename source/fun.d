@@ -31,6 +31,34 @@ Fun FunFactory(ParseTree node, Program program) {
             fun = new FerrFun(node, program);
         break;
 
+        case "abs":
+            fun = new AbsFun(node, program);
+        break;
+
+        case "int":
+            fun = new IntFun(node, program);
+        break;
+
+        case "float":
+            fun = new FloatFun(node, program);
+        break;
+
+        case "sin":
+            fun = new SinFun(node, program);
+        break;
+
+        case "cos":
+            fun = new CosFun(node, program);
+        break;
+
+        case "tan":
+            fun = new TanFun(node, program);
+        break;
+
+        case "atn":
+            fun = new AtnFun(node, program);
+        break;
+
         default:
         assert(0);
     }
@@ -44,7 +72,7 @@ template FunConstructor()
     {
         super(node, program);
         for(ubyte i=0; i<this.arg_count; i++) {
-            auto e = this.node.children[1].children[i];
+            auto e = this.node.children[2].children[i];
             this.arglist[i] = new Expression(e, this.program);
             this.arglist[i].eval();
         }
@@ -63,11 +91,26 @@ abstract class Fun:FunInterface
     protected ubyte arg_count;
     protected Expression[8] arglist;
     protected string fncode;
+    public char type;
 
     this(ParseTree node, Program program)
     {
         this.node = node;
+        string funName = join(node.children[0].matches);
+        auto sigil = join(node.children[1].matches);
+        char type = program.resolve_sigil(sigil);
+
+        if(count(this.getPossibleTypes(), type) == 0) {
+            string err = "The function "~funName ~"() cannot return " ~program.vartype_names[type];
+            program.error(err);
+        }
         this.program = program;
+        this.type = type;
+    }
+
+    protected char[] getPossibleTypes()
+    {
+        return ['w'];
     }
 
     override string toString()
@@ -142,12 +185,16 @@ class UsrFun:Fun
 class RndFun:Fun
 {
     mixin FunConstructor;
-
     protected ubyte arg_count = 0;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['w', 'f'];
+    }
 
     void process()
     {
-        this.fncode ~= "\trnd\n";
+       this.fncode ~= "\trnd" ~ to!string(this.type) ~ "\n";
     }
 }
 
@@ -172,5 +219,126 @@ class FerrFun:Fun
     void process()
     {
         this.fncode ~= "\tferr\n";
+    }
+}
+
+class AbsFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['w', 'f'];
+    }
+
+    void process()
+    {
+        if(this.type != this.arglist[0].detect_type()) {
+            this.program.error("The abs() function's argument type and return type must match");
+        }
+
+        this.fncode ~= "\tabs" ~ to!string(this.type) ~ "\n";
+    }
+}
+
+class IntFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    void process()
+    {
+        if(this.arglist[0].type != 'f') {
+            this.program.error("Argument #1 of int() must be a float");
+        }
+
+        this.fncode = "\tftow\n";
+    }
+}
+
+class FloatFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['f'];
+    }
+
+    void process()
+    {
+        if(this.arglist[0].type != 'w') {
+            this.program.error("Argument #1 of float() must be an integer");
+        }
+
+        this.fncode = "\twtof\n";
+    }
+}
+
+abstract class TrigonometricFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['f'];
+    }
+
+    abstract string getName();
+
+    void process()
+    {
+        if(this.arglist[0].type != 'f') {
+            this.program.error("Argument #1 of "~this.getName()~"() must be a float");
+        }
+
+        this.fncode = "\t" ~this.getName()~ "f\n";
+    }
+}
+
+class SinFun:TrigonometricFun
+{
+    mixin FunConstructor;
+
+    override string getName()
+    {
+        return "sin";
+    }
+}
+
+class CosFun:TrigonometricFun
+{
+    mixin FunConstructor;
+
+    override string getName()
+    {
+        return "cos";
+    }
+}
+
+class TanFun:TrigonometricFun
+{
+    mixin FunConstructor;
+
+    override string getName()
+    {
+        return "tan";
+    }
+}
+
+class AtnFun:TrigonometricFun
+{
+    mixin FunConstructor;
+
+    override string getName()
+    {
+        return "atn";
     }
 }

@@ -5,6 +5,7 @@ import program;
 import std.string, std.conv, std.stdio;
 import expression;
 import stringliteral;
+import number;
 
 Stmt StmtFactory(ParseTree node, Program program) {
 	string stmt_class =node.children[0].name;
@@ -160,27 +161,28 @@ class Const_stmt:Stmt
 		ParseTree v = this.node.children[0].children[0];
 		ParseTree num = this.node.children[0].children[1];
 		string varname = join(v.children[0].matches);
-		char vartype = this.program.type_conv(v.children[1].matches[0]);
+        string sigil = join(v.children[1].matches);
+		char vartype = this.program.resolve_sigil(sigil);
 
-		string num_str = join(num.matches);
-		int inum = to!int(num_str);
+        Number number = new Number(num, this.program);
 
-		if(inum < -32768 || inum > 65535) {
-			this.program.error("Number out of range");
-		}
+        if(vartype != number.type) {
+            this.program.error("Type mismatch");
+        }
 
 		Variable var = {
 			name: varname,
-			type: vartype,
+			type: number.type,
 			isConst: true,
-			constValInt: inum
+			constValInt: number.intval,
+            constValFloat: number.floatval
 		};
 
-		if(!this.program.is_variable(varname)) {
+		if(!this.program.is_variable(varname, sigil)) {
 			this.program.addVariable(var);
 		}
 		else {
-			this.program.error("Can't redefine constant or variable already exists");
+			this.program.error("A variable or constant already exists with that name");
 		}
 	}
 }
@@ -192,54 +194,61 @@ class Let_stmt:Stmt
 	void process()
 	{
 		ParseTree v = this.node.children[0].children[0];
-		ParseTree ex = this.node.children[0].children[1];
-		string varname = join(v.children[0].matches);
-		char vartype = this.program.type_conv(v.children[1].matches[0]);
-		if(!this.program.is_variable(varname)) {
-			this.program.addVariable(Variable(0, varname, vartype));
-		}
-		Variable var = this.program.findVariable(varname);
-		if(var.isConst) {
-			this.program.error("Can't assign value to a constant");
-		}
-		Expression Ex = new Expression(ex, this.program);
-		Ex.eval();
-		this.program.program_segment ~= to!string(Ex);
+        ParseTree ex = this.node.children[0].children[1];
+        string varname = join(v.children[0].matches);
+        string sigil = join(v.children[1].matches);
+        char vartype = this.program.resolve_sigil(sigil);
 
-		if(v.children.length > 2) {
-			/* any variable can be accessed as an array
-			if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
-				this.program.error("Not an array");
-			}
-			*/
-			auto subscript = v.children[2];
-			if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
-				this.program.error("Bad subscript");
-			}
-			ushort[2] dimensions;
-			ubyte i = 0;
-			foreach(ref expr; subscript.children) {
-				Expression Ex2 = new Expression(expr, this.program);
-				Ex2.eval();
-				this.program.program_segment ~= to!string(Ex2);
+        if(!this.program.is_variable(varname, sigil)) {
+            this.program.addVariable(Variable(0, varname, vartype));
+        }
+        Variable var = this.program.findVariable(varname, sigil);
+        if(var.isConst) {
+            this.program.error("Can't assign value to a constant");
+        }
+        Expression Ex = new Expression(ex, this.program);
 
-				if(i == 1) {
-					// must multiply with first dimension length
-					this.program.program_segment ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
-												  ~ "\tmulw\n"
-												  ~ "\taddw\n";
-				}
+        if(vartype != Ex.detect_type()) {
+            this.program.error("Type mismatch");
+        }
 
-				i++;
-			}
-			// must multiply with the variable length!
-			this.program.program_segment ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
-										  ~ "\tmulw\n" ;
-			this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
-		}
-		else {
-			this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n";
-		}
+        Ex.eval();
+        this.program.program_segment ~= to!string(Ex);
+
+        if(v.children.length > 2) {
+            /* any variable can be accessed as an array
+            if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
+                this.program.error("Not an array");
+            }
+            */
+            auto subscript = v.children[2];
+            if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
+                this.program.error("Bad subscript");
+            }
+            ushort[2] dimensions;
+            ubyte i = 0;
+            foreach(ref expr; subscript.children) {
+                Expression Ex2 = new Expression(expr, this.program);
+                Ex2.eval();
+                this.program.program_segment ~= to!string(Ex2);
+
+                if(i == 1) {
+                    // must multiply with first dimension length
+                    this.program.program_segment ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
+                                                  ~ "\tmulw\n"
+                                                  ~ "\taddw\n";
+                }
+
+                i++;
+            }
+            // must multiply with the variable length!
+            this.program.program_segment ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
+                                          ~ "\tmulw\n" ;
+            this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
+        }
+        else {
+            this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n";
+        }
 	}
 }
 
@@ -251,7 +260,8 @@ class Dim_stmt:Stmt
 	{
 		ParseTree v = this.node.children[0].children[0];
 		string varname = join(v.children[0].matches);
-		char vartype = this.program.type_conv(v.children[1].matches[0]);
+        string sigil = join(v.children[1].matches);
+		char vartype = this.program.resolve_sigil(sigil);
 
 		ushort[2] dimensions;
 		if(v.children.length > 2) {
@@ -259,11 +269,34 @@ class Dim_stmt:Stmt
 
 			ubyte i = 0;
 			foreach(ref expr; subscript.children) {
-				Expression Ex = new Expression(expr, this.program);
-				if(!Ex.is_numeric_constant()) {
-					this.program.error("Only numeric constants are accepted as array dimensions");
-				}
-				dimensions[i]=to!ushort(Ex.as_int());
+                string dim = join(expr.matches);
+                int dimlen = 0;
+
+                // Case 1: test for constant
+                if(this.program.is_variable(dim, "")) {
+                    Variable var = this.program.findVariable(dim, "");
+                    if(!var.isConst) {
+                        this.program.error("Only numeric constants are accepted as array dimensions");
+                    }
+                    if(var.type != 'w') {
+                        this.program.error("Array dimensions must be integers");
+                    }
+
+                    dimlen = var.constValInt;
+                }
+                // Case 2: test for numeric literal
+                else {
+                    if(expr.children.length > 1) {
+                        this.program.error("Only numeric constants are accepted as array dimensions");
+                    }
+                    Number num = new Number(expr.children[0].children[0].children[0].children[0], this.program);
+                    if(num.type != 'w') {
+                        this.program.error("Array dimensions must be integers");
+                    }
+                    dimlen = num.intval;
+                }
+
+				dimensions[i] = to!ushort(dimlen);
 				i++;
 			}
 
@@ -276,7 +309,7 @@ class Dim_stmt:Stmt
 			dimensions[1]=1;
 		}
 
-		if(this.program.is_variable(varname)) {
+		if(this.program.is_variable(varname, sigil)) {
 			this.program.error("Variable "~varname~" is already defined/used.");
 		}
 
@@ -294,11 +327,13 @@ class Print_stmt:Stmt
 		ParseTree exlist = this.node.children[0].children[0];
 		for(char i=0; i< exlist.children.length; i++) {
 			final switch(exlist.children[i].name) {
+
 				case "XCBASIC.Expression":
 					auto Ex = new Expression(exlist.children[i], this.program);
 					Ex.eval();
+                    char type = Ex.detect_type();
 					this.program.program_segment ~= to!string(Ex);
-					this.program.program_segment ~= "\tstdlib_printw\n";
+                    this.program.program_segment ~= "\tstdlib_print"~ to!string(type) ~"\n";
 				break;
 
 				case "XCBASIC.String":
@@ -329,12 +364,14 @@ class Textat_stmt:Stmt
 		Expression col = new Expression(exlist.children[0], this.program);
 		Expression row = new Expression(exlist.children[1], this.program);
 
+        if(col.detect_type() != 'w' || row.detect_type != 'w') {
+            this.program.error("Column and row must be integers");
+        }
+
 		col.eval();
 		row.eval();
 
-
 		if(exlist.children[2].name == "XCBASIC.Expression") {
-
 			this.program.program_segment ~= to!string(row); // rownum
 			// multiply by 40
 			this.program.program_segment ~="\tpword #40\n" ~ "\tmulw\n";
@@ -381,14 +418,12 @@ class Goto_stmt:Stmt
 	void process()
 	{
 		string lbl = join(this.node.children[0].children[0].matches);
-
 		if(!this.program.labelExists(lbl)) {
 			this.program.error("Label "~lbl~" does not exist");
 		}
 
 		lbl = this.program.in_procedure ? this.program.current_proc_name ~ "." ~ lbl : lbl;
 		this.program.program_segment ~= "\tjmp _L"~lbl~"\n";
-
 	}
 }
 
@@ -412,11 +447,9 @@ class Call_stmt:Stmt
 			for(ubyte i = 0; i < proc.arguments.length; i++) {
 				Expression Ex = new Expression(exprlist.children[i], this.program);
 				Ex.eval;
-				/* type check later
-				if(proc.argument[arg_count].type != ex.getType()) {
+				if(proc.arguments[i].type != Ex.detect_type()) {
 					this.program.error("Argument type mismatch");
 				}
-				*/
 				this.program.program_segment ~= to!string(Ex);
 				char vartype = proc.arguments[i].type;
 				string varlabel = proc.arguments[i].getLabel();
@@ -482,81 +515,90 @@ class If_stmt:Stmt
 
 	void process()
 	{
-        ParseTree[] relations;
-        int rel_count = 1;
-        bool logop_present = false;
+		ParseTree[] relations;
+		int rel_count = 1;
+		bool logop_present = false;
 
-        auto statement = this.node.children[0];
-        //writeln(statement); this.program.error("Now stop here");
-        relations ~= statement.children[0];
+		auto statement = this.node.children[0];
+		//writeln(statement); this.program.error("Now stop here");
+		relations ~= statement.children[0];
 
-        if(statement.children[1].name == "XCBASIC.Logop") {
-            relations ~= statement.children[2];
-            rel_count++;
-            logop_present = true;
-        }
+		if(statement.children[1].name == "XCBASIC.Logop") {
+			relations ~= statement.children[2];
+			rel_count++;
+			logop_present = true;
+		}
 
-        for(int i; i < rel_count; i++) {
-            auto e1 = relations[i].children[0];
-            string rel = join(relations[i].children[1].matches);
-            auto e2 = relations[i].children[2];
+		for(int i; i < rel_count; i++) {
+			auto e1 = relations[i].children[0];
+			string rel = join(relations[i].children[1].matches);
+			auto e2 = relations[i].children[2];
 
-            auto Ex1 = new Expression(e1, this.program);
-            Ex1.eval();
-            auto Ex2 = new Expression(e2, this.program);
-            Ex2.eval();
+			auto Ex1 = new Expression(e1, this.program);
+			Ex1.eval();
+			auto Ex2 = new Expression(e2, this.program);
+			Ex2.eval();
 
-            this.program.program_segment ~= to!string(Ex1);
-            this.program.program_segment ~= to!string(Ex2);
+            string exp_type;
 
-            string rel_type;
-
-            final switch(rel) {
-                case "<":
-                    rel_type = "lt";
-                    break;
-
-                case "<=":
-                    rel_type = "lte";
-                    break;
-
-                case "<>":
-                    rel_type = "neq";
-                    break;
-
-                case ">":
-                    rel_type = "gt";
-                    break;
-
-                case ">=":
-                    rel_type = "gte";
-                    break;
-
-                case "=":
-                    rel_type = "eq";
-                    break;
+            if(Ex1.detect_type() == Ex2.detect_type()) {
+                exp_type = to!string(Ex1.type);
+            }
+            else {
+                this.program.error("Expression types in relation mismatch.");
             }
 
-            this.program.program_segment~="\tcmpw"~rel_type~"\n";
-        }
+			this.program.program_segment ~= to!string(Ex1);
+			this.program.program_segment ~= to!string(Ex2);
 
-        // relations are evaluated, now the comes logical op if present
+			string rel_type;
 
-        if(logop_present) {
-            string logop = join(statement.children[1].matches);
-            final switch(logop) {
-                case "and":
-                    this.program.program_segment~="\tandb\n";
-                break;
+			final switch(rel) {
+				case "<":
+					rel_type = "lt";
+					break;
 
-                case "or":
-                    this.program.program_segment~="\torb\n";
-                break;
-            }
-        }
+				case "<=":
+					rel_type = "lte";
+					break;
 
-        int cursor = logop_present ? 3 : 1;
-        auto st = statement.children[cursor];
+				case "<>":
+					rel_type = "neq";
+					break;
+
+				case ">":
+					rel_type = "gt";
+					break;
+
+				case ">=":
+					rel_type = "gte";
+					break;
+
+				case "=":
+					rel_type = "eq";
+					break;
+			}
+
+			this.program.program_segment~="\tcmp" ~ exp_type ~rel_type~"\n";
+		}
+
+		// relations are evaluated, now the comes logical op if present
+
+		if(logop_present) {
+			string logop = join(statement.children[1].matches);
+			final switch(logop) {
+				case "and":
+					this.program.program_segment~="\tandb\n";
+				break;
+
+				case "or":
+					this.program.program_segment~="\torb\n";
+				break;
+			}
+		}
+
+		int cursor = logop_present ? 3 : 1;
+		auto st = statement.children[cursor];
 		bool else_present = false;
 
 		ParseTree else_st;
@@ -664,16 +706,15 @@ class Input_stmt:Stmt
 		for(char i=0; i< list.children.length; i++) {
 			ParseTree v = list.children[i];
 			string varname = join(v.children[0].matches);
-			char vartype = this.program.type_conv(v.children[1].matches[0]);
-			if(!this.program.is_variable(varname)) {
+            string sigil = join(v.children[1].matches);
+			char vartype = this.program.resolve_sigil(sigil);
+			if(!this.program.is_variable(varname, sigil)) {
 				this.program.variables ~= Variable(0, varname, vartype);
 			}
-			Variable var = this.program.findVariable(varname);
-
+			Variable var = this.program.findVariable(varname, sigil);
 			if(var.isConst) {
 				this.program.error("Can't INPUT to a constant");
 			}
-
 			this.program.program_segment~="\tinput\n";
 			this.program.program_segment~="\tplw2var " ~ var.getLabel() ~ "\n";
 		}
@@ -687,14 +728,15 @@ class Data_stmt:Stmt
 	void process()
 	{
 		string varname = join(this.node.children[0].children[0].matches);
-		char vartype = this.program.type_conv(this.node.children[0].children[1].matches[0]);
+        string sigil = join(this.node.children[0].children[1].matches);
+		char vartype = this.program.resolve_sigil(sigil);
 		ParseTree list = this.node.children[0].children[2];
 		ushort dimension = to!ushort(list.children.length);
 
-		if(!this.program.is_variable(varname)) {
+		if(!this.program.is_variable(varname, sigil)) {
 			this.program.addVariable(Variable(0, varname, vartype, [dimension, 1], false, true));
 		}
-		Variable var = this.program.findVariable(varname);
+		Variable var = this.program.findVariable(varname, sigil);
 
 		if(var.isConst) {
 			this.program.error(varname ~ " is a constant");
@@ -724,11 +766,17 @@ class For_stmt: Stmt
 		ParseTree v = this.node.children[0].children[0];
 		ParseTree ex = this.node.children[0].children[1];
 		string varname = join(v.children[0].matches);
-		char vartype = this.program.type_conv(v.children[1].matches[0]);
-		if(!this.program.is_variable(varname)) {
+        string sigil = join(v.children[1].matches);
+		char vartype = this.program.resolve_sigil(sigil);
+
+        if(vartype != 'w') {
+            this.program.error("Index must be of type integer");
+        }
+
+		if(!this.program.is_variable(varname, sigil)) {
 			this.program.addVariable(Variable(0, varname, vartype));
 		}
-		Variable var = this.program.findVariable(varname);
+		Variable var = this.program.findVariable(varname, sigil);
 		Expression Ex = new Expression(ex, this.program);
 		Ex.eval();
 		this.program.program_segment ~= to!string(Ex);
@@ -740,7 +788,7 @@ class For_stmt: Stmt
 		Ex2.eval();
 		this.program.program_segment ~= to!string(Ex2);
 
-		/* step 2 call for */
+		/* step 3 call for */
 		this.program.program_segment ~= "\tfor\n";
 	}
 }
@@ -753,7 +801,11 @@ class Next_stmt:Stmt
 	{
 		ParseTree v = this.node.children[0].children[0];
 		string varname = join(v.children[0].matches);
-		Variable var = this.program.findVariable(varname);
+        string sigil = join(v.children[1].matches);
+        if(!this.program.is_variable(varname, sigil)) {
+            this.program.error("Variable " ~varname~" does not exist");
+        }
+		Variable var = this.program.findVariable(varname, sigil);
 		this.program.program_segment ~= "\tnext "~var.getLabel()~"\n";
 	}
 }
@@ -766,10 +818,21 @@ class Inc_stmt:Stmt
 	{
 		ParseTree v = this.node.children[0].children[0];
 		string varname = join(v.children[0].matches);
-		Variable var = this.program.findVariable(varname);
+        string sigil = join(v.children[1].matches);
+        if(!this.program.is_variable(varname, sigil)) {
+            this.program.error("Variable " ~varname~" does not exist");
+        }
+
+		Variable var = this.program.findVariable(varname, sigil);
+
+        if(var.type != 'w') {
+            this.program.error("INC only works on integer types");
+        }
+
 		if(var.isConst) {
 			this.program.error(varname ~ " is a constant");
 		}
+
 		this.program.program_segment ~= "\tiinc "~var.getLabel()~"\n";
 	}
 }
@@ -783,7 +846,16 @@ class Dec_stmt:Stmt
 	{
 		ParseTree v = this.node.children[0].children[0];
 		string varname = join(v.children[0].matches);
-		Variable var = this.program.findVariable(varname);
+        string sigil = join(v.children[1].matches);
+        if(!this.program.is_variable(varname, sigil)) {
+            this.program.error("Variable " ~varname~" does not exist");
+        }
+		Variable var = this.program.findVariable(varname, sigil);
+
+        if(var.type != 'w') {
+            this.program.error("DEC only works on integer types");
+        }
+
 		if(var.isConst) {
 			this.program.error(varname ~ " is a constant");
 		}
@@ -817,7 +889,7 @@ class Proc_stmt:Stmt
 		if(this.node.children[0].children.length > 1) {
 			ParseTree varlist = this.node.children[0].children[1];
 			foreach(ref var; varlist.children) {
-				Variable argument = Variable(0, join(var.children[0].matches), this.program.type_conv(join(var.children[1].matches)));
+				Variable argument = Variable(0, join(var.children[0].matches), this.program.resolve_sigil(join(var.children[1].matches)));
 				this.program.addVariable(argument);
 				proc.addArgument(argument);
 			}

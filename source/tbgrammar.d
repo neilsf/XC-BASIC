@@ -41,11 +41,13 @@ XCBASIC:
     ExprList < (String / Expression) :WS? ("," :WS? (String / Expression) )*
     VarList < Var (:WS? "," :WS? Var)*
     Datalist < Number (:WS? "," :WS? Number :WS?)*
+
     Expression < Simplexp (:WS? BW_OP :WS? Simplexp :WS?)*
     Simplexp < Term (:WS? E_OP :WS? Term :WS?)*
     Term < Factor (:WS? T_OP :WS? Factor :WS?)*
-    Factor < ( Var / Number / Parenthesis / Expression / Fn_call / Address )
-    Fn_call < Id "(" :WS? (ExprList / eps) :WS? ")"
+    Factor < (Var / Number / Parenthesis / Expression / Fn_call / Address)
+    Fn_call < Id Vartype  "(" :WS? (ExprList / eps) :WS? ")"
+
     Var < Varname Vartype Subscript?
     Parenthesis < "(" :WS? Expression :WS? ")"
 
@@ -58,7 +60,6 @@ XCBASIC:
     Id <- [a-zA-Z_] [a-zA-Z_0-9]*
     Vartype <- ("%" / "#" /  eps)
     Subscript <- "[" Expression (:WS? "," :WS? Expression)? "]"
-
     Logop < "and" | "or"
     Relop < "<" | "<=" | "=" | "<>" | ">" | ">="
     String < doublequote (!doublequote . / ^' ')* doublequote
@@ -66,16 +67,20 @@ XCBASIC:
     Unsigned   < [0-9]+
     Integer    < "-"? Unsigned
     Hexa       < "$" [0-9a-fA-F]+
+    Binary     < "%" ("0" / "1")+
+    Floating   < "-"? Unsigned "." Unsigned
 
-    Number < (Integer / Hexa)
+    Number < (Floating / Integer / Hexa / Binary)
 
     Label < [a-zA-Z_] [a-zA-Z_0-9]* ":"
     Label_ref < [a-zA-Z_] [a-zA-Z_0-9]*
 
     Line_id < (Label / Unsigned / eps)
 
-    Reserved < ("const" / "let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "call" / "end" / "rem" / "poke" / "peek" / "for" / "to" / "next" / "dim" / "data" / "charat" / "textat" / "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr" / "and" / "or" / "load" / "save" / "ferr" / "origin" / "incbin")
-
+    Reserved < ("const" / "let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "call" /
+                 "end" / "rem" / "poke" / "peek" / "for" / "to" / "next" / "dim" / "data" / "charat" / "textat" /
+                 "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr" / "and" / "or" / "load" / "save" / "ferr" /
+                 "abs" / "int" / "float" / "sin" / "cos" / "tan" / "atn")
     WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 

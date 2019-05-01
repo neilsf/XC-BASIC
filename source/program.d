@@ -16,7 +16,7 @@ struct Variable {
 	string procname;
 
 	int constValInt = 0;
-	float constValFloat = 0;
+	real constValFloat = 0;
 
 	string getLabel()
 	{
@@ -59,6 +59,7 @@ class Program
 
 	ubyte[char] varlen;
 	char[ubyte] vartype;
+	string[char] vartype_names;
 
 	Variable[] variables;
 	Variable[] external_variables;
@@ -80,21 +81,24 @@ class Program
 	string current_proc_name = "";
 
     string source_path = "";
+	bool use_floats = true;
 
 	this() {
 		/* As of now, vartypes with the same length are not allowed. Needs refactoring if it is a must */
-		this.varlen['b'] = 1; this.vartype[1] = 'b';
+		//this.varlen['b'] = 1; this.vartype[1] = 'b';
 		this.varlen['w'] = 2; this.vartype[2] = 'w';
-		this.varlen['s'] = 2; this.vartype[2] = 's';
-		//this.varlen['i'] = 3; this.vartype[3] = 'i';
-		//this.varlen['f'] = 5; this.vartype[5] = 'f';
+		//this.varlen['s'] = 2; this.vartype[2] = 's';
+		this.varlen['f'] = 5; this.vartype[5] = 'f';
 		this.settings = ProgramSettings(0xc000, 0xcfff, 0x0801, 0x9999);
+
+		this.vartype_names['w'] = "integer";
+		this.vartype_names['s'] = "string";
+		this.vartype_names['f'] = "float";
 	}
 
 	bool labelExists(string str)
 	{
 		str = this.in_procedure ? this.current_proc_name ~ "." ~ str : str;
-
 		foreach(ref e; this.labels) {
 			if(e == str) {
 				return true;
@@ -107,7 +111,6 @@ class Program
 	void addLabel(string str)
 	{
 		str = this.in_procedure ? this.current_proc_name ~ "." ~ str : str;
-
 		if(this.labelExists(str)) {
 			this.error("Label "~str~" already defined");
 		}
@@ -115,13 +118,16 @@ class Program
 		this.labels ~= str;
 	}
 
-	char type_conv(string type)
+	char resolve_sigil(string sigil)
 	{
-		if(type == "" || type == "#") {
+		if(sigil == "" || sigil == "#") {
 			return 'w';
 		}
-		else if(type == "$") {
+		else if(sigil == "$") {
 			return 's';
+		}
+		else if(sigil == "%"){
+			return 'f';
 		}
 		else {
 			return 'b';
@@ -162,7 +168,7 @@ class Program
 		codesegment ~= "\tinit_program\n";
 		codesegment ~= this.program_segment;
 		codesegment ~= "prg_end:\n";
-		codesegment ~= "\trts\n";
+		codesegment ~= "\thalt\n";
 		return codesegment;
 	}
 
@@ -191,6 +197,10 @@ class Program
 		asm_code ~= basicstdlib.code;
         asm_code ~= "\tECHO \"Library     :\",library_start,\"-\", *-1\n";
 
+		if(this.use_floats) {
+			//asm_code ~= floatlib.code;
+		}
+
 		asm_code ~= this.getCodeSegment();
         asm_code ~= "\tECHO \"Code        :\",prg_start,\"-\", *-1\n";
 		asm_code ~= this.getDataSegment();
@@ -206,21 +216,20 @@ class Program
 	ubyte[3] intToBin(int number)
 	{
 		ubyte[3] data_bytes;
-
-			if(number < 0) {
-					number = 16777216 + number;
-				}
-
-			try {
-				data_bytes[0] = to!ubyte(number >> 16);
-				data_bytes[1] = to!ubyte((number & 65280) >> 8);
-				data_bytes[2] = to!ubyte(number & 255);
-			}
-			catch(Exception e) {
-				this.error("Compile error: number out of range: "~to!string(number));
+		if(number < 0) {
+				number = 16777216 + number;
 			}
 
-			return data_bytes;
+		try {
+			data_bytes[0] = to!ubyte(number >> 16);
+			data_bytes[1] = to!ubyte((number & 65280) >> 8);
+			data_bytes[2] = to!ubyte(number & 255);
+		}
+		catch(Exception e) {
+			this.error("Compile error: number out of range: "~to!string(number));
+		}
+
+		return data_bytes;
 	}
 
 	float parseFloat(string strval)
@@ -247,15 +256,10 @@ class Program
 	  return 0;
 	}
 
-	void assertIdExists(string id)
+	Variable findVariable(string id, string sigil)
 	{
-		if(idExists(id)) {
-			this.error("Semantic error: can't redefine '" ~ id ~"'");
-		}
-	}
+        char type = this.resolve_sigil(sigil);
 
-	Variable findVariable(string id)
-	{
 		bool global_mod = id[0] == '\\';
 		if(global_mod) {
 			id = stripLeft(id, "\\");
@@ -263,12 +267,12 @@ class Program
 
 		foreach(ref elem; this.variables) {
 			if(this.in_procedure && !global_mod) {
-				if(elem.name == id && elem.procname == this.current_proc_name) {
+				if(elem.name == id && elem.procname == this.current_proc_name && elem.type == type) {
 					return elem;
 				}
 			}
 			else {
-				if(elem.isGlobal && id == elem.name) {
+				if(elem.isGlobal && id == elem.name  && elem.type == type) {
 					return elem;
 				}
 			}
@@ -303,8 +307,10 @@ class Program
 		this.variables ~= var;
 	}
 
-	bool is_variable(string id)
+	bool is_variable(string id, string sigil)
 	{
+        char type = this.resolve_sigil(sigil);
+
 		bool global_mod = (id[0] == '\\');
 		if(global_mod) {
 			id = stripLeft(id, "\\");
@@ -312,23 +318,18 @@ class Program
 
 		foreach(ref elem; this.variables) {
 			if(this.in_procedure && !global_mod) {
-				if(id == elem.name && this.current_proc_name == elem.procname) {
+				if(id == elem.name && this.current_proc_name == elem.procname && elem.type == type) {
 					return true;
 				}
 			}
 			else {
-				if(elem.isGlobal && id == elem.name) {
+				if(elem.isGlobal && id == elem.name && elem.type == type) {
 					return true;
 				}
 			}
 		}
 
 		return false;
-	}
-
-	bool idExists(string id)
-	{
-		return (this.is_variable(id));
 	}
 
 	bool procExists(string name)
@@ -347,31 +348,25 @@ class Program
 		if(number.indexOfAny(".") > -1) {
 			return 'f';
 		}
-		int numericval = this.parseInt(number);
-		if(numericval < 0 ||  numericval > 65535) {
-			return 'i';
-		}
-		else if(numericval > 255) {
-			return 'w';
-		}
-		else {
-			return 'b';
-		}
-	}
 
-	void error(string error_message)
+        return 'w';
+    }
+
+	void error(string error_message, bool is_warning = false)
 	{
 		uint error_location = to!uint(this.current_node.begin);
 		string partial = this.current_node.input[0..error_location];
 		auto lines = splitLines(partial);
 		ulong line_no = lines.length + 1;
-		stderr.writeln("ERROR: " ~ error_message ~ " in line " ~ to!string(lines.length));
-		exit(1);
+		stderr.writeln((is_warning ? "WARNING: " : "ERROR: ") ~ error_message ~ " in line " ~ to!string(line_no));
+        if(!is_warning) {
+            exit(1);
+        }
 	}
 
 	void warning(string msg)
 	{
-		writeln("WARNING: "~msg);
+		this.error(msg, true);
 	}
 
 	void processLine(ParseTree node, ubyte pass)
@@ -435,7 +430,6 @@ class Program
 
 			}
 		}
-
 	}
 
 	void fetchLabels(ParseTree node)
