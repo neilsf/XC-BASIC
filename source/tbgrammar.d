@@ -62,9 +62,10 @@ XCBASIC:
     Unsigned   < [0-9]+
     Integer    < "-"? Unsigned
     Hexa       < "$" [0-9a-fA-F]+
+    Binary     < "%" ("0" / "1")+
     Floating   < "-"? Unsigned "." Unsigned
 
-    Number < (Floating / Integer / Hexa)
+    Number < (Floating / Integer / Hexa / Binary)
 
     Label < [a-zA-Z_] [a-zA-Z_0-9]* ":"
     Label_ref < [a-zA-Z_] [a-zA-Z_0-9]*

@@ -254,13 +254,6 @@ class Program
 	  return 0;
 	}
 
-	void assertIdExists(string id)
-	{
-		if(idExists(id)) {
-			this.error("Semantic error: can't redefine '" ~ id ~"'");
-		}
-	}
-
 	Variable findVariable(string id, string sigil)
 	{
         char type = this.resolve_sigil(sigil);
@@ -336,12 +329,6 @@ class Program
 
 		return false;
 	}
-
-	bool idExists(string id)
-	{
-		return (this.is_variable(id));
-	}
-
 
 	bool procExists(string name)
 	{

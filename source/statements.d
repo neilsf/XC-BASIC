@@ -713,7 +713,7 @@ class Data_stmt:Stmt
 	void process()
 	{
 		string varname = join(this.node.children[0].children[0].matches);
-        string sigil = join(this.node.children[0].children[1].matches[0]);
+        string sigil = join(this.node.children[0].children[1].matches);
 		char vartype = this.program.resolve_sigil(sigil);
 		ParseTree list = this.node.children[0].children[2];
 		ushort dimension = to!ushort(list.children.length);
@@ -751,7 +751,7 @@ class For_stmt: Stmt
 		ParseTree v = this.node.children[0].children[0];
 		ParseTree ex = this.node.children[0].children[1];
 		string varname = join(v.children[0].matches);
-        string sigil = join(v.children[1].matches[0]);
+        string sigil = join(v.children[1].matches);
 		char vartype = this.program.resolve_sigil(sigil);
 
         if(vartype != 'w') {
