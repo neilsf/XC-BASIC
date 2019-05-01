@@ -110,8 +110,17 @@ Stmt StmtFactory(ParseTree node, Program program) {
             stmt = new Save_stmt(node, program);
         break;
 
+        case "XCBASIC.Origin_stmt":
+            stmt = new Origin_stmt(node, program);
+        break;
+
+        case "XCBASIC.Incbin_stmt":
+            stmt = new Incbin_stmt(node, program);
+        break;
+
 		default:
-		assert(0);
+            program.error("Unknown statement "~node.name);
+		    assert(0);
 	}
 
 	return stmt;
@@ -570,16 +579,22 @@ class If_stmt:Stmt
 
 		this.program.program_segment~=ret;
 
-		Stmt stmt = StmtFactory(st, this.program);
-		stmt.process();
+        // can be multiple statements
+        foreach(ref child; st.children) {
+            Stmt stmt = StmtFactory(child, this.program);
+            stmt.process();
+        }
 
 		// else branch
 		if(else_present) {
 			this.program.program_segment ~= "\tjmp _J" ~ to!string(counter)  ~ "\n";
 			this.program.program_segment ~= "_E" ~to!string(counter)~ ":\n";
 
-			Stmt else_stmt = StmtFactory(else_st, this.program);
-			else_stmt.process();
+            // can be multiple statements
+            foreach(ref e_child; else_st.children) {
+                Stmt else_stmt = StmtFactory(e_child, this.program);
+                else_stmt.process();
+            }
 		}
 
 		this.program.program_segment ~= "_J" ~to!string(counter)~ ":\n";
@@ -918,5 +933,33 @@ class Save_stmt:Stmt
         this.program.program_segment ~= "\tlda #>_S" ~ to!string(Stringliteral.id) ~ "\n";
         this.program.program_segment ~= "\tpha\n";
         this.program.program_segment ~= "\tsave\n";
+    }
+}
+
+class Origin_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        string num = join(this.node.children[0].children[0].matches);
+        this.program.program_segment~="\torg "~num~"\n";
+    }
+}
+
+class Incbin_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    static int counter = 0;
+
+    void process()
+    {
+        Incbin_stmt.counter+=1;
+        string lblc = to!string(Incbin_stmt.counter);
+        string incfile = join(this.node.children[0].children[0].matches);
+        this.program.program_segment~="_IJS"~lblc~"\tINCBIN "~incfile~"\n";
+        this.program.program_segment~="_IJ"~lblc~"\n";
+        this.program.program_segment~= "\tECHO \"Included file ("~replace(incfile,"\"", "")~"):\",_IJS"~lblc~",\"-\", _IJ"~lblc~"\n";
     }
 }

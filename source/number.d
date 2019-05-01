@@ -40,6 +40,16 @@ class Number
                 this.type = 'w';
                 break;
 
+            case "XCBASIC.Binary":
+                num_str = num_str[1..$];
+                int num = to!int(num_str, 2);
+                if(num > 65535) {
+                    this.program.error("Number out of range");
+                }
+                this.intval = num;
+                this.type = 'w';
+                break;
+
             case "XCBASIC.Floating":
                 try {
                     this.floatval = to!real(num_str);

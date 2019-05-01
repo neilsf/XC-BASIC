@@ -45,6 +45,32 @@ char[] replace_petscii_escapes(string s)
     ret = replace(ret,   "{CRSR_DOWN}", "\x11");
     ret = replace(ret,   "{CRSR_LEFT}", "\x9d");
     ret = replace(ret,   "{CRSR_RIGHT}", "\x1d");
+    ret = replace(ret,   "{WHITE}", "\x05");
+    ret = replace(ret,   "{RED}", "\x1c");
+    ret = replace(ret,   "{GREEN}", "\x1e");
+    ret = replace(ret,   "{BLUE}", "\x1f");
+    ret = replace(ret,   "{ORANGE}", "\x81");
+    ret = replace(ret,   "{BLACK}", "\x90");
+    ret = replace(ret,   "{BROWN}", "\x95");
+    ret = replace(ret,   "{LIGHT_RED}", "\x96");
+    ret = replace(ret,   "{DARK_GRAY}", "\x97");
+    ret = replace(ret,   "{MED_GRAY}", "\x98");
+    ret = replace(ret,   "{LIGHT_GREEN}", "\x99");
+    ret = replace(ret,   "{LIGHT_BLUE}", "\x9a");
+    ret = replace(ret,   "{LIGHT_GRAY}", "\x9b");
+    ret = replace(ret,   "{PURPLE}", "\x9c");
+    ret = replace(ret,   "{YELLOW}", "\x9e");
+    ret = replace(ret,   "{CYAN}", "\x9f");
+    ret = replace(ret,   "{LOWER_CASE}", "\x0e");
+    ret = replace(ret,   "{UPPER_CASE}", "\x8e");
+    ret = replace(ret,   "{F1}", "\x85");
+    ret = replace(ret,   "{F2}", "\x86");
+    ret = replace(ret,   "{F3}", "\x87");
+    ret = replace(ret,   "{F4}", "\x88");
+    ret = replace(ret,   "{F5}", "\x89");
+    ret = replace(ret,   "{F6}", "\x8a");
+    ret = replace(ret,   "{F7}", "\x8b");
+    ret = replace(ret,   "{F8}", "\x8c");
 
     return ret.dup;
 }

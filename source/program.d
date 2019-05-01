@@ -79,6 +79,8 @@ class Program
 	bool in_procedure = false;
 	string current_proc_name = "";
 
+    string source_path = "";
+
 	this() {
 		/* As of now, vartypes with the same length are not allowed. Needs refactoring if it is a must */
 		this.varlen['b'] = 1; this.vartype[1] = 'b';
@@ -169,6 +171,7 @@ class Program
 		string asm_code;
 
 		asm_code ~= "\tPROCESSOR 6502\n\n";
+        asm_code ~= "\tINCDIR \""~this.source_path~"\"\n";
 		asm_code ~= "\tSEG UPSTART\n";
 		asm_code ~= "\tORG $0801\n";
 		asm_code ~= "\tDC.W next_line\n";
@@ -373,37 +376,47 @@ class Program
 
 	void processLine(ParseTree node, ubyte pass)
 	{
+        ParseTree line_id = node.children[0];
+        ParseTree statements;
+        bool has_statement = false;
+
+        if(node.children.length > 1) {
+            statements = node.children[1];
+            has_statement = true;
+        }
+
 		if(pass == 1) {
 			// Check if within procedure
-			if(node.children.length > 1 && node.children[1].children[0].name == "XCBASIC.Proc_stmt") {
-				this.in_procedure = true;
-				this.current_proc_name = join(node.children[1].children[0].children[0].matches);
-			}
-			else if(node.children.length > 1 && node.children[1].children[0].name == "XCBASIC.Endproc_stmt"){
-				this.in_procedure = false;
-				this.current_proc_name = "";
-			}
+            if(has_statement) {
+                if(statements.children[0].children[0].name == "XCBASIC.Proc_stmt") {
+                    this.in_procedure = true;
+                    this.current_proc_name = join(statements.children[0].children[0].matches);
+                }
+                else if(statements.children[0].children[0].name == "XCBASIC.Endproc_stmt") {
+                    this.in_procedure = false;
+                    this.current_proc_name = "";
+                }
+                // line has statement and it's a DATA statement
+                if(statements.children[0].children[0].name == "XCBASIC.Data_stmt") {
+                    Stmt stmt = StmtFactory(statements.children[0], this);
+                    stmt.process();
+                }
+            }
 
-			// line has statement and it's a DATA statement
-			if(node.children.length > 1 && node.children[1].children[0].name == "XCBASIC.Data_stmt") {
-				Stmt stmt = StmtFactory(node.children[1], this);
-				stmt.process();
-			}
 			return;
 		}
 		else {
 			//writeln(node);
-			auto Line_id = node.children[0];
-			string label_type = Line_id.children.length == 0 ? "XCBASIC.none" : Line_id.children[0].name;
+			string label_type = line_id.children.length == 0 ? "XCBASIC.none" : line_id.children[0].name;
 			switch(label_type) {
 				case "XCBASIC.Unsigned":
-				string line_no = join(Line_id.children[0].matches);
+				string line_no = join(line_id.children[0].matches);
 				line_no = this.in_procedure ? this.current_proc_name ~ "." ~ line_no : line_no;
 				this.program_segment ~= "_L" ~ line_no ~ ":\n";
 				break;
 
 				case "XCBASIC.Label":
-				string label = join(Line_id.children[0].matches[0..$-1]);
+				string label = join(line_id.children[0].matches[0..$-1]);
 				label = this.in_procedure ? this.current_proc_name ~ "." ~ label : label;
 				this.program_segment ~= "_L" ~ label ~ ":\n";
 				break;
@@ -412,10 +425,14 @@ class Program
 				break;
 			}
 
-			// line has statement excluding a DATA statement
-			if(node.children.length > 1 && node.children[1].children[0].name != "XCBASIC.Data_stmt") {
-				Stmt stmt = StmtFactory(node.children[1], this);
-				stmt.process();
+			// line has statement(s) excluding a DATA statement
+			if(has_statement && statements.children[0].children[0].name != "XCBASIC.Data_stmt") {
+                // process all statements in line
+                foreach(ref child; statements.children) {
+                    Stmt stmt = StmtFactory(child, this);
+                    stmt.process();
+                }
+
 			}
 		}
 
@@ -450,7 +467,7 @@ class Program
 			}
 
 			if(child.children.length > 1) {
-				auto Stmt = child.children[1].children[0];
+				auto Stmt = child.children[1].children[0].children[0];
 				if(Stmt.name == "XCBASIC.Proc_stmt") {
 					this.in_procedure = true;
 					this.current_proc_name = join(Stmt.children[0].matches);
@@ -460,7 +477,6 @@ class Program
 					this.current_proc_name = "";
 				}
 			}
-
 		}
 	}
 

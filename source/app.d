@@ -10,7 +10,7 @@ void main(string[] args)
     string outfile;
 
     File infile;
-    
+
     try {
         infile = File(filename, "r");
     }
@@ -18,7 +18,7 @@ void main(string[] args)
         stderr.writeln("Failed to open source file (" ~ filename ~ ")");
         exit(1);
     }
-    
+
     string source = "";
     while(!infile.eof){
         source = source ~ infile.readln();
@@ -31,8 +31,11 @@ void main(string[] args)
         stderr.writeln("Parser error: " ~ strip(line, " +-"));
         exit(1);
     }
-    auto program = new Program();
 
+    //writeln(ast); exit(1);
+
+    auto program = new Program();
+    program.source_path = absolutePath(dirName(filename));
     program.processAst(ast);
     writeln(program.getAsmCode());
 }
