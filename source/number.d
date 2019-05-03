@@ -1,5 +1,6 @@
 module number;
 
+import std.stdio;
 import std.conv;
 import std.string;
 import pegged.grammar;
@@ -27,7 +28,6 @@ class Number
                     this.program.error("Number out of range");
                 }
                 this.intval = num;
-                this.type = 'w';
                 break;
 
             case "XCBASIC.Hexa":
@@ -37,7 +37,6 @@ class Number
                     this.program.error("Number out of range");
                 }
                 this.intval = num;
-                this.type = 'w';
                 break;
 
             case "XCBASIC.Binary":
@@ -47,7 +46,6 @@ class Number
                     this.program.error("Number out of range");
                 }
                 this.intval = num;
-                this.type = 'w';
                 break;
 
             case "XCBASIC.Floating":
@@ -59,6 +57,15 @@ class Number
                     this.program.error("Can't parse number "~num_str);
                 }
                 break;
+        }
+
+        if(this.type != 'f') {
+            if(this.intval >= 0 && this.intval < 256) {
+                this.type = 'b';
+            }
+            else {
+                this.type = 'w';
+            }
         }
     }
 }

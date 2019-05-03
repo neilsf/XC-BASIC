@@ -5,9 +5,9 @@ const MEM_START = 49152
 const MEM_END   = 49408
 
 rem ** dump random data
-for i=0 to 255
-    poke MEM_START+i, rnd()
-next i
+for i! = 0 to 255
+    poke MEM_START+i!, rnd()
+next i!
 
 print "random data written. press a key"
 gosub waitforkey

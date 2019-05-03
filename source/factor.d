@@ -18,10 +18,11 @@ class Factor
     ParseTree node;
     Program program;
     string asmcode;
-    char expected_type = 'w';
-    
+    char expected_type;
+    char type;
+
     this(ParseTree node, Program program)
-    { 
+    {
         this.node = node;
         this.program = program;
     }
@@ -39,18 +40,9 @@ class Factor
             break;
 
             case "XCBASIC.Number":
-                ParseTree v = this.node.children[0].children[0];
-                final switch(v.name) {
-                    case "XCBASIC.Integer":
-                    case "XCBASIC.Hexa":
-                    case "XCBASIC.Binary":
-                        ret = 'w';
-                        break;
-
-                    case "XCBASIC.Floating":
-                        ret = 'f';
-                        break;
-                }
+                ParseTree v = this.node.children[0];
+                Number num = new Number(v, this.program);
+                ret = num.type;
             break;
 
             case "XCBASIC.Fn_call":
@@ -59,13 +51,24 @@ class Factor
                 ret = fun.type;
             break;
 
+            case "XCBASIC.Parenthesis":
+                ParseTree ex = this.node.children[0].children[0];
+                auto Ex = new Expression(ex, this.program);
+                ret = Ex.detect_type();
+            break;
+
             case "XCBASIC.Expression":
                 ParseTree ex = this.node.children[0];
                 auto Ex = new Expression(ex, this.program);
                 ret = Ex.detect_type();
             break;
+
+            case "XCBASIC.Address":
+                ret = 'w';
+            break;
         }
 
+        this.type = ret;
         return ret;
     }
 
@@ -88,6 +91,9 @@ class Factor
                 if(var.isConst) {
                     if(var.type == 'w') {
                         this.asmcode ~= "\tpword #" ~ to!string(var.constValInt) ~ "\n";
+                    }
+                    else if(var.type == 'b') {
+                        this.asmcode ~= "\tpbyte #" ~ to!string(var.constValInt) ~ "\n";
                     }
                     else {
                         ubyte[5] bytes = float_to_hex(to!real(var.constValFloat));
@@ -112,6 +118,12 @@ class Factor
                         foreach(ref expr; subscript.children) {
                             Expression Ex2 = new Expression(expr, this.program);
                             Ex2.eval();
+                            if(Ex2.type == 'b') {
+                                Ex2.btow();
+                            }
+                            else if(Ex2.type == 'f') {
+                                this.program.error("Bad subscript");
+                            }
                             this.asmcode ~= to!string(Ex2);
 
                             if(i == 1) {
@@ -123,9 +135,12 @@ class Factor
 
                             i++;
                         }
-                        // must multiply with the variable length!
-                        this.asmcode ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
-                                                    ~ "\tmulw\n" ;
+                        // if not a byte, must multiply with the variable length!
+                        if(var.type != 'b') {
+                            this.asmcode ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
+                                          ~ "\tmulw\n" ;
+                        }
+
                         this.asmcode ~= "\tp" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
                     }
                     else {
@@ -158,6 +173,9 @@ class Factor
                 if(num.type == 'w') {
                     this.asmcode ~= "\tpword #" ~ to!string(num.intval) ~ "\n";
                 }
+                else if(num.type == 'b') {
+                    this.asmcode ~= "\tpbyte #" ~ to!string(num.intval) ~ "\n";
+                }
                 else {
                     ubyte[5] bytes = float_to_hex(num.floatval);
                     this.asmcode ~= "\tpfloat $" ~ to!string(bytes[0], 16) ~ ", $" ~ to!string(bytes[1], 16) ~ ", $"
@@ -184,20 +202,24 @@ class Factor
                 auto Ex = new Expression(ex, this.program);
                 Ex.eval();
                 this.asmcode ~= to!string(Ex);
-            
+
 	    break;
 
         }
 
-        if(this.expected_type == 'f' && this.detect_type() == 'w') {
-            this.asmcode ~= "\twtof\n";
+        if(this.type == char.init) {
+            this.detect_type();
+        }
+
+        if(this.expected_type != this.type) {
+            this.asmcode ~= "\t" ~ to!string(this.type) ~ "to" ~ to!string(this.expected_type) ~"\n";
             this.program.warning("Implicit type conversion");
         }
     }
-   
+
     void _type_error()
     {
-        
+
     }
 
     override string toString()

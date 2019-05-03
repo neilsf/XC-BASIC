@@ -49,7 +49,7 @@ XCBASIC:
     Fn_call < Id Vartype  "(" :WS? (ExprList / eps) :WS? ")"
 
     Var < Varname Vartype Subscript?
-    Parenthesis < "(" :WS? Expression :WS? ")"
+    Parenthesis < :"(" :WS? Expression :WS? :")"
 
     T_OP < ("*" / "/")
     E_OP < ("+" / "-")
@@ -58,7 +58,7 @@ XCBASIC:
     Varname <- !Reserved "\\" ? [a-zA-Z_] [a-zA-Z_0-9]*
     Address < "@" Varname
     Id <- [a-zA-Z_] [a-zA-Z_0-9]*
-    Vartype <- ("%" / "#" /  eps)
+    Vartype <- ("%" / "#" / "!" / eps)
     Subscript <- "[" Expression (:WS? "," :WS? Expression)? "]"
     Logop < "and" | "or"
     Relop < "<" | "<=" | "=" | "<>" | ">" | ">="
@@ -80,7 +80,7 @@ XCBASIC:
     Reserved < ("const" / "let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "call" /
                  "end" / "rem" / "poke" / "peek" / "for" / "to" / "next" / "dim" / "data" / "charat" / "textat" /
                  "inkey" / "rnd" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr" / "and" / "or" / "load" / "save" / "ferr" /
-                 "abs" / "int" / "float" / "sin" / "cos" / "tan" / "atn")
+                 "abs" / "cast" / "sin" / "cos" / "tan" / "atn")
     WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 

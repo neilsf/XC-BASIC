@@ -1,32 +1,38 @@
-let x=1
-let y=1 
-let dx=1
-let dy=1
-let i = 0
+x! = 1
+y! = 1 
+dx! = 1
+dy! = 1
+i = 0
+
+const SPACE! = 32
+const BALL! = 81
+const SCREEN = 1024
 
 gosub cls
 
 loop:
-    charat x, y, 81
+    charat x!, y!, BALL!
     gosub wait_frame
-    charat x, y, 32
+    charat x!, y!, SPACE!
 
-    if x = 0 then let dx = 1
-    if x = 39 then let dx = -1
-    if y = 0 then let dy = 1
-    if y = 24 then let dy = -1
+    rem // 255 equals to -1 in 8-bit arithmetics
 
-    let x = x+dx
-    let y = y+dy
+    if x! = 0  then dx! = 1
+    if x! = 39 then dx! = 255
+    if y! = 0  then dy! = 1
+    if y! = 24 then dy! = 255
+
+    x! = x! + dx!
+    y! = y! + dy!
 
     goto loop
 
 cls:
-    poke 1024+i,32
-    let i=i+1
+    poke SCREEN + i, SPACE!
+    i = i + 1
     if i < 1000 then goto cls
     return
 
 wait_frame:
-    if peek(53266) < 250 then goto wait_frame
+    if peek!(53266) < 250 then goto wait_frame
     return

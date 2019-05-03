@@ -6,6 +6,7 @@ import std.string, std.conv, std.stdio;
 import expression;
 import stringliteral;
 import number;
+import excess;
 
 Stmt StmtFactory(ParseTree node, Program program) {
 	string stmt_class =node.children[0].name;
@@ -166,8 +167,16 @@ class Const_stmt:Stmt
 
         Number number = new Number(num, this.program);
 
-        if(vartype != number.type) {
+        if
+        (
+            (number.type == 'f' && vartype != 'f') ||
+            (vartype == 'f' && number.type != 'f')
+        ) {
             this.program.error("Type mismatch");
+        }
+
+        if(vartype == 'b' && (number.intval < 0 || number.intval > 255)) {
+            this.program.error("Number out of range");
         }
 
 		Variable var = {
@@ -208,12 +217,27 @@ class Let_stmt:Stmt
         }
         Expression Ex = new Expression(ex, this.program);
 
-        if(vartype != Ex.detect_type()) {
+        char extype = Ex.detect_type();
+
+        if
+        (
+            (extype == 'f' && vartype != 'f') ||
+            (vartype == 'f' && extype != 'f')
+        ) {
             this.program.error("Type mismatch");
         }
 
         Ex.eval();
         this.program.program_segment ~= to!string(Ex);
+
+        if(extype == 'b' && vartype == 'w') {
+            this.program.program_segment ~= "\tbtow\n";
+            this.program.warning("Implicit type conversion");
+        }
+        else if(extype == 'w' && vartype == 'b') {
+            this.program.program_segment ~= "\twtob\n";
+            this.program.warning("Integer truncated to byte");
+        }
 
         if(v.children.length > 2) {
             /* any variable can be accessed as an array
@@ -241,9 +265,12 @@ class Let_stmt:Stmt
 
                 i++;
             }
-            // must multiply with the variable length!
-            this.program.program_segment ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
+            // if not a byte, must multiply with the variable length!
+            if(vartype != 'b') {
+                this.program.program_segment ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
                                           ~ "\tmulw\n" ;
+            }
+
             this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
         }
         else {
@@ -290,7 +317,7 @@ class Dim_stmt:Stmt
                         this.program.error("Only numeric constants are accepted as array dimensions");
                     }
                     Number num = new Number(expr.children[0].children[0].children[0].children[0], this.program);
-                    if(num.type != 'w') {
+                    if(num.type == 'f') {
                         this.program.error("Array dimensions must be integers");
                     }
                     dimlen = num.intval;
@@ -364,12 +391,18 @@ class Textat_stmt:Stmt
 		Expression col = new Expression(exlist.children[0], this.program);
 		Expression row = new Expression(exlist.children[1], this.program);
 
-        if(col.detect_type() != 'w' || row.detect_type != 'w') {
-            this.program.error("Column and row must be integers");
+        if(col.detect_type() == 'f' || row.detect_type != 'f') {
+            this.program.error("Column and row must be bytes or integers");
         }
 
 		col.eval();
+        if(col.type == 'b') {
+            this.program.program_segment ~="\tbtow\n";
+        }
 		row.eval();
+        if(row.type == 'b') {
+            this.program.program_segment ~="\tbtow\n";
+        }
 
 		if(exlist.children[2].name == "XCBASIC.Expression") {
 			this.program.program_segment ~= to!string(row); // rownum
@@ -520,7 +553,6 @@ class If_stmt:Stmt
 		bool logop_present = false;
 
 		auto statement = this.node.children[0];
-		//writeln(statement); this.program.error("Now stop here");
 		relations ~= statement.children[0];
 
 		if(statement.children[1].name == "XCBASIC.Logop") {
@@ -545,7 +577,7 @@ class If_stmt:Stmt
                 exp_type = to!string(Ex1.type);
             }
             else {
-                this.program.error("Expression types in relation mismatch.");
+                this.program.error("Types of expressions mismatch. Please use explicit conversion");
             }
 
 			this.program.program_segment ~= to!string(Ex1);
@@ -654,14 +686,20 @@ class Poke_stmt:Stmt
 		auto e2 = this.node.children[0].children[1];
 
 		auto Ex1 = new Expression(e1, this.program);
+        if(Ex1.detect_type() != 'w') {
+            this.program.error("Address must be an integer");
+        }
 		Ex1.eval();
 		auto Ex2 = new Expression(e2, this.program);
-		Ex2.eval();
+        if(Ex2.detect_type() == 'f') {
+            this.program.error("Value must not be a float");
+        }
+        Ex2.eval();
 
 		this.program.program_segment ~= to!string(Ex2); // value first
 		this.program.program_segment ~= to!string(Ex1); // address last
 
-		this.program.program_segment~="\tpoke\n";
+		this.program.program_segment~="\tpoke"~to!string(Ex2.type)~"\n";
 	}
 }
 
@@ -677,10 +715,26 @@ class Charat_stmt:Stmt
 
 		auto Ex1 = new Expression(e1, this.program);
 		Ex1.eval();
+        if(Ex1.type == 'b') {
+            Ex1.btow();
+        }
+        else if(Ex1.type == 'f') {
+            this.program.error("Row and column must not be floats");
+        }
+
 		auto Ex2 = new Expression(e2, this.program);
 		Ex2.eval();
+        if(Ex2.type == 'b') {
+            Ex2.btow();
+        }
+        else if(Ex2.type == 'f') {
+            this.program.error("Row and column must not be floats");
+        }
 		auto Ex3 = new Expression(e3, this.program);
 		Ex3.eval();
+        if(Ex3.type == 'f') {
+            this.program.error("Screencode must not be a float");
+        }
 
 		this.program.program_segment ~= to!string(Ex3); // screencode first
 		this.program.program_segment ~= to!string(Ex2); // rownum second
@@ -692,7 +746,7 @@ class Charat_stmt:Stmt
 		// add 1024
 		this.program.program_segment ~="\tpword #1024\n" ~ "\taddw\n";
 
-		this.program.program_segment~="\tpoke\n";
+		this.program.program_segment~="\tpoke"~to!string(Ex1.type)~"\n";
 	}
 }
 
@@ -742,14 +796,46 @@ class Data_stmt:Stmt
 			this.program.error(varname ~ " is a constant");
 		}
 
-		this.program.data_segment ~= var.getLabel() ~"\tDC.W ";
+		this.program.data_segment ~= var.getLabel();
+        if(vartype == 'b' || vartype == 'f') {
+            this.program.data_segment ~= "\tDC.B ";
+        }
+        else {
+            this.program.data_segment ~= "\tDC.W ";
+        }
+
+        string value;
+        ubyte[5] floatbytes;
 		for(char i=0; i< list.children.length; i++) {
 			ParseTree v = list.children[i];
-			string value = join(v.children[0].matches);
-			if (i > 0) {
-				this.program.data_segment ~= ", ";
-			}
-			this.program.data_segment ~= "#" ~value;
+            Number num = new Number(v, this.program);
+
+            if (i > 0) {
+                this.program.data_segment ~= ", ";
+            }
+
+            if(vartype == 'f' && num.type !='f' || num.type == 'f' && vartype != 'f') {
+                this.program.error("Type mismatch");
+            }
+
+            if(vartype == 'b' && num.type == 'w') {
+                this.program.error("Number out of range");
+            }
+
+            if(vartype == 'b' || vartype == 'w') {
+                value = to!string(num.intval);
+                this.program.data_segment ~= "#" ~value;
+            }
+            else {
+                floatbytes = excess.float_to_hex(num.floatval);
+                this.program.data_segment ~=
+                    "#$" ~ to!string(floatbytes[0], 16) ~
+                    ", #$" ~ to!string(floatbytes[1], 16) ~
+                    ", #$" ~ to!string(floatbytes[2], 16) ~
+                    ", #$" ~ to!string(floatbytes[3], 16) ~
+                    ", #$" ~ to!string(floatbytes[4], 16);
+            }
+
 		}
 
 		this.program.data_segment ~="\n";
@@ -769,8 +855,8 @@ class For_stmt: Stmt
         string sigil = join(v.children[1].matches);
 		char vartype = this.program.resolve_sigil(sigil);
 
-        if(vartype != 'w') {
-            this.program.error("Index must be of type integer");
+        if(vartype == 'f') {
+            this.program.error("Index must not be a float");
         }
 
 		if(!this.program.is_variable(varname, sigil)) {
@@ -779,6 +865,12 @@ class For_stmt: Stmt
 		Variable var = this.program.findVariable(varname, sigil);
 		Expression Ex = new Expression(ex, this.program);
 		Ex.eval();
+        if(Ex.type == 'f' || (Ex.type == 'w' && vartype == 'b')) {
+            this.program.error("Type mismatch");
+        }
+        else if(Ex.type == 'b' && vartype == 'w') {
+            Ex.btow();
+        }
 		this.program.program_segment ~= to!string(Ex);
 		this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n";
 
@@ -786,7 +878,13 @@ class For_stmt: Stmt
 		ParseTree ex2 = this.node.children[0].children[2];
 		Expression Ex2 = new Expression(ex2, this.program);
 		Ex2.eval();
-		this.program.program_segment ~= to!string(Ex2);
+        if(Ex2.type == 'f' || (Ex2.type == 'w' && vartype == 'b')) {
+            this.program.error("Type mismatch");
+        }
+        else if(Ex2.type == 'b' && vartype == 'w') {
+            Ex2.btow();
+        }
+        this.program.program_segment ~= to!string(Ex2);
 
 		/* step 3 call for */
 		this.program.program_segment ~= "\tfor\n";
@@ -806,7 +904,12 @@ class Next_stmt:Stmt
             this.program.error("Variable " ~varname~" does not exist");
         }
 		Variable var = this.program.findVariable(varname, sigil);
-		this.program.program_segment ~= "\tnext "~var.getLabel()~"\n";
+
+        if(var.type == 'f') {
+            this.program.error("Variable "~varname~" is a float");
+        }
+
+        this.program.program_segment ~= "\tnext"~to!string(var.type)~" "~var.getLabel()~"\n";
 	}
 }
 
@@ -825,15 +928,15 @@ class Inc_stmt:Stmt
 
 		Variable var = this.program.findVariable(varname, sigil);
 
-        if(var.type != 'w') {
-            this.program.error("INC only works on integer types");
+        if(var.type == 'f') {
+            this.program.error("INC does not work on floats");
         }
 
 		if(var.isConst) {
 			this.program.error(varname ~ " is a constant");
 		}
 
-		this.program.program_segment ~= "\tiinc "~var.getLabel()~"\n";
+		this.program.program_segment ~= "\tinc"~to!string(var.type)~" "~var.getLabel()~"\n";
 	}
 }
 
@@ -852,14 +955,14 @@ class Dec_stmt:Stmt
         }
 		Variable var = this.program.findVariable(varname, sigil);
 
-        if(var.type != 'w') {
-            this.program.error("DEC only works on integer types");
+        if(var.type == 'f') {
+            this.program.error("DEC does not work on floats");
         }
 
 		if(var.isConst) {
 			this.program.error(varname ~ " is a constant");
 		}
-		this.program.program_segment ~= "\tidec "~var.getLabel()~"\n";
+		this.program.program_segment ~= "\tdec"~to!string(var.type)~" "~var.getLabel()~"\n";
 	}
 }
 
@@ -954,11 +1057,20 @@ class Load_stmt:Stmt
 
         auto device_no = new Expression(this.node.children[0].children[1], this.program);
         device_no.eval();
+        if(device_no.type == 'f') {
+            this.program.error("Argument #2 of LOAD must not be a float");
+        }
+        else if(device_no.type == 'b') {
+            device_no.btow();
+        }
 
         bool fixed_address = false;
         if(this.node.children[0].children.length > 2) {
             auto address = new Expression(this.node.children[0].children[2], this.program);
             address.eval();
+            if(address.type != 'w') {
+                this.program.error("Argument #3 of LOAD must be an integer");
+            }
             this.program.program_segment ~= to!string(address);
             fixed_address = true;
         }
@@ -989,12 +1101,24 @@ class Save_stmt:Stmt
 
         auto device_no = new Expression(this.node.children[0].children[1], this.program);
         device_no.eval();
+        if(device_no.type == 'f') {
+            this.program.error("Argument #2 of SAVE must not be a float");
+        }
+        else if(device_no.type == 'b') {
+            device_no.btow();
+        }
 
         auto address1 = new Expression(this.node.children[0].children[2], this.program);
         address1.eval();
+        if(address1.type != 'w') {
+            this.program.error("Argument #3 of SAVE must be an integer");
+        }
 
         auto address2 = new Expression(this.node.children[0].children[3], this.program);
         address2.eval();
+        if(address2.type != 'w') {
+            this.program.error("Argument #4 of SAVE must be an integer");
+        }
 
         this.program.program_segment ~= to!string(address2);
         this.program.program_segment ~= to!string(address1);

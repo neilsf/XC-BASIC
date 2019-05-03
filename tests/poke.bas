@@ -1,5 +1,5 @@
-let x=0
+let x!=0
 loop:
-    poke 53280,x
-    let x=x+1
+    poke 53280,x!
+    let x! = x!+1
     goto loop

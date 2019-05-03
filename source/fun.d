@@ -35,12 +35,8 @@ Fun FunFactory(ParseTree node, Program program) {
             fun = new AbsFun(node, program);
         break;
 
-        case "int":
-            fun = new IntFun(node, program);
-        break;
-
-        case "float":
-            fun = new FloatFun(node, program);
+        case "cast":
+            fun = new CastFun(node, program);
         break;
 
         case "sin":
@@ -133,9 +129,14 @@ class PeekFun:Fun
 
     protected ubyte arg_count = 1;
 
+    override protected char[] getPossibleTypes()
+    {
+        return ['w', 'b'];
+    }
+
     void process()
     {
-        this.fncode ~= "\tpeek\n";
+        this.fncode ~= "\tpeek"~to!string(this.type)~"\n";
     }
 }
 
@@ -189,7 +190,7 @@ class RndFun:Fun
 
     override protected char[] getPossibleTypes()
     {
-        return ['w', 'f'];
+        return ['w', 'f', 'b'];
     }
 
     void process()
@@ -204,9 +205,14 @@ class InKeyFun:Fun
 
     protected ubyte arg_count = 0;
 
+    override protected char[] getPossibleTypes()
+    {
+        return ['w', 'b'];
+    }
+
     void process()
     {
-        this.fncode ~= "\tinkey\n";
+        this.fncode ~= "\tinkey"~ to!string(this.type) ~"\n";
     }
 }
 
@@ -216,9 +222,14 @@ class FerrFun:Fun
 
     protected ubyte arg_count = 0;
 
+    override protected char[] getPossibleTypes()
+    {
+        return ['w', 'b'];
+    }
+
     void process()
     {
-        this.fncode ~= "\tferr\n";
+        this.fncode ~= "\tferr"~ to!string(this.type) ~"\n";
     }
 }
 
@@ -242,24 +253,7 @@ class AbsFun:Fun
         this.fncode ~= "\tabs" ~ to!string(this.type) ~ "\n";
     }
 }
-
-class IntFun:Fun
-{
-    mixin FunConstructor;
-
-    protected ubyte arg_count = 1;
-
-    void process()
-    {
-        if(this.arglist[0].type != 'f') {
-            this.program.error("Argument #1 of int() must be a float");
-        }
-
-        this.fncode = "\tftow\n";
-    }
-}
-
-class FloatFun:Fun
+class CastFun:Fun
 {
     mixin FunConstructor;
 
@@ -267,16 +261,21 @@ class FloatFun:Fun
 
     override protected char[] getPossibleTypes()
     {
-        return ['f'];
+        return ['b', 'w', 'f'];
     }
 
     void process()
     {
-        if(this.arglist[0].type != 'w') {
-            this.program.error("Argument #1 of float() must be an integer");
+        char argtype = this.arglist[0].type;
+        if(argtype == this.type) {
+            this.program.error("Can't cast to the same type");
         }
 
-        this.fncode = "\twtof\n";
+        if(this.type == 'b') {
+            this.program.warning("Possible truncation or loss of precision");
+        }
+
+        this.fncode = "\t"~to!string(this.arglist[0].type)~"to"~to!string(this.type)~"\n";
     }
 }
 

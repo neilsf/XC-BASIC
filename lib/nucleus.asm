@@ -37,6 +37,7 @@ FSIN		EQU $e26b
 FCOS		EQU $e264
 FATN		EQU $e30e
 FTAN		EQU $e2b4
+BYTETOF		EQU $bc3c
 
 SETNAM		EQU $ffbd
 SETLFS		EQU $ffba
@@ -116,6 +117,25 @@ SAVE		EQU $ffd8
 	pha
 	dey
 	bpl .loop
+	ENDM
+
+	;Push one byte variable (indexed) on the stack
+	;Expects array index being on top of stack
+	MAC pbarray
+	pla
+	sta reserved1
+	pla
+	sta reserved0
+	lda #<{1}
+	clc
+	adc reserved0
+	sta reserved0
+	lda #>{1}
+	adc reserved1
+	sta reserved1
+	ldy #$00
+	lda (reserved0),y
+	pha
 	ENDM
 
 	;Push one word variable (indexed) on the stack
@@ -319,7 +339,7 @@ SAVE		EQU $ffd8
 
 	; Compare two bytes on stack for greater than or equal
 	MAC cmpbgte
-	pla
+	pla                 
 	sta reserved1
 	pla
 	cmp reserved1
@@ -756,6 +776,14 @@ SAVE		EQU $ffd8
 	txs
 	ENDM
 	
+	; Convert byte on stack to float
+	MAC btof
+	basicin
+	pla
+	jsr BYTETOF
+	pushfac
+	ENDM
+	
 	; Convert word on stack to float
 	MAC wtof
 	basicin
@@ -769,6 +797,18 @@ SAVE		EQU $ffd8
 	basicout
 	ENDM
 	
+	; Convert byte on stack to word
+	MAC btow
+	lda #$00
+	pha
+	ENDM
+	
+	; Convert word on stack to byte
+	; (truncate)
+	MAC wtob
+	pha
+	ENDM
+	
 	; Convert float on stack to word
 	MAC ftow
 	basicin
@@ -777,6 +817,16 @@ SAVE		EQU $ffd8
 	lda $65
 	pha
 	lda $64
+	pha
+	basicout
+	ENDM
+	
+	; Convert float on stack to byte
+	MAC ftob
+	basicin
+	pullfac
+	jsr FACINX
+	lda $65
 	pha
 	basicout
 	ENDM
@@ -1083,9 +1133,21 @@ NUCL_DIVU16 SUBROUTINE
 	bne .divloop	
 	rts
 
-	; poke routine
+	; poke routine (byte type)
 	; requires that arguments are pushed backwards (value first)
-	MAC poke
+	MAC pokeb
+	pla
+	sta reserved1
+	pla
+	sta reserved0
+	ldy #$00
+	pla
+	sta (reserved0),y
+	ENDM
+
+	; poke routine (word type)
+	; requires that arguments are pushed backwards (value first)
+	MAC pokew
 	pla
 	sta reserved1
 	pla
@@ -1102,11 +1164,38 @@ NUCL_DIVU16 SUBROUTINE
 	lda #<*
 	pha
 	lda #>*
-	pha
+	pha                     
 	ENDM
 
-	MAC next
+	; NEXT routine (byte index)
 	; usage next variable
+	MAC nextb
+	; increment variable
+	inc {1}
+	; don't roll over
+	beq .end
+.skip
+	; pull address
+	pla
+	sta .selfmod_code+2
+	pla
+	sta .selfmod_code+1
+	; pull max_value
+	pla
+	cmp {1}
+	bcs .jump_back
+	jmp .end
+.jump_back
+	; push max_value back
+	pha
+.selfmod_code
+	jmp $0000;                                          
+.end
+	ENDM
+
+	; NEXT routine (integer index)
+	; usage next variable
+	MAC nextw
 	; increment variable
 	clc
 	inc {1}
@@ -1138,11 +1227,23 @@ NUCL_DIVU16 SUBROUTINE
 	lda reserved1
 	pha
 .selfmod_code
-	jmp $0000;
+	jmp $0000;                                          
 .end
 	ENDM
 
-	MAC peek
+	; Opcode for PEEK! (byte)
+	MAC peekb
+	pla
+	sta reserved1
+	pla
+	sta reserved0
+	ldy #$00
+	lda (reserved0),y
+	pha
+	ENDM
+
+	; Opcode for PEEK (integer)
+	MAC peekw
 	pla
 	sta reserved1
 	pla
@@ -1153,21 +1254,33 @@ NUCL_DIVU16 SUBROUTINE
 	pzero
 	ENDM
 
-	MAC inkey
+	MAC inkeyb
 	jsr KERNAL_GETIN
 	pha
+	ENDM
+	
+	MAC inkeyw
+	inkeyb
 	lda #0
 	pha
 	ENDM
 
-	MAC iinc
+	MAC incb
+	inc {1}
+	ENDM
+
+	MAC decb
+	dec {1}
+	ENDM
+
+	MAC incw
 	inc {1}
 	bne .skip
 	inc {1}+1
 .skip
 	ENDM
 
-	MAC idec
+	MAC decw
 	dec {1}
 	lda #$ff
 	cmp {1}
@@ -1198,6 +1311,13 @@ NUCL_DIVU16 SUBROUTINE
     jmp $0000
 .return_addr
     ENDM
+    
+    ; Push random byte on stack
+    MAC rndb
+	jsr STDLIB_RND
+	lda random+1
+	pha
+	ENDM
     
     ; Push random integer on stack
     MAC rndw
@@ -1389,9 +1509,15 @@ NUCL_DIVU16 SUBROUTINE
 	ENDM
 	
 	; Get error code after file i/o
-	MAC ferr
+	MAC ferrb
 	lda FILE_ERROR_MSG
 	pha
+	lda #$00
+	pha
+	ENDM
+	
+	MAC ferrw
+	ferrb
 	lda #$00
 	pha
 	ENDM

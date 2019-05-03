@@ -41,16 +41,22 @@ STDLIB_BYTE_TO_PETSCII SUBROUTINE
   	
 ; print byte type as decimal
 STDLIB_PRINT_BYTE SUBROUTINE
+	ldy #$00
+	sty reserved0 ; has a digit been printed?
 	jsr STDLIB_BYTE_TO_PETSCII
 	pha
 	tya
 	cmp #$30
-	beq .skip
+	beq .skip                                      
 	jsr KERNAL_PRINTCHR
+	inc reserved0
 .skip
 	txa
 	cmp #$30
+	bne .printit
+	ldy reserved0
 	beq .skip2
+.printit	
 	jsr KERNAL_PRINTCHR
 .skip2
 	pla

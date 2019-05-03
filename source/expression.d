@@ -25,12 +25,12 @@ class Expression
 
     /**
      * Pre-parses the expression to find out
-     * the final result type (int or float)
+     * the final result type (byte, int or float)
      */
 
     char detect_type()
     {
-        this.type = 'w';
+        this.type = 'b';
         Simplexp tmpSimplexp;
         foreach(ref child; this.node.children) {
             if(child.name == "XCBASIC.Simplexp") {
@@ -40,6 +40,9 @@ class Expression
                     // the whole expr will be of type float
                     this.type = 'f';
                     break;
+                }
+                else if(tmpSimplexp.detect_type() == 'w') {
+                   this.type = 'w';
                 }
             }
         }
@@ -54,7 +57,9 @@ class Expression
     void eval()
     {
         char i = 0;
-        this.detect_type();
+        if(this.type == char.init) {
+            this.detect_type();
+        }
         Simplexp s1 = new Simplexp(this.node.children[i], this.program);
         s1.expected_type = this.type;
         s1.eval();
@@ -67,23 +72,34 @@ class Expression
             for(i = 1; i < this.node.children.length; i += 2) {
                 string bw_op = this.node.children[i].matches[0];
                 Simplexp s = new Simplexp(this.node.children[i+1], this.program);
+                s.expected_type = this.type;
                 s.eval();
                 this.asmcode ~= to!string(s);
                 final switch(bw_op) {
                     case "&":
-                        this.asmcode ~= "\tandw\n";
+                        this.asmcode ~= "\tand"~to!string(this.type)~"\n";
                     break;
 
                     case "|":
-                        this.asmcode ~= "\torw\n";
+                        this.asmcode ~= "\tor"~to!string(this.type)~"\n";
                     break;
 
                     case "^":
-                        this.asmcode ~= "\txorw\n";
+                        this.asmcode ~= "\txor"~to!string(this.type)~"\n";
                     break;
                 }
             }
         }
+    }
+
+    /**
+     * Converts the result of the expression
+     * from byte to word
+     */
+
+    void btow()
+    {
+        this.asmcode ~= "\tbtow\n";
     }
    
     void _type_error()

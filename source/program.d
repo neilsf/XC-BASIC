@@ -83,9 +83,13 @@ class Program
     string source_path = "";
 	bool use_floats = true;
 
+    /**
+     * Constructor
+     */
+
 	this() {
 		/* As of now, vartypes with the same length are not allowed. Needs refactoring if it is a must */
-		//this.varlen['b'] = 1; this.vartype[1] = 'b';
+		this.varlen['b'] = 1; this.vartype[1] = 'b';
 		this.varlen['w'] = 2; this.vartype[2] = 'w';
 		//this.varlen['s'] = 2; this.vartype[2] = 's';
 		this.varlen['f'] = 5; this.vartype[5] = 'f';
@@ -94,7 +98,13 @@ class Program
 		this.vartype_names['w'] = "integer";
 		this.vartype_names['s'] = "string";
 		this.vartype_names['f'] = "float";
+        this.vartype_names['b'] = "byte";
 	}
+
+    /**
+     * Checks if a label exists
+     * within the current scope
+     */
 
 	bool labelExists(string str)
 	{
@@ -117,6 +127,11 @@ class Program
 
 		this.labels ~= str;
 	}
+
+    /**
+     * Returns the type identifier
+     * that matches the given sigil
+     */
 
 	char resolve_sigil(string sigil)
 	{
@@ -213,49 +228,6 @@ class Program
 		return asm_code;
 	}
 
-	ubyte[3] intToBin(int number)
-	{
-		ubyte[3] data_bytes;
-		if(number < 0) {
-				number = 16777216 + number;
-			}
-
-		try {
-			data_bytes[0] = to!ubyte(number >> 16);
-			data_bytes[1] = to!ubyte((number & 65280) >> 8);
-			data_bytes[2] = to!ubyte(number & 255);
-		}
-		catch(Exception e) {
-			this.error("Compile error: number out of range: "~to!string(number));
-		}
-
-		return data_bytes;
-	}
-
-	float parseFloat(string strval)
-	{
-		return to!float(strval);
-	}
-
-	int parseInt(string strval)
-	{
-	  try {
-		  if(strval[0] == '$') {
-				  return to!int(strval[1..$] ,16);
-			  }
-			  else if(strval[0] == '%') {
-				  return to!int(strval[1..$] ,2);
-			  }
-			  else {
-				  return to!int(strval);
-			  }
-	  } catch (std.conv.ConvException e) {
-		  this.error("Syntax error: '" ~ strval ~"' is not a valid integer literal");
-	  }
-
-	  return 0;
-	}
-
 	Variable findVariable(string id, string sigil)
 	{
         char type = this.resolve_sigil(sigil);
@@ -342,15 +314,6 @@ class Program
 
 		return false;
 	}
-
-	char guessTheType(string number)
-	{
-		if(number.indexOfAny(".") > -1) {
-			return 'f';
-		}
-
-        return 'w';
-    }
 
 	void error(string error_message, bool is_warning = false)
 	{

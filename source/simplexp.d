@@ -14,7 +14,7 @@ class Simplexp
     Program program;
     string asmcode;
     bool negateFirstTerm;
-    char expected_type = 'w';
+    char expected_type;
 
     this(ParseTree node, Program program)
     {
@@ -24,7 +24,7 @@ class Simplexp
 
     char detect_type()
     {
-        char type = 'w';
+        char type = 'b';
         Term tmpTerm;
         foreach(ref child; this.node.children) {
             if(child.name == "XCBASIC.Term") {
@@ -34,6 +34,9 @@ class Simplexp
                     // the whole expr will be of type float
                     type = 'f';
                     break;
+                }
+                else if(tmpTerm.detect_type() == 'w') {
+                    type = 'w';
                 }
             }
         }

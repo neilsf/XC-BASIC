@@ -12,7 +12,7 @@ class Term
     ParseTree node;
     Program program;
     string asmcode;
-    char expected_type = 'w';
+    char expected_type;
 
     this(ParseTree node, Program program)
     { 
@@ -23,7 +23,7 @@ class Term
     char detect_type()
     {
         Factor tmpFact;
-        char tmptype = 'w';
+        char tmptype = 'b';
         foreach(ref child; this.node.children) {
             if(child.name == "XCBASIC.Factor") {
                 tmpFact = new Factor(child, this.program);
@@ -32,6 +32,9 @@ class Term
                     // the whole term will be of type float
                     tmptype = 'f';
                     break;
+                }
+                else if(tmpFact.detect_type() == 'w') {
+                    tmptype = 'w';
                 }
             }
         }
