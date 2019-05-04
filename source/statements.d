@@ -746,7 +746,7 @@ class Charat_stmt:Stmt
 		// add 1024
 		this.program.program_segment ~="\tpword #1024\n" ~ "\taddw\n";
 
-		this.program.program_segment~="\tpoke"~to!string(Ex1.type)~"\n";
+		this.program.program_segment~="\tpoke"~to!string(Ex3.type)~"\n";
 	}
 }
 
