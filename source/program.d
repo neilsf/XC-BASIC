@@ -48,15 +48,6 @@ struct Procedure {
 
 class Program
 {
-	struct ProgramSettings {
-		ushort heap_start;
-		ushort heap_end;
-		ushort program_start;
-		ushort program_end;
-	}
-
-	ProgramSettings settings;
-
 	ubyte[char] varlen;
 	char[ubyte] vartype;
 	string[char] vartype_names;
@@ -93,7 +84,6 @@ class Program
 		this.varlen['w'] = 2; this.vartype[2] = 'w';
 		//this.varlen['s'] = 2; this.vartype[2] = 's';
 		this.varlen['f'] = 5; this.vartype[5] = 'f';
-		this.settings = ProgramSettings(0xc000, 0xcfff, 0x0801, 0x9999);
 
 		this.vartype_names['w'] = "integer";
 		this.vartype_names['s'] = "string";
@@ -271,6 +261,26 @@ class Program
 			var.name = stripLeft(var.name, "\\");
 		}
 
+        bool name_exists = false;
+        string id = var.name;
+
+        foreach(ref elem; this.variables) {
+            if(this.in_procedure && !global_mod) {
+                if(id == elem.name && this.current_proc_name == elem.procname) {
+                    name_exists = true;
+                }
+            }
+            else {
+                if(elem.isGlobal && id == elem.name) {
+                    name_exists = true;
+                }
+            }
+
+            if(name_exists) {
+                this.error("A(n) "~this.vartype_names[elem.type]~" named "~elem.name~" already exists");
+            }
+        }
+
 		if(this.in_procedure && !global_mod) {
 			var.isGlobal = false;
 			var.procname = this.current_proc_name;
@@ -279,7 +289,7 @@ class Program
 		this.variables ~= var;
 	}
 
-	bool is_variable(string id, string sigil)
+	bool is_variable(string id, string sigil, bool check_type = true)
 	{
         char type = this.resolve_sigil(sigil);
 
@@ -290,12 +300,12 @@ class Program
 
 		foreach(ref elem; this.variables) {
 			if(this.in_procedure && !global_mod) {
-				if(id == elem.name && this.current_proc_name == elem.procname && elem.type == type) {
+				if(id == elem.name && this.current_proc_name == elem.procname && (!check_type || elem.type == type)) {
 					return true;
 				}
 			}
 			else {
-				if(elem.isGlobal && id == elem.name && elem.type == type) {
+				if(elem.isGlobal && id == elem.name && (!check_type || elem.type == type)) {
 					return true;
 				}
 			}
