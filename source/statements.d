@@ -577,9 +577,15 @@ class If_stmt:Stmt
                 exp_type = to!string(Ex1.type);
             }
             else {
-                this.program.error("Types of expressions mismatch. Please use explicit conversion");
+                char common_type = this.program.get_higher_type(Ex1.type, Ex2.type);
+                if(Ex1.type != common_type) {
+                    Ex1.convert(common_type);
+                }
+                else {
+                    Ex2.convert(common_type);
+                }
+                exp_type = to!string(common_type);
             }
-
 			this.program.program_segment ~= to!string(Ex1);
 			this.program.program_segment ~= to!string(Ex2);
 

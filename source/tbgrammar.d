@@ -24,7 +24,7 @@ XCBASIC:
     For_stmt <      "for" :WS? Var :WS? "=" :WS? Expression :WS? "to" :WS? Expression
     Next_stmt <     "next" :WS? Var
     Dim_stmt <      "dim" :WS? Var
-    Data_stmt <     "data" :WS? Varname Vartype "[]" :WS? "=" :WS? Datalist
+    Data_stmt <     "data" :WS? Varname Vartype "[]" :WS? "=" :WS? (Datalist / Incbin_stmt)
     Charat_stmt <   "charat" :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
     Textat_stmt <   "textat" :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? (String / Expression)
     Incbin_stmt <   "incbin" :WS? String

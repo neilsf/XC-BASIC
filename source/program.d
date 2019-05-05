@@ -128,6 +128,27 @@ class Program
 		this.labels ~= str;
 	}
 
+    char get_higher_type(char type1, char type2)
+    {
+        ubyte getPrecedence(char type) {
+            if(type == 'b') {
+                return 1;
+            }
+
+            if(type == 'i') {
+                return 2;
+            }
+
+            return 3;
+        }
+
+        if(getPrecedence(type1) > getPrecedence(type2)) {
+            return type1;
+        }
+
+        return type2;
+    }
+
     /**
      * Returns the type identifier
      * that matches the given sigil
