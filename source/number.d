@@ -15,6 +15,9 @@ class Number
     real floatval;
     char type;
 
+    const real lower_limit = -1.70141183E38;
+    const real upper_limit =  1.70141183E38;
+
     this(ParseTree node, Program program)
     {
         this.str_repr = str_repr;
@@ -49,9 +52,14 @@ class Number
                 break;
 
             case "XCBASIC.Floating":
+            case "XCBASIC.Scientific":
                 try {
                     this.floatval = to!real(num_str);
                     this.type = 'f';
+
+                    if(this.floatval < this.lower_limit || this.floatval > this.upper_limit) {
+                        this.program.error("Number out of range");
+                    }
                 }
                 catch(Exception e) {
                     this.program.error("Can't parse number "~num_str);

@@ -24,7 +24,7 @@ XCBASIC:
     For_stmt <      "for" :WS? Var :WS? "=" :WS? Expression :WS? "to" :WS? Expression
     Next_stmt <     "next" :WS? Var
     Dim_stmt <      "dim" :WS? Var
-    Data_stmt <     "data" :WS? Varname Vartype "[]" :WS? "=" :WS? Datalist
+    Data_stmt <     "data" :WS? Varname Vartype "[]" :WS? "=" :WS? (Datalist / Incbin_stmt)
     Charat_stmt <   "charat" :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
     Textat_stmt <   "textat" :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? (String / Expression)
     Incbin_stmt <   "incbin" :WS? String
@@ -68,9 +68,10 @@ XCBASIC:
     Integer    < "-"? Unsigned
     Hexa       < "$" [0-9a-fA-F]+
     Binary     < "%" ("0" / "1")+
+    Scientific < Floating ('e' / 'E' ) Integer
     Floating   < "-"? Unsigned "." Unsigned
 
-    Number < (Floating / Integer / Hexa / Binary)
+    Number < (Scientific / Floating / Integer / Hexa / Binary)
 
     Label < [a-zA-Z_] [a-zA-Z_0-9]* ":"
     Label_ref < [a-zA-Z_] [a-zA-Z_0-9]*

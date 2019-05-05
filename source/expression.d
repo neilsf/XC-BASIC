@@ -99,7 +99,12 @@ class Expression
 
     void btow()
     {
-        this.asmcode ~= "\tbtow\n";
+        this.convert('w');
+    }
+
+    void convert(char to_type)
+    {
+        this.asmcode ~= "\t"~to!string(this.type)~"to"~to!string(to_type)~"\n";
     }
    
     void _type_error()
