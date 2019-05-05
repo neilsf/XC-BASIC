@@ -764,21 +764,22 @@ class Input_stmt:Stmt
 	void process()
 	{
 		ParseTree list = this.node.children[0].children[0];
-		for(char i=0; i< list.children.length; i++) {
-			ParseTree v = list.children[i];
-			string varname = join(v.children[0].matches);
+
+        for(char i=0; i< list.children.length; i++) {
+            ParseTree v = list.children[i];
+            string varname = join(v.children[0].matches);
             string sigil = join(v.children[1].matches);
-			char vartype = this.program.resolve_sigil(sigil);
-			if(!this.program.is_variable(varname, sigil)) {
-				this.program.variables ~= Variable(0, varname, vartype);
-			}
-			Variable var = this.program.findVariable(varname, sigil);
-			if(var.isConst) {
-				this.program.error("Can't INPUT to a constant");
-			}
-			this.program.program_segment~="\tinput\n";
-			this.program.program_segment~="\tplw2var " ~ var.getLabel() ~ "\n";
-		}
+            char vartype = this.program.resolve_sigil(sigil);
+            if(!this.program.is_variable(varname, sigil)) {
+                this.program.variables ~= Variable(0, varname, vartype);
+            }
+            Variable var = this.program.findVariable(varname, sigil);
+            if(var.isConst) {
+                this.program.error("Can't INPUT to a constant");
+            }
+            this.program.program_segment~="\tinput\n";
+            this.program.program_segment~="\tplw2var " ~ var.getLabel() ~ "\n";
+        }
 	}
 }
 
@@ -803,49 +804,58 @@ class Data_stmt:Stmt
 			this.program.error(varname ~ " is a constant");
 		}
 
-		this.program.data_segment ~= var.getLabel();
-        if(vartype == 'b' || vartype == 'f') {
-            this.program.data_segment ~= "\tDC.B ";
-        }
-        else {
-            this.program.data_segment ~= "\tDC.W ";
-        }
 
-        string value;
-        ubyte[5] floatbytes;
-		for(char i=0; i< list.children.length; i++) {
-			ParseTree v = list.children[i];
-            Number num = new Number(v, this.program);
-
-            if (i > 0) {
-                this.program.data_segment ~= ", ";
-            }
-
-            if(vartype == 'f' && num.type !='f' || num.type == 'f' && vartype != 'f') {
-                this.program.error("Type mismatch");
-            }
-
-            if(vartype == 'b' && num.type == 'w') {
-                this.program.error("Number out of range");
-            }
-
-            if(vartype == 'b' || vartype == 'w') {
-                value = to!string(num.intval);
-                this.program.data_segment ~= "#" ~value;
+        if(list.name == "XCBASIC.Datalist") {
+            this.program.data_segment ~= var.getLabel();
+            if(vartype == 'b' || vartype == 'f') {
+                this.program.data_segment ~= "\tDC.B ";
             }
             else {
-                floatbytes = excess.float_to_hex(num.floatval);
-                this.program.data_segment ~=
-                    "#$" ~ to!string(floatbytes[0], 16) ~
-                    ", #$" ~ to!string(floatbytes[1], 16) ~
-                    ", #$" ~ to!string(floatbytes[2], 16) ~
-                    ", #$" ~ to!string(floatbytes[3], 16) ~
-                    ", #$" ~ to!string(floatbytes[4], 16);
+                this.program.data_segment ~= "\tDC.W ";
             }
 
-		}
+            string value;
+            ubyte[5] floatbytes;
+            for(char i=0; i< list.children.length; i++) {
+                ParseTree v = list.children[i];
+                Number num = new Number(v, this.program);
 
-		this.program.data_segment ~="\n";
+                if (i > 0) {
+                    this.program.data_segment ~= ", ";
+                }
+
+                if(vartype == 'f' && num.type !='f' || num.type == 'f' && vartype != 'f') {
+                    this.program.error("Type mismatch");
+                }
+
+                if(vartype == 'b' && num.type == 'w') {
+                    this.program.error("Number out of range");
+                }
+
+                if(vartype == 'b' || vartype == 'w') {
+                    value = to!string(num.intval);
+                    this.program.data_segment ~= "#" ~value;
+                }
+                else {
+                    floatbytes = excess.float_to_hex(num.floatval);
+                    this.program.data_segment ~=
+                        "#$" ~ to!string(floatbytes[0], 16) ~
+                        ", #$" ~ to!string(floatbytes[1], 16) ~
+                        ", #$" ~ to!string(floatbytes[2], 16) ~
+                        ", #$" ~ to!string(floatbytes[3], 16) ~
+                        ", #$" ~ to!string(floatbytes[4], 16);
+                }
+
+            }
+
+            this.program.data_segment ~="\n";
+        }
+        else {
+            if(vartype != 'b') {
+                this.program.error("Included files may only be assigned to byte type arrays");
+            }
+            this.program.data_segment ~= var.getLabel() ~ ":\n\tINCBIN "~join(list.children[0].matches)~"\n";
+        }
 	}
 }
 
