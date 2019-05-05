@@ -232,7 +232,8 @@ class Let_stmt:Stmt
 
         if(extype == 'b' && vartype == 'w') {
             this.program.program_segment ~= "\tbtow\n";
-            this.program.warning("Implicit type conversion");
+            // bytes should be silently promoted to integers
+            //this.program.warning("Implicit type conversion");
         }
         else if(extype == 'w' && vartype == 'b') {
             this.program.program_segment ~= "\twtob\n";
@@ -418,7 +419,7 @@ class Textat_stmt:Stmt
 			Expression ex = new Expression(exlist.children[2], this.program);
 			ex.eval();
 			this.program.program_segment ~= to!string(ex) ~ "\n";
-			this.program.program_segment ~= "\twordat\n";
+			this.program.program_segment ~= "\t"~to!string(ex.type)~"at\n";
 		}
 		else {
 			// string literal

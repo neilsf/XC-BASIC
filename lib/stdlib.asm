@@ -12,7 +12,7 @@ STDLIB_MEMSETUP SUBROUTINE
 	rts
 
 ; print null-terminated petscii string
-STDLIB_PRINT SUBROUTINE
+STDLIB_PRINT SUBROUTINE          
 	sta $6f         ; store string start low byte
     sty $70         ; store string start high byte
     ldy #$00		; set length to 0
@@ -174,7 +174,8 @@ STDLIB_OUTPUT_WORD SUBROUTINE
 .end:
 	ENDM
 	
-	MAC wordat
+	; Output integer at x, y
+	MAC wat
 	pla
 	sta reserved3
 	pla
