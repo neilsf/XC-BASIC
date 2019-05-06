@@ -12,34 +12,34 @@ XCBASIC:
                 Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Incbin_stmt /
                 Include_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt / Sys_stmt / Load_stmt / Save_stmt /
                 Origin_stmt
-    Const_stmt <    "const" :WS? Var :WS? "=" :WS? Number
-    Let_stmt <      ("let" / eps) :WS? Var :WS? "=" :WS? Expression
-    Print_stmt <    "print" :WS? ExprList
-    If_stmt <       "if" :WS? Relation :WS? (Logop :WS? Relation)? :WS? "then" :WS? Statements :WS? ("else" :WS? Statements)?
-    Goto_stmt <     "goto" :WS? (Label_ref / Unsigned)
-    Input_stmt <    "input" :WS? VarList
-    Gosub_stmt <    "gosub" :WS? (Label_ref / Unsigned)
-    Call_stmt <     "call" :WS? (Label_ref / Unsigned) :WS? (:"(" :WS? ExprList :WS? :")")?
-    Return_stmt <   "return"
-    Poke_stmt <     "poke" :WS? Expression :WS? "," :WS? Expression
-    End_stmt <      "end"
-    Rem_stmt <      "rem" (!eol .)*
-    For_stmt <      "for" :WS? Var :WS? "=" :WS? Expression :WS? "to" :WS? Expression
-    Next_stmt <     "next" :WS? Var
-    Dim_stmt <      "dim" :WS? Var
-    Data_stmt <     "data" :WS? Varname Vartype "[]" :WS? "=" :WS? (Datalist / Incbin_stmt)
-    Charat_stmt <   "charat" :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
-    Textat_stmt <   "textat" :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? (String / Expression)
-    Incbin_stmt <   "incbin" :WS? String
-    Include_stmt <  "include" :WS? String
-    Inc_stmt <      "inc" :WS? Var
-    Dec_stmt <      "dec" :WS? Var
-    Proc_stmt <     "proc" :WS Label_ref :WS? (:"(" :WS? VarList :WS? :")")?
-    Endproc_stmt <  "endproc"
-    Sys_stmt <      "sys" :WS? Expression
-    Load_stmt <     "load" :WS? String :WS? "," :WS? Expression (:WS? "," :WS? Expression)?
-    Save_stmt <     "save" :WS? String :WS? "," :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
-    Origin_stmt <   "origin" :WS? Number
+    Const_stmt <    "const"i :WS? Var :WS? "=" :WS? Number
+    Let_stmt <      ("let"i / eps) :WS? Var :WS? "=" :WS? Expression
+    Print_stmt <    "print"i :WS? ExprList
+    If_stmt <       "if"i :WS? Relation :WS? (Logop :WS? Relation)? :WS? "then"i :WS? Statements :WS? ("else"i :WS? Statements)?
+    Goto_stmt <     "goto"i :WS? (Label_ref / Unsigned)
+    Input_stmt <    "input"i :WS? VarList
+    Gosub_stmt <    "gosub"i :WS? (Label_ref / Unsigned)
+    Call_stmt <     "call"i :WS? (Label_ref / Unsigned) :WS? (:"(" :WS? ExprList :WS? :")")?
+    Return_stmt <   "return"i
+    Poke_stmt <     "poke"i :WS? Expression :WS? "," :WS? Expression
+    End_stmt <      "end"i
+    Rem_stmt <      "rem"i (!eol .)*
+    For_stmt <      "for"i :WS? Var :WS? "=" :WS? Expression :WS? "to"i :WS? Expression
+    Next_stmt <     "next"i :WS? Var
+    Dim_stmt <      "dim"i :WS? Var
+    Data_stmt <     "data"i :WS? Varname Vartype "[]" :WS? "=" :WS? (Datalist / Incbin_stmt)
+    Charat_stmt <   "charat"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
+    Textat_stmt <   "textat"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? (String / Expression)
+    Incbin_stmt <   "incbin"i :WS? String
+    Include_stmt <  "include"i :WS? String
+    Inc_stmt <      "inc"i :WS? Var
+    Dec_stmt <      "dec"i :WS? Var
+    Proc_stmt <     "proc"i :WS Label_ref :WS? (:"(" :WS? VarList :WS? :")")?
+    Endproc_stmt <  "endproc"i
+    Sys_stmt <      "sys"i :WS? Expression
+    Load_stmt <     "load"i :WS? String :WS? "," :WS? Expression (:WS? "," :WS? Expression)?
+    Save_stmt <     "save"i :WS? String :WS? "," :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
+    Origin_stmt <   "origin"i :WS? Number
 
     Relation < Expression :WS? Relop :WS? Expression
     ExprList < (String / Expression) :WS? ("," :WS? (String / Expression) )*
@@ -82,11 +82,11 @@ XCBASIC:
 
     Line_id < (Label / Unsigned / eps)
 
-    Reserved < ("const" / "let" / "print" / "if" / "then" / "goto" / "input" / "gosub" / "return" / "call" /
-                 "end" / "rem" / "poke" / "peek" / "for" / "to" / "next" / "dim" / "data" / "charat" / "textat" /
-                 "inkey" / "rnd" / "incbin" / "inc" / "dec" / "proc" / "endproc" / "sys" / "usr" / "and" / "origin" /
-                  "or" / "load" / "save" / "ferr" /
-                 "abs" / "cast" / "sin" / "cos" / "tan" / "atn")
+    Reserved < ("const"i / "let"i / "print"i / "if"i / "then"i / "goto"i / "input"i / "gosub"i / "return"i / "call"i /
+                 "end"i / "rem"i / "poke"i / "peek"i / "for"i / "to"i / "next"i / "dim"i / "data"i / "charat"i / "textat"i /
+                 "inkey"i / "rnd"i / "incbin"i / "inc"i / "dec"i / "proc"i / "endproc"i / "sys"i / "usr"i / "and"i / "origin"i /
+                  "or"i / "load"i / "save"i / "ferr"i /
+                 "abs"i / "cast"i / "sin"i / "cos"i / "tan"i / "atn"i)
     WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 

@@ -1,8 +1,8 @@
-dim n[100]
-let i=0
+DIM n[100]
+i=0
 loop:
-  let n[i] = i
-  let i=i+1
-  if i<=100 then goto loop
-print n[5]
-print n[99]
+  n[i] = i
+  INC i
+  IF i<=100 THEN GOTO loop
+PRINT n[5]
+PRINT n[99]
