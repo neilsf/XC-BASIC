@@ -8,7 +8,10 @@ XCBASIC:
     Line <- Line_id :WS? Statements?
     Statements < Statement :WS? (":" :WS? Statement :WS?)*
 
-    Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt / Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Incbin_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt / Sys_stmt / Load_stmt / Save_stmt / Origin_stmt
+    Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt /
+                Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Incbin_stmt /
+                Include_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt / Sys_stmt / Load_stmt / Save_stmt /
+                Origin_stmt
     Const_stmt <    "const" :WS? Var :WS? "=" :WS? Number
     Let_stmt <      ("let" / eps) :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print" :WS? ExprList
@@ -28,6 +31,7 @@ XCBASIC:
     Charat_stmt <   "charat" :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
     Textat_stmt <   "textat" :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? (String / Expression)
     Incbin_stmt <   "incbin" :WS? String
+    Include_stmt <  "include" :WS? String
     Inc_stmt <      "inc" :WS? Var
     Dec_stmt <      "dec" :WS? Var
     Proc_stmt <     "proc" :WS Label_ref :WS? (:"(" :WS? VarList :WS? :")")?

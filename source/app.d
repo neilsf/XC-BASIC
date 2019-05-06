@@ -1,30 +1,23 @@
-import std.stdio, std.file, std.array, std.string, std.getopt, std.path;
+import std.stdio, std.file, std.array, std.string, std.getopt, std.path, std.regex;
 import core.stdc.stdlib;
 import tbgrammar;
 import program;
 import std.conv;
+import globals;
+
+int line_count = 0;
+
+/**
+ * Application entry point
+ */
 
 void main(string[] args)
 {
     string filename = args[1];
-    string outfile;
 
-    File infile;
-
-    try {
-        infile = File(filename, "r");
-    }
-    catch(Exception e) {
-        stderr.writeln("Failed to open source file (" ~ filename ~ ")");
-        exit(1);
-    }
-
-    string source = "";
-    while(!infile.eof){
-        source = source ~ infile.readln();
-    }
-
+    string source = build_source(filename);
     auto ast = XCBASIC(source);
+
     if(!ast.successful) {
         auto lines = splitLines(to!string(ast));
         string line = lines[$-1];
@@ -39,4 +32,46 @@ void main(string[] args)
     program.source_path = absolutePath(dirName(filename));
     program.processAst(ast);
     writeln(program.getAsmCode());
+}
+
+/**
+ * Recursively builds a source string from file
+ * along with its includes
+ */
+
+string build_source(string filename)
+{
+    File infile;
+
+    try {
+        infile = File(filename, "r");
+    }
+    catch(Exception e) {
+        stderr.writeln("Failed to open source file (" ~ filename ~ ")");
+        exit(1);
+    }
+
+    string source = "";
+
+    int local_line_count = 0;
+    while(!infile.eof){
+
+        line_count++;
+        local_line_count++;
+
+        globals.source_file_map~=baseName(filename);
+        globals.source_line_map~=local_line_count;
+
+        string line = strip(infile.readln(), "\n");
+        source = source ~ line ~ "\n";
+
+        auto m = matchFirst(line, regex(`\s*(include|INCLUDE)\s*"([^"]+)"\s*`));
+        if(m) {
+            string fname = m[2];
+            string path = absolutePath(dirName(filename)) ~ "/" ~ fname;
+            source ~= build_source(path);
+        }
+    }
+
+    return source;
 }

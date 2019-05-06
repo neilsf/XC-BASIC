@@ -120,6 +120,10 @@ Stmt StmtFactory(ParseTree node, Program program) {
             stmt = new Incbin_stmt(node, program);
         break;
 
+        case "XCBASIC.Include_stmt":
+            stmt = new Rem_stmt(node, program);
+        break;
+
 		default:
             program.error("Unknown statement "~node.name);
 		    assert(0);
@@ -852,7 +856,7 @@ class Data_stmt:Stmt
         }
         else {
             if(vartype != 'b') {
-                this.program.error("Included files may only be assigned to byte type arrays");
+                this.program.error("Included binary files may only be assigned to byte type arrays");
             }
             this.program.data_segment ~= var.getLabel() ~ ":\n\tINCBIN "~join(list.children[0].matches)~"\n";
         }

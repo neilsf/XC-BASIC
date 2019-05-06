@@ -4,6 +4,7 @@ import core.stdc.stdlib;
 import statements;
 import basicstdlib;
 import nucleus;
+import globals;
 
 struct Variable {
 	ushort location;
@@ -352,7 +353,9 @@ class Program
 		string partial = this.current_node.input[0..error_location];
 		auto lines = splitLines(partial);
 		ulong line_no = lines.length + 1;
-		stderr.writeln((is_warning ? "WARNING: " : "ERROR: ") ~ error_message ~ " in line " ~ to!string(line_no));
+        string filename = globals.source_file_map[line_no-1];
+        int l = globals.source_line_map[line_no-1];
+		stderr.writeln((is_warning ? "WARNING: " : "ERROR: ") ~ error_message ~ " in file " ~filename~ " in line " ~ to!string(l));
         if(!is_warning) {
             exit(1);
         }
