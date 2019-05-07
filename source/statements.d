@@ -124,6 +124,10 @@ Stmt StmtFactory(ParseTree node, Program program) {
             stmt = new Rem_stmt(node, program);
         break;
 
+        case "XCBASIC.Asm_stmt":
+            stmt = new Asm_stmt(node, program);
+        break;
+
 		default:
             program.error("Unknown statement "~node.name);
 		    assert(0);
@@ -1178,5 +1182,18 @@ class Incbin_stmt:Stmt
         this.program.program_segment~="_IJS"~lblc~"\tINCBIN "~incfile~"\n";
         this.program.program_segment~="_IJ"~lblc~"\n";
         this.program.program_segment~= "\tECHO \"Included file ("~replace(incfile,"\"", "")~"):\",_IJS"~lblc~",\"-\", _IJ"~lblc~"\n";
+    }
+}
+
+class Asm_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        string asm_string = stripLeft(chop(join(this.node.children[0].children[0].matches)), "\"");
+        this.program.program_segment~="\t; Inline ASM start\n";
+        this.program.program_segment~=asm_string~"\n";
+        this.program.program_segment~="\t; Inline ASM end\n";
     }
 }

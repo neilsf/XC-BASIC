@@ -26,7 +26,7 @@ void main(string[] args)
         exit(1);
     }
 
-    //writeln(ast); exit(1);
+    //stderr.writeln(ast); exit(1);
 
     auto program = new Program();
     program.source_path = absolutePath(dirName(filename));
