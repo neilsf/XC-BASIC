@@ -153,18 +153,29 @@ class Factor
             case "XCBASIC.Address":
                 ParseTree v = this.node.children[0];
                 string varname = join(v.children[0].matches);
-                string sigil = join(v.children[1].matches);
-
-                if(!this.program.is_variable(varname, sigil)) {
-                    this.program.error("Undefined variable: " ~ varname);
+                string sigil = "";
+                if(v.children.length > 1) {
+                    sigil = join(v.children[1].matches);
                 }
 
-                Variable var = this.program.findVariable(varname, sigil);
-                if(var.isConst) {
-                    this.program.error("A constant has no address");
+                string lbl = "";
+
+                if(this.program.labelExists(varname)) {
+                    lbl = "_L"~varname;
+                }
+                else if(this.program.is_variable(varname, sigil)) {
+                    Variable var = this.program.findVariable(varname, sigil);
+                    if(var.isConst) {
+                        this.program.error("A constant has no address");
+                    }
+                    lbl = var.getLabel();
+                }
+                else {
+                    this.program.error("Undefined variable or label: " ~ varname);
                 }
 
-                this.asmcode ~= "\tpaddr " ~ var.getLabel() ~ "\n";
+                this.asmcode ~= "\tpaddr " ~ lbl ~ "\n";
+
             break;
 
             case "XCBASIC.Number":

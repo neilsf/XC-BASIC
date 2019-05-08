@@ -60,9 +60,9 @@ ubyte[5] float_to_hex(real value) {
     real mantissa = result;
     string binary_fraction = toBinary(mantissa);
 
-    ulong pad_digits = 0;
+    int pad_digits = 0;
     if(binary_fraction.length < 32) {
-        pad_digits = 32 - binary_fraction.length;
+        pad_digits = 32 - to!int(binary_fraction.length);
     }
     mantstring = binary_fraction ~ ("0".replicate(pad_digits));
     mantstring = (is_negative ? '1' : '0') ~ mantstring[1..32];

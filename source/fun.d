@@ -148,8 +148,9 @@ class UsrFun:Fun
     this(ParseTree node, Program program)
     {
         super(node, program);
-        auto e_list = this.node.children[1].children;
+        auto e_list = this.node.children[2].children;
         int arg_count = to!int(e_list.length);
+
         for(int i=0; i < arg_count; i++) {
             int index = arg_count - 1 - i;
             auto e = e_list[i];
@@ -158,6 +159,9 @@ class UsrFun:Fun
             }
             else if(e.name == "XCBASIC.String") {
                 this.arglist[index] = new StringExpression(e, this.program);
+            }
+            else {
+                this.program.error("Syntax error");
             }
 
             this.arglist[index].eval();

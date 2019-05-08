@@ -159,3 +159,24 @@ class StringExpression: Expression
     }
 }
 
+class LabelExpression: Expression
+{
+    this(ParseTree node, Program program)
+    {
+        super(node, program);
+    }
+
+    override void eval()
+    {
+        string lab = join(this.node.matches);
+        if(!this.program.labelExists(lab)) {
+            this.program.error("Label "~lab~" does not exist");
+        }
+
+        this.asmcode =
+            "\tlda #<_L" ~ lab ~ "\n" ~
+            "\tpha\n" ~
+            "\tlda #>_L" ~ lab ~ "\n" ~
+            "\tpha\n";
+    }
+}
