@@ -109,6 +109,16 @@ class Program
 		return false;
 	}
 
+    string getLabelForCurrentScope(string label)
+    {
+        if(this.in_procedure) {
+            return "_L" ~ this.current_proc_name ~ "." ~ label;
+        }
+        else {
+            return "_L" ~ label;
+        }
+    }
+
 	void addLabel(string str)
 	{
 		str = this.in_procedure ? this.current_proc_name ~ "." ~ str : str;

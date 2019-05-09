@@ -267,7 +267,11 @@ class Let_stmt:Stmt
             foreach(ref expr; subscript.children) {
                 Expression Ex2 = new Expression(expr, this.program);
                 Ex2.eval();
+                if(Ex2.type == 'b') {
+                    Ex2.btow();
+                }
                 this.program.program_segment ~= to!string(Ex2);
+
 
                 if(i == 1) {
                     // must multiply with first dimension length

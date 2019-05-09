@@ -161,7 +161,7 @@ class Factor
                 string lbl = "";
 
                 if(this.program.labelExists(varname)) {
-                    lbl = "_L"~varname;
+                    lbl =this.program.getLabelForCurrentScope(varname);
                 }
                 else if(this.program.is_variable(varname, sigil)) {
                     Variable var = this.program.findVariable(varname, sigil);

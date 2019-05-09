@@ -218,7 +218,25 @@ SAVE		EQU $ffd8
 	pla
 	sta {1}+4
 	ENDM
-	
+
+	;Pull one byte variable (indexed)
+	;Expects array index on top of stack
+	MAC plbarray
+	pla
+	sta reserved1
+	pla
+	sta reserved0
+	lda #<{1}
+	clc
+	adc reserved0
+	sta reserved0
+	lda #>{1}
+	adc reserved1
+	sta reserved1
+	ldy #$00
+	pla
+	sta (reserved0),y
+	ENDM	
 	
 	;Pull one word variable (indexed)
 	;Expects array index on top of stack
