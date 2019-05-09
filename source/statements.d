@@ -408,7 +408,7 @@ class Textat_stmt:Stmt
 		Expression col = new Expression(exlist.children[0], this.program);
 		Expression row = new Expression(exlist.children[1], this.program);
 
-        if(col.detect_type() == 'f' || row.detect_type != 'f') {
+        if(col.detect_type() == 'f' || row.detect_type == 'f') {
             this.program.error("Column and row must be bytes or integers");
         }
 
