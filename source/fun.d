@@ -15,6 +15,10 @@ Fun FunFactory(ParseTree node, Program program) {
             fun = new PeekFun(node, program);
         break;
 
+        case "deek":
+            fun = new DeekFun(node, program);
+        break;
+
         case "inkey":
             fun = new InKeyFun(node, program);
         break;
@@ -137,6 +141,23 @@ class PeekFun:Fun
     void process()
     {
         this.fncode ~= "\tpeek"~to!string(this.type)~"\n";
+    }
+}
+
+class DeekFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['w'];
+    }
+
+    void process()
+    {
+        this.fncode ~= "\tdeek\n";
     }
 }
 

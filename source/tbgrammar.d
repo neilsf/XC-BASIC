@@ -11,7 +11,7 @@ XCBASIC:
     Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt /
                 Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Incbin_stmt /
                 Include_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt / Sys_stmt / Load_stmt / Save_stmt /
-                Origin_stmt / Asm_stmt
+                Origin_stmt / Asm_stmt / Doke_stmt
     Const_stmt <    "const"i :WS? Var :WS? "=" :WS? Number
     Let_stmt <      ("let"i / eps) :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print"i :WS? ExprList
@@ -22,6 +22,7 @@ XCBASIC:
     Call_stmt <     "call"i :WS? (Label_ref / Unsigned) :WS? (:"(" :WS? ExprList :WS? :")")?
     Return_stmt <   "return"i
     Poke_stmt <     "poke"i :WS? Expression :WS? "," :WS? Expression
+    Doke_stmt <     "doke"i :WS? Expression :WS? "," :WS? Expression
     End_stmt <      "end"i
     Rem_stmt <      "rem"i (!eol .)*
     For_stmt <      "for"i :WS? Var :WS? "=" :WS? Expression :WS? "to"i :WS? Expression
@@ -86,7 +87,7 @@ XCBASIC:
     Reserved < ("const"i / "let"i / "print"i / "if"i / "then"i / "goto"i / "input"i / "gosub"i / "return"i / "call"i /
                  "end"i / "rem"i / "poke"i / "peek"i / "for"i / "to"i / "next"i / "dim"i / "data"i / "charat"i / "textat"i /
                  "inkey"i / "rnd"i / "incbin"i / "inc"i / "dec"i / "proc"i / "endproc"i / "sys"i / "usr"i / "and"i / "origin"i /
-                  "or"i / "load"i / "save"i / "ferr"i /
+                  "or"i / "load"i / "save"i / "ferr"i / "deek"i / "doke"i /
                  "abs"i / "cast"i / "sin"i / "cos"i / "tan"i / "atn"i / "asm"i)
     WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.

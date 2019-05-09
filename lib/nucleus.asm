@@ -1157,6 +1157,21 @@ NUCL_DIVU16 SUBROUTINE
 	pla
 	sta (reserved0),y
 	ENDM
+	
+	; doke routine
+	; requires that arguments are pushed backwards (value first)
+	MAC doke
+	pla
+	sta reserved1
+	pla
+	sta reserved0
+	ldy #$01
+	pla
+	sta (reserved0),y
+	pla
+	dey
+	sta (reserved0),y
+	ENDM
 
 	MAC for
 	; max value already pushed
@@ -1252,6 +1267,20 @@ NUCL_DIVU16 SUBROUTINE
 	lda (reserved0),y
 	pha
 	pzero
+	ENDM
+	
+	; Opcode for DEEK (integer)
+	MAC deek
+	pla
+	sta reserved1
+	pla
+	sta reserved0
+	ldy #$00
+	lda (reserved0),y
+	pha
+	iny
+	lda (reserved0),y
+	pha
 	ENDM
 
 	MAC inkeyb
