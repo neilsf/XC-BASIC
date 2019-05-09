@@ -808,6 +808,8 @@ class Input_stmt:Stmt
 	{
 		ParseTree list = this.node.children[0].children[0];
 
+        this.program.warning("The INPUT command is deprecated since version 2.0 and may be changed or removed in a future version");
+
         for(char i=0; i< list.children.length; i++) {
             ParseTree v = list.children[i];
             string varname = join(v.children[0].matches);
@@ -820,6 +822,7 @@ class Input_stmt:Stmt
             if(var.isConst) {
                 this.program.error("Can't INPUT to a constant");
             }
+
             this.program.program_segment~="\tinput\n";
             this.program.program_segment~="\tplw2var " ~ var.getLabel() ~ "\n";
         }
