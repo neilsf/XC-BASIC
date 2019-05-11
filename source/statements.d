@@ -414,11 +414,11 @@ class Textat_stmt:Stmt
 
 		col.eval();
         if(col.type == 'b') {
-            this.program.program_segment ~="\tbtow\n";
+            col.btow();
         }
 		row.eval();
         if(row.type == 'b') {
-            this.program.program_segment ~="\tbtow\n";
+            row.btow();
         }
 
 		if(exlist.children[2].name == "XCBASIC.Expression") {
