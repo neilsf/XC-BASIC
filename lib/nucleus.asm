@@ -810,9 +810,10 @@ NUCL_DIVU16 SUBROUTINE
 	MAC for
 	; max value already pushed
 	; push address
-	lda #<*
+.addr
+	lda #<.addr
 	pha
-	lda #>*
+	lda #>.addr
 	pha
 	ENDM
 
