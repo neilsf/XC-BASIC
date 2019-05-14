@@ -224,7 +224,10 @@ class Factor
 
         if(this.expected_type != this.type) {
             this.asmcode ~= "\t" ~ to!string(this.type) ~ "to" ~ to!string(this.expected_type) ~"\n";
-            this.program.warning("Implicit type conversion");
+            // Don't warn about b->w conversion
+            if(!(this.type == 'b' && this.expected_type == 'w')) {
+                this.program.warning("Implicit type conversion");
+            }
         }
     }
 
