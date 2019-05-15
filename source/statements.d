@@ -193,7 +193,7 @@ class Const_stmt:Stmt
 
 		Variable var = {
 			name: varname,
-			type: number.type,
+			type: vartype,
 			isConst: true,
 			constValInt: number.intval,
             constValFloat: number.floatval
