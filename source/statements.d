@@ -866,11 +866,12 @@ class Data_stmt:Stmt
 
             string value;
             ubyte[5] floatbytes;
+            ubyte counter = 0;
             for(char i=0; i< list.children.length; i++) {
                 ParseTree v = list.children[i];
                 Number num = new Number(v, this.program);
 
-                if (i > 0) {
+                if (counter > 0) {
                     this.program.data_segment ~= ", ";
                 }
 
@@ -896,6 +897,17 @@ class Data_stmt:Stmt
                         ", #$" ~ to!string(floatbytes[4], 16);
                 }
 
+                counter++;
+                if(counter == 16 && i < list.children.length-1) {
+                    this.program.data_segment ~= "\n";
+                    if(vartype == 'b' || vartype == 'f') {
+                        this.program.data_segment ~= "\tDC.B ";
+                    }
+                    else {
+                        this.program.data_segment ~= "\tDC.W ";
+                    }
+                    counter = 0;
+                }
             }
 
             this.program.data_segment ~="\n";

@@ -1,11 +1,33 @@
-XC-BASIC Release Notes
+XC=BASIC Release Notes
 
 Current Release Number:
-   v1.2-beta
+   v2.0
 Release Date:
-  10/04/2019
+  01/06/2019
+
+What's new in version 2.0?
+
+(1) Loads of bugfixes
+
+(2) New type: byte
+
+(3) New type: float
+
+(4) Support for binary and hexa numeric literals
+
+(5) Inline assembly through the ASM directive
+
+(6) Floating point functions like SIN(), COS() etc.
+
+(7) CAST() function
+
+(8) DEEK() function and DOKE command
+
+(9) Support for source inclusion through the
+    INCLUDE directive
 
 What's new in version 1.2-beta?
+===============================
 
 (1) Multiple statements can be written in one line using
     the statement separator character (:)
