@@ -498,7 +498,7 @@ class Call_stmt:Stmt
 				Expression Ex = new Expression(exprlist.children[i], this.program);
 				Ex.eval;
 				if(proc.arguments[i].type != Ex.detect_type()) {
-					this.program.error("Argument type mismatch");
+                    Ex.convert(proc.arguments[i].type);
 				}
 				this.program.program_segment ~= to!string(Ex);
 				char vartype = proc.arguments[i].type;

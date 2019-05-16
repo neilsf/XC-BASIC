@@ -824,7 +824,7 @@ SAVE		EQU $ffd8
 	; Convert word on stack to byte
 	; (truncate)
 	MAC wtob
-	pha
+	pla
 	ENDM
 	
 	; Convert float on stack to word

@@ -104,7 +104,17 @@ class Expression
 
     void convert(char to_type)
     {
+        int[char] type_prec;
+        type_prec['b'] = 0;
+        type_prec['w'] = 1;
+        type_prec['f'] = 2;
         this.asmcode ~= "\t"~to!string(this.type)~"to"~to!string(to_type)~"\n";
+        if(!(to_type == 'w' && this.type == 'b') && type_prec[to_type] > type_prec[this.type]) {
+            this.program.warning("Implicit type conversion");
+        }
+        else if(type_prec[to_type] < type_prec[this.type]) {
+            this.program.warning("Implicit type conversion with truncation or possible loss of precision");
+        }
     }
    
     void _type_error()
