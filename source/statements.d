@@ -867,7 +867,7 @@ class Data_stmt:Stmt
             string value;
             ubyte[5] floatbytes;
             ubyte counter = 0;
-            for(char i=0; i< list.children.length; i++) {
+            for(int i=0; i< list.children.length; i++) {
                 ParseTree v = list.children[i];
                 Number num = new Number(v, this.program);
 

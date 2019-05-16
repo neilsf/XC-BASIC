@@ -22,7 +22,7 @@ void main(string[] args)
         auto lines = splitLines(to!string(ast));
         string line = lines[$-1];
         stderr.writeln("Parser error: " ~ strip(line, " +-"));
-        stderr.writeln(ast);
+        //stderr.writeln(ast);
         exit(1);
     }
 
