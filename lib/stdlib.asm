@@ -71,7 +71,7 @@ STDLIB_PRINT_BYTE SUBROUTINE
 		
 ; converts word to string
 ; input in reserved2
-; output in stack
+; output on stack
 ; last char has 7. bit ON
 	MAC word_to_string
 .number			EQU reserved2
@@ -134,6 +134,51 @@ STDLIB_OUTPUT_WORD SUBROUTINE
 	bne .loop
 	rts
 	
+STDLIB_OUTPUT_BYTE SUBROUTINE
+	ldy #$00
+	sty reserved0 ; has a digit been printed?
+	jsr STDLIB_BYTE_TO_PETSCII
+	pha
+	tya
+	ldy #$00
+	cmp #$30
+	beq .skip                                  
+	sta (reservedA),y
+	inc reserved0
+.skip
+	txa
+	cmp #$30
+	bne .printit
+	ldx reserved0
+	beq .skip2
+.printit	
+	iny
+	sta (reservedA),y
+.skip2
+	pla
+	iny
+	sta (reservedA),y
+	rts
+	
+STDLIB_OUTPUT_FLOAT SUBROUTINE
+	jsr FOUT
+	ldx #$00
+	lda $0100
+	cmp #$20
+	bne .doprint
+	inx	
+.doprint
+	ldy #$00
+.loop:	
+	lda $0100,x
+	beq .end
+	sta (reservedA),y
+	inx
+	iny
+	jmp .loop
+.end
+	rts
+	
 	; opcode for print word as decimal  	
 	MAC stdlib_printw
 	pla
@@ -174,7 +219,7 @@ STDLIB_OUTPUT_WORD SUBROUTINE
 .end:
 	ENDM
 	
-	; Output integer at x, y
+	; Output integer as decimal at col, row
 	MAC wat
 	pla
 	sta reserved3
@@ -185,6 +230,30 @@ STDLIB_OUTPUT_WORD SUBROUTINE
 	pla
 	sta reservedA
 	jsr STDLIB_OUTPUT_WORD
+	ENDM
+	
+	; Output byte as decimal at col, row
+	MAC bat
+	pla
+	tax
+	pla
+	sta reservedB
+	pla
+	sta reservedA
+	txa
+	jsr STDLIB_OUTPUT_BYTE
+	ENDM
+	
+	; Output float as decimal at col, row
+	MAC fat
+	basicin
+	pullfac
+	pla
+	sta reservedB
+	pla
+	sta reservedA
+	jsr STDLIB_OUTPUT_FLOAT
+	basicout
 	ENDM
 	
 STDLIB_INPUT SUBROUTINE
