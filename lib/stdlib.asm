@@ -2,6 +2,8 @@ KERNAL_PRINTCHR	EQU $e716
 KERNAL_GETIN EQU $ffe4	
 INPUT_MAXCHARS EQU $06
 
+	LIST OFF
+
 RESERVED_STACK_POINTER DC.B 0
 FILE_ERROR_MSG		   DC.B 0
 
@@ -181,10 +183,15 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	
 	; opcode for print word as decimal  	
 	MAC stdlib_printw
+	IF !PULLF
 	pla
 	sta reserved2+1
 	pla
 	sta reserved2
+	ELSE
+	sta reserved2
+	sty reserved2+1
+	ENDIF
 	jsr STDLIB_PRINT_WORD
 	ENDM
 
@@ -201,10 +208,15 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	ENDM
 		
 	MAC textat
+	IF !PULLF
 	pla
 	sta reserved3
 	pla
 	sta reserved2
+	ELSE
+	sta reserved2
+	sty reserved3
+	ENDIF
 	pla
 	sta reserved1
 	pla
@@ -221,10 +233,15 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	
 	; Output integer as decimal at col, row
 	MAC wat
+	IF !PULLF
 	pla
 	sta reserved3
 	pla
 	sta reserved2
+	ELSE
+	sta reserved2
+	sty reserved3
+	ENDIF
 	pla
 	sta reservedB
 	pla
@@ -234,7 +251,9 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	
 	; Output byte as decimal at col, row
 	MAC bat
+	IF !PULLF
 	pla
+	ENDIF
 	tax
 	pla
 	sta reservedB
@@ -488,3 +507,5 @@ random:  DC.B %10011101,%01011011
 	lda $a2
 	sta random+1
 	ENDM
+
+	LIST ON

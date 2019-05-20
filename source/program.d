@@ -202,8 +202,12 @@ class Program
 	{
 		string codesegment;
 		codesegment ~= "prg_start:\n";
+        codesegment ~= "FPUSH\tEQU 0\n";
+        codesegment ~= "FPULL\tEQU 0\n";
 		codesegment ~= "\tinit_program\n";
+        codesegment ~= "\t; !!opt_start!!\n";
 		codesegment ~= this.program_segment;
+        codesegment ~= "\t; !!opt_end!!\n";
 		codesegment ~= "prg_end:\n";
 		codesegment ~= "\thalt\n";
 		return codesegment;

@@ -46,24 +46,32 @@ SAVE		EQU $ffd8
 
 	PROCESSOR 6502
 	
+	LIST OFF
+	
 	; Push a zero on the stack
 	; EXAMINE REFS BEFORE CHANGING!
 	MAC pzero
 	lda #$00
+	IF !FPUSH
 	pha
+	ENDIF
 	ENDM
-
+	
 	; Push a one on the stack
 	; EXAMINE REFS BEFORE CHANGING!
 	MAC pone
 	lda #$01
+	IF !FPUSH
 	pha
+	ENDIF
 	ENDM
 
 	; Push one byte on the stack
 	MAC pbyte
 	lda {1}
+	IF !FPUSH
 	pha
+	ENDIF
 	ENDM
 
 	; Push byte var on the stack
@@ -72,6 +80,7 @@ SAVE		EQU $ffd8
 	ENDM
 
 	; Push one byte as a word on the stack
+	; TODO - is this deprecated?
 	MAC pbyteasw
 	lda {1}
 	pha
@@ -81,10 +90,15 @@ SAVE		EQU $ffd8
 
 	; Push one word on the stack
 	MAC pword
+	IF !FPUSH
 	lda #<{1}
 	pha
 	lda #>{1}
 	pha
+	ELSE
+	lda #<{1}
+	ldy #>{1}
+	ENDIF
 	ENDM
 	
 	; Push a float on the stack (floats go reversed!)
@@ -103,10 +117,15 @@ SAVE		EQU $ffd8
 	
 	; Push one word variable on the stack
 	MAC pwvar
+	IF !FPUSH
 	lda.w {1}
 	pha
 	lda.w {1}+1
 	pha
+	ELSE
+	lda.w {1}
+	ldy.w {1}+1
+	ENDIF
 	ENDM
 	
 	; Push one float variable on the stack (floats go reversed!)
@@ -122,10 +141,15 @@ SAVE		EQU $ffd8
 	;Push one byte variable (indexed) on the stack
 	;Expects array index being on top of stack
 	MAC pbarray
+	IF !FPULL
 	pla
 	sta reserved1
 	pla
 	sta reserved0
+	ELSE
+	lda reserved0
+	ldy reserved1
+	ENDIF
 	lda #<{1}
 	clc
 	adc reserved0
@@ -135,16 +159,23 @@ SAVE		EQU $ffd8
 	sta reserved1
 	ldy #$00
 	lda (reserved0),y
+	IF !FPUSH
 	pha
+	ENDIF
 	ENDM
 
 	;Push one word variable (indexed) on the stack
 	;Expects array index being on top of stack
 	MAC pwarray
+	IF !FPULL
 	pla
 	sta reserved1
 	pla
 	sta reserved0
+	ELSE
+	lda reserved0
+	ldy reserved1
+	ENDIF
 	lda #<{1}
 	clc
 	adc reserved0
@@ -152,12 +183,22 @@ SAVE		EQU $ffd8
 	lda #>{1}
 	adc reserved1
 	sta reserved1
+	IF !FPUSH
 	ldy #$00
 	lda (reserved0),y
 	pha
 	iny
 	lda (reserved0),y
 	pha
+	ELSE
+	ldy #$00
+	lda (reserved0),y
+	tax
+	iny
+	lda (reserved0),y
+	tay
+	txa
+	ENDIF
 	ENDM
 	
 	;Push one float variable (indexed) on the stack
@@ -193,16 +234,23 @@ SAVE		EQU $ffd8
 
 	; Pull byte to variable
 	MAC plb2var
+	IF !FPULL
 	pla
+	ENDIF
 	sta {1}
 	ENDM
 
 	; Pull word to variable
 	MAC plw2var
+	IF !FPULL
 	pla
 	sta {1}+1
 	pla
 	sta {1}
+	ELSE
+	sta {1}
+	sty {1}+1
+	ENDIF
 	ENDM
 	
 	; Pull float to variable
@@ -222,10 +270,15 @@ SAVE		EQU $ffd8
 	;Pull one byte variable (indexed)
 	;Expects array index on top of stack
 	MAC plbarray
+	IF !FPULL
 	pla
 	sta reserved1
 	pla
 	sta reserved0
+	ELSE
+	lda reserved0
+	ldy reserved1
+	ENDIF
 	lda #<{1}
 	clc
 	adc reserved0
@@ -241,10 +294,15 @@ SAVE		EQU $ffd8
 	;Pull one word variable (indexed)
 	;Expects array index on top of stack
 	MAC plwarray
+	IF !FPULL
 	pla
 	sta reserved1
 	pla
 	sta reserved0
+	ELSE
+	lda reserved0
+	ldy reserved1
+	ENDIF
 	lda #<{1}
 	clc
 	adc reserved0
@@ -263,10 +321,15 @@ SAVE		EQU $ffd8
 	; Pull one float variable (indexed)
 	; Expects array index on top of stack
 	MAC plfarray
+	IF !FPULL
 	pla
 	sta reserved1
 	pla
 	sta reserved0
+	ELSE
+	lda reserved0
+	ldy reserved1
+	ENDIF
 	lda #<{1}
 	clc
 	adc reserved0
@@ -332,84 +395,125 @@ SAVE		EQU $ffd8
 	
 	; Compare two bytes on stack for less than
 	MAC cmpblt
+	IF !FPULL
 	pla
+	ENDIF
 	sta reserved1
 	pla
 	cmp reserved1
 	bcs .phf
 	pone
+	IF !FPUSH
 	jmp *+6
+	ELSE
+	jmp *+5
+	ENDIF
 .phf: pzero 
 	ENDM
 
 	; Compare two bytes on stack for less than or equal
 	MAC cmpblte
+	IF !FPULL
 	pla
+	ENDIF
 	sta reserved1
 	pla
 	cmp reserved1
 	bcc .pht
 	beq .pht
 	pzero
+	IF !FPUSH
 	jmp *+6
+	ELSE
+	jmp *+5
+	ENDIF
 .pht: pone 
 	ENDM
 
 	; Compare two bytes on stack for greater than or equal
 	MAC cmpbgte
-	pla                 
+	IF !FPULL
+	pla
+	ENDIF                 
 	sta reserved1
 	pla
 	cmp reserved1
 	bcs .pht
 	pzero
+	IF !FPUSH
 	jmp *+6
+	ELSE
+	jmp *+5
+	ENDIF
 .pht: pone
 	ENDM
 
 	; Compare two bytes on stack for equality
 	MAC cmpbeq
+	IF !FPULL
 	pla
+	ENDIF 
 	sta reserved1
 	pla
 	cmp reserved1
 	beq .pht
 	pzero
+	IF !FPUSH
 	jmp *+6
+	ELSE
+	jmp *+5
+	ENDIF
 .pht: pone
 	ENDM
 
 	; Compare two bytes on stack for inequality
 	MAC cmpbneq
+	IF !FPULL
 	pla
+	ENDIF
 	sta reserved1
 	pla
 	cmp reserved1
 	bne .pht
 	pzero
+	IF !FPUSH
 	jmp *+6
+	ELSE
+	jmp *+5
+	ENDIF
 .pht: pone
 	ENDM
 
 	; Compare two bytes on stack for greater than
 	MAC cmpbgt
+	IF !FPULL
 	pla
+	ENDIF
 	sta reserved1
 	pla
 	cmp reserved1
 	bcc .phf
 	beq .phf
 	pone
+	IF !FPUSH
 	jmp *+6
+	ELSE
+	jmp *+5
+	ENDIF
 .phf: pzero
 	ENDM
 
 	; Compare two words on stack for equality
 	MAC cmpweq
+	IF !FPULL
 	pla
 	sta reserved1
 	pla
 	sta reserved2
+	ELSE
+	sta reserved1
+	sty reserved2
+	ENDIF
 	pla
 	cmp reserved1
 	bne .phf
@@ -417,17 +521,27 @@ SAVE		EQU $ffd8
 	cmp reserved2
 	bne .phf+1
 	pone
+	IF !FPUSH
 	jmp *+7
-.phf: pla
+	ELSE
+	jmp *+6
+	ENDIF
+.phf: 
+	pla
 	pzero
 	ENDM
 	
 	; Compare two words on stack for inequality
 	MAC cmpwneq
+	IF !FPULL
 	pla
 	sta reserved1
 	pla
 	sta reserved2
+	ELSE
+	sta reserved1
+	sty reserved2
+	ENDIF
 	pla
 	cmp reserved1
 	bne .pht
@@ -435,7 +549,11 @@ SAVE		EQU $ffd8
 	cmp reserved2
 	bne .pht+1
 	pzero
+	IF !FPUSH
 	jmp *+7
+	ELSE
+	jmp *+6
+	ENDIF
 .pht: pla
 	pone
 	ENDM
@@ -455,7 +573,11 @@ SAVE		EQU $ffd8
 	inx
 	txs
 	pone
+	IF !FPUSH
 	jmp *+11
+	ELSE
+	jmp *+10
+	ENDIF
 .phf: inx
 	inx
 	inx
@@ -479,7 +601,11 @@ SAVE		EQU $ffd8
 	inx
 	txs
 	pone
+	IF !FPUSH
 	jmp *+11
+	ELSE
+	jmp *+10
+	ENDIF
 .phf: inx
 	inx
 	inx
@@ -503,7 +629,11 @@ SAVE		EQU $ffd8
 	inx
 	txs
 	pzero
+	IF !FPUSH
 	jmp *+11
+	ELSE
+	jmp *+10
+	ENDIF
 .pht: inx
 	inx
 	inx
@@ -527,7 +657,11 @@ SAVE		EQU $ffd8
 	inx
 	txs
 	pzero
+	IF !FPUSH
 	jmp *+11
+	ELSE
+	jmp *+10
+	ENDIF
 .pht: inx
 	inx
 	inx
@@ -551,7 +685,11 @@ SAVE		EQU $ffd8
 	inx
 	txs
 	pzero
+	IF !FPUSH
 	jmp *+11
+	ELSE
+	jmp *+10
+	ENDIF
 .pht: inx
 	inx
 	inx
@@ -575,7 +713,11 @@ SAVE		EQU $ffd8
 	inx
 	txs
 	pzero
+	IF !FPUSH
 	jmp *+11
+	ELSE
+	jmp *+10
+	ENDIF
 .pht: inx
 	inx
 	inx
@@ -599,7 +741,11 @@ SAVE		EQU $ffd8
 	inx
 	txs
 	pone
+	IF !FPUSH
 	jmp *+11
+	ELSE
+	jmp *+10
+	ENDIF
 .phf: inx
 	inx
 	inx
@@ -683,38 +829,54 @@ SAVE		EQU $ffd8
 	
 	; Add bytes on stack
 	MAC addb
+	IF !FPULL
 	pla
+	ENDIF
 	tsx
 	clc
 	adc.wx stack+1
+	IF !FPUSH
 	sta.wx stack+1
+	ENDIF
 	ENDM
 
     ; Perform OR on top 2 bytes of stack
     MAC orb
+    IF !FPULL
     pla
+    ENDIF
     sta reserved1
     pla
     ora reserved1
+    IF !FPUSH
     pha
+    ENDIF
     ENDM
 
     ; Perform AND on top 2 bytes of stack
     MAC andb
+    IF !FPULL
     pla
+    ENDIF
     sta reserved1
     pla
     and reserved1
+    IF !FPUSH
     pha
+    ENDIF
     ENDM
 
     ; Perform XOR on top 2 bytes of stack
     MAC xorb
+    IF !FPULL
     pla
+    ENDIF
     sta reserved1
     pla
     eor reserved1
+    IF !FPUSH
     pha
+    ENDIF
     ENDM
     
     ; Perform OR on top 2 words of stack
@@ -872,7 +1034,9 @@ SAVE		EQU $ffd8
 	; Multiply bytes on stack
 	; by White Flame 20030207
 	MAC mulb
+	IF !PULLF
 	pla
+	ENDIF
 	sta reserved1
 	pla
 	sta reserved2
@@ -888,7 +1052,9 @@ SAVE		EQU $ffd8
 	bcs .doAdd
 	bne .loop
 .end:	
+	IF !PUSHF
 	pha
+	ENDIF
 	ENDM
 	
 	MAC twoscomplement
@@ -949,19 +1115,29 @@ NUCL_MUL16	SUBROUTINE
 	
 	; Multiply words on stack
 	MAC mulw
+	IF !PULLF
 	pla
 	sta reserved1
 	pla
 	sta reserved0
+	ELSE
+	sta reserved0
+	sty reserved1
+	ENDIF
 	pla
 	sta reserved3
 	pla
 	sta reserved2
 	jsr NUCL_SMUL16
+	IF !PUSHF
 	lda reserved0
 	pha
 	lda reserved1
 	pha
+	ELSE
+	lda reserved0
+	ldy reserved1
+	ENDIF
 	ENDM
 	
 	; Multiply floats on stack
@@ -995,7 +1171,6 @@ NUCL_DIV8	SUBROUTINE
 	asl reserved0
 	lda #$00
 	rol
-
 	ldx #$08
 .loop1
 	cmp reserved1
@@ -1005,7 +1180,6 @@ NUCL_DIV8	SUBROUTINE
 	rol
 	dex
 	bne .loop1
-   
 	ldx #$08
 .loop2
    	cmp reserved1
@@ -1019,13 +1193,17 @@ NUCL_DIV8	SUBROUTINE
 	
 	; Divide two bytes on stack
 	MAC divb
+	IF !PULLF
 	pla
+	ENDIF
 	sta reserved1
 	pla
 	sta reserved0
 	jsr NUCL_DIV8
 	lda reserved0
+	IF !PUSHF
 	pha
+	ENDIF
 	ENDM
 	
 	; Invert true/false value on top byte of stack
@@ -1154,10 +1332,15 @@ NUCL_DIVU16 SUBROUTINE
 	; poke routine (byte type)
 	; requires that arguments are pushed backwards (value first)
 	MAC pokeb
+	IF !PULLF
 	pla
 	sta reserved1
 	pla
 	sta reserved0
+	ELSE
+	sta reserved0
+	sty reserved1
+	ENDIF
 	ldy #$00
 	pla
 	sta (reserved0),y
@@ -1166,10 +1349,15 @@ NUCL_DIVU16 SUBROUTINE
 	; poke routine (word type)
 	; requires that arguments are pushed backwards (value first)
 	MAC pokew
+	IF !PULLF
 	pla
 	sta reserved1
 	pla
 	sta reserved0
+	ELSE
+	sta reserved0
+	sty reserved1
+	ENDIF
 	ldy #$00
 	pla ;discard high byte
 	pla
@@ -1179,10 +1367,15 @@ NUCL_DIVU16 SUBROUTINE
 	; doke routine
 	; requires that arguments are pushed backwards (value first)
 	MAC doke
+	IF !PULLF
 	pla
 	sta reserved1
 	pla
 	sta reserved0
+	ELSE
+	sta reserved0
+	sty reserved1
+	ENDIF
 	ldy #$01
 	pla
 	sta (reserved0),y
@@ -1266,50 +1459,85 @@ NUCL_DIVU16 SUBROUTINE
 
 	; Opcode for PEEK! (byte)
 	MAC peekb
+	IF !PULLF
 	pla
 	sta reserved1
 	pla
 	sta reserved0
+	ELSE
+	sta reserved0
+	sty reserved1
+	ENDIF
 	ldy #$00
 	lda (reserved0),y
+	IF !PUSHF
 	pha
+	ENDIF
 	ENDM
 
 	; Opcode for PEEK (integer)
 	MAC peekw
+	IF !PULLF
 	pla
 	sta reserved1
 	pla
 	sta reserved0
+	ELSE
+	sta reserved0
+	sty reserved1
+	ENDIF
 	ldy #$00
 	lda (reserved0),y
+	IF !PUSHF
 	pha
 	pzero
+	ENDIF
 	ENDM
 	
 	; Opcode for DEEK (integer)
 	MAC deek
+	IF !PULLF
 	pla
 	sta reserved1
 	pla
 	sta reserved0
+	ELSE
+	sta reserved0
+	sty reserved1
+	ENDIF
+	IF !PUSHF
 	ldy #$00
 	lda (reserved0),y
 	pha
 	iny
 	lda (reserved0),y
 	pha
+	ELSE
+	ldy #$00
+	lda (reserved0),y
+	tax
+	iny
+	lda (reserved0),y
+	tay
+	txa
+	ENDIF
 	ENDM
 
 	MAC inkeyb
 	jsr KERNAL_GETIN
+	IF !PUSHF
 	pha
+	ENDIF
 	ENDM
 	
 	MAC inkeyw
 	inkeyb
+	IF !PUSHF
 	lda #0
 	pha
+	ELSE
+	ldy #0
+	ENDIF
 	ENDM
 
 	MAC incb
@@ -1337,19 +1565,29 @@ NUCL_DIVU16 SUBROUTINE
 	ENDM
 
     MAC sys
+    IF !PULLF
     pla
     sta .selfmod+2
     pla
     sta .selfmod+1
+    ELSE
+    sta .selfmod+1
+    sty .selfmod+2
+    ENDIF
 .selfmod
     jsr $0000
     ENDM
 
     MAC usr
-    pla                 ; get function address
+    IF !PULLF
+    pla
     sta .selfmod+2
     pla
     sta .selfmod+1
+    ELSE
+    sta .selfmod+1
+    sty .selfmod+2
+    ENDIF
     lda #<.return_addr
     sta $02fe
     lda #>.return_addr
@@ -1363,16 +1601,23 @@ NUCL_DIVU16 SUBROUTINE
     MAC rndb
 	jsr STDLIB_RND
 	lda random+1
+	IF !PUSHF
 	pha
+	ENDIF
 	ENDM
     
     ; Push random integer on stack
     MAC rndw
 	jsr STDLIB_RND
+	IF !PUSHF
 	lda random
 	pha
 	lda random+1
 	pha
+	ELSE
+	lda random
+	ldy random+1
+	ENDIF
 	ENDM
 	
 	; Push random float on stack
@@ -1559,8 +1804,6 @@ NUCL_DIVU16 SUBROUTINE
 	MAC ferrb
 	lda FILE_ERROR_MSG
 	pha
-	lda #$00
-	pha
 	ENDM
 	
 	MAC ferrw
@@ -1579,3 +1822,5 @@ RUNTIME_ERROR	SUBROUTINE
     halt
     
 tmp_floatvar HEX 00 00 00 00 00	
+
+	LIST ON
