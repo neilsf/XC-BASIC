@@ -900,6 +900,9 @@ SAVE		EQU $ffd8
 	clc
 	adc #$01
 	sta {1}
+	bne .skip
+	inc {1}+1
+.skip
 	ENDM
 	
 	; Signed 16-bit multiplication
@@ -1080,6 +1083,8 @@ NUCL_DIV8	SUBROUTINE
 
 	; Divide integers on stack
 	MAC divw
+	plw2var reserved0
+	plw2var reserved2
 	lda reserved0
 	bne .ok
 	lda reserved1
@@ -1090,8 +1095,6 @@ NUCL_DIV8	SUBROUTINE
 	pha
 	jmp RUNTIME_ERROR
 .ok
-	plw2var reserved0
-	plw2var reserved2
 	jsr NUCL_DIV16
 	pwvar reserved2
 	ENDM
@@ -1194,36 +1197,11 @@ NUCL_DIVU16 SUBROUTINE
 	MAC for
 	; max value already pushed
 	; push address
-	lda #<*
+.addr
+	lda #<.addr
 	pha
-	lda #>*
-	pha                     
-	ENDM
-
-	; NEXT routine (byte index)
-	; usage next variable
-	MAC nextb
-	; increment variable
-	inc {1}
-	; don't roll over
-	beq .end
-.skip
-	; pull address
-	pla
-	sta .selfmod_code+2
-	pla
-	sta .selfmod_code+1
-	; pull max_value
-	pla
-	cmp {1}
-	bcs .jump_back
-	jmp .end
-.jump_back
-	; push max_value back
+	lda #>.addr
 	pha
-.selfmod_code
-	jmp $0000;                                          
-.end
 	ENDM
 
 	; NEXT routine (integer index)
