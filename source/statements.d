@@ -263,32 +263,51 @@ class Let_stmt:Stmt
                 this.program.error("Bad subscript");
             }
             ushort[2] dimensions;
-            ubyte i = 0;
-            foreach(ref expr; subscript.children) {
-                Expression Ex2 = new Expression(expr, this.program);
-                Ex2.eval();
-                if(Ex2.type == 'b') {
-                    Ex2.btow();
+
+            bool fast_store = false;
+            if(subscript.children.length == 1 && vartype == 'b') {
+                Expression fex = new Expression(subscript.children[0], this.program);
+                if(fex.detect_type() == 'b') {
+                    fast_store = true;
                 }
-                this.program.program_segment ~= to!string(Ex2);
-
-
-                if(i == 1) {
-                    // must multiply with first dimension length
-                    this.program.program_segment ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
-                                                  ~ "\tmulw\n"
-                                                  ~ "\taddw\n";
-                }
-
-                i++;
-            }
-            // if not a byte, must multiply with the variable length!
-            if(vartype != 'b') {
-                this.program.program_segment ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
-                                          ~ "\tmulw\n" ;
             }
 
-            this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
+            if(fast_store) {
+                // Fast store (set byte by byte index)
+                Expression fex = new Expression(subscript.children[0], this.program);
+                fex.eval();
+                this.program.program_segment  ~= to!string(fex);
+                this.program.program_segment  ~= "\tplbarray_fast "~ var.getLabel() ~ "\n";
+            }
+            else {
+                ubyte i = 0;
+                foreach(ref expr; subscript.children) {
+                    Expression Ex2 = new Expression(expr, this.program);
+                    Ex2.eval();
+                    if(Ex2.type == 'b') {
+                        Ex2.btow();
+                    }
+                    this.program.program_segment ~= to!string(Ex2);
+
+
+                    if(i == 1) {
+                        // must multiply with first dimension length
+                        this.program.program_segment ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
+                                                      ~ "\tmulw\n"
+                                                      ~ "\taddw\n";
+                    }
+
+                    i++;
+                }
+                // if not a byte, must multiply with the variable length!
+                if(vartype != 'b') {
+                    this.program.program_segment ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
+                                              ~ "\tmulw\n" ;
+                }
+
+                this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
+            }
+
         }
         else {
             this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n";

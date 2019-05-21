@@ -114,34 +114,54 @@ class Factor
                             this.program.error("Bad subscript");
                         }
                         ushort[2] dimensions;
-                        ubyte i = 0;
-                        foreach(ref expr; subscript.children) {
-                            Expression Ex2 = new Expression(expr, this.program);
-                            Ex2.eval();
-                            if(Ex2.type == 'b') {
-                                Ex2.btow();
-                            }
-                            else if(Ex2.type == 'f') {
-                                this.program.error("Bad subscript");
-                            }
-                            this.asmcode ~= to!string(Ex2);
 
-                            if(i == 1) {
-                                // must multiply with first dimension length
-                                this.asmcode ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
-                                                            ~ "\tmulw\n"
-                                                            ~ "\taddw\n";
+                        bool fast_lookup = false;
+                        if(subscript.children.length == 1 && vartype == 'b') {
+                            Expression fex = new Expression(subscript.children[0], this.program);
+                            if(fex.detect_type() == 'b') {
+                                fast_lookup = true;
                             }
-
-                            i++;
-                        }
-                        // if not a byte, must multiply with the variable length!
-                        if(var.type != 'b') {
-                            this.asmcode ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
-                                          ~ "\tmulw\n" ;
                         }
 
-                        this.asmcode ~= "\tp" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
+                        if(fast_lookup) {
+                            // Fast lookup (get byte by byte index)
+                            Expression fex = new Expression(subscript.children[0], this.program);
+                            fex.eval();
+                            this.asmcode ~= to!string(fex);
+                            this.asmcode ~= "\tpbarray_fast "~ var.getLabel() ~ "\n";
+                        }
+                        else {
+                            // Regular (slow) lookup
+                            ubyte i = 0;
+                            foreach(ref expr; subscript.children) {
+                                Expression Ex2 = new Expression(expr, this.program);
+                                Ex2.eval();
+                                if(Ex2.type == 'b') {
+                                    Ex2.btow();
+                                }
+                                else if(Ex2.type == 'f') {
+                                    this.program.error("Bad subscript");
+                                }
+                                this.asmcode ~= to!string(Ex2);
+
+                                if(i == 1) {
+                                    // must multiply with first dimension length
+                                    this.asmcode ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
+                                                                ~ "\tmulw\n"
+                                                                ~ "\taddw\n";
+                                }
+
+                                i++;
+                            }
+                            // if not a byte, must multiply with the variable length!
+                            if(var.type != 'b') {
+                                this.asmcode ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
+                                              ~ "\tmulw\n" ;
+                            }
+
+                            this.asmcode ~= "\tp" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
+                        }
+
                     }
                     else {
                         this.asmcode ~= "\tp" ~ to!string(vartype) ~ "var " ~ var.getLabel() ~ "\n";

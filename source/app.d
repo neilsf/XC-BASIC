@@ -4,6 +4,7 @@ import tbgrammar;
 import program;
 import std.conv;
 import globals;
+import optimizer;
 
 int line_count = 0;
 
@@ -31,7 +32,10 @@ void main(string[] args)
     auto program = new Program();
     program.source_path = absolutePath(dirName(filename));
     program.processAst(ast);
-    writeln(program.getAsmCode());
+    string code = program.getAsmCode();
+    auto optimizer = new Optimizer(code);
+    optimizer.run();
+    writeln(optimizer.outcode);
 }
 
 /**

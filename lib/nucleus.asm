@@ -147,8 +147,8 @@ SAVE		EQU $ffd8
 	pla
 	sta reserved0
 	ELSE
-	lda reserved0
-	ldy reserved1
+	sta reserved0
+	sty reserved1
 	ENDIF
 	lda #<{1}
 	clc
@@ -163,6 +163,21 @@ SAVE		EQU $ffd8
 	pha
 	ENDIF
 	ENDM
+	
+	;Push one byte variable (indexed) on the stack
+	;Expects array index being on top of stack
+	;
+	;Used in case both variable and index are bytes
+	MAC pbarray_fast
+	IF !FPULL
+	pla
+	ENDIF
+	tax
+	lda.wx {1}
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
 
 	;Push one word variable (indexed) on the stack
 	;Expects array index being on top of stack
@@ -173,8 +188,8 @@ SAVE		EQU $ffd8
 	pla
 	sta reserved0
 	ELSE
-	lda reserved0
-	ldy reserved1
+	sta reserved0
+	sty reserved1
 	ENDIF
 	lda #<{1}
 	clc
@@ -276,8 +291,8 @@ SAVE		EQU $ffd8
 	pla
 	sta reserved0
 	ELSE
-	lda reserved0
-	ldy reserved1
+	sta reserved0
+	sty reserved1
 	ENDIF
 	lda #<{1}
 	clc
@@ -291,6 +306,19 @@ SAVE		EQU $ffd8
 	sta (reserved0),y
 	ENDM	
 	
+	;Pull one byte variable (indexed)
+	;Expects array index being on top of stack
+	;
+	;Used in case both variable and index are bytes
+	MAC plbarray_fast
+	IF !FPULL
+	pla
+	ENDIF
+	tax
+	pla
+	sta.wx {1}
+	ENDM
+	
 	;Pull one word variable (indexed)
 	;Expects array index on top of stack
 	MAC plwarray
@@ -300,8 +328,8 @@ SAVE		EQU $ffd8
 	pla
 	sta reserved0
 	ELSE
-	lda reserved0
-	ldy reserved1
+	sta reserved0
+	sty reserved1
 	ENDIF
 	lda #<{1}
 	clc
@@ -1034,7 +1062,7 @@ SAVE		EQU $ffd8
 	; Multiply bytes on stack
 	; by White Flame 20030207
 	MAC mulb
-	IF !PULLF
+	IF !FPULL
 	pla
 	ENDIF
 	sta reserved1
@@ -1052,7 +1080,7 @@ SAVE		EQU $ffd8
 	bcs .doAdd
 	bne .loop
 .end:	
-	IF !PUSHF
+	IF !FPUSH
 	pha
 	ENDIF
 	ENDM
@@ -1115,7 +1143,7 @@ NUCL_MUL16	SUBROUTINE
 	
 	; Multiply words on stack
 	MAC mulw
-	IF !PULLF
+	IF !FPULL
 	pla
 	sta reserved1
 	pla
@@ -1129,7 +1157,7 @@ NUCL_MUL16	SUBROUTINE
 	pla
 	sta reserved2
 	jsr NUCL_SMUL16
-	IF !PUSHF
+	IF !FPUSH
 	lda reserved0
 	pha
 	lda reserved1
@@ -1193,7 +1221,7 @@ NUCL_DIV8	SUBROUTINE
 	
 	; Divide two bytes on stack
 	MAC divb
-	IF !PULLF
+	IF !FPULL
 	pla
 	ENDIF
 	sta reserved1
@@ -1201,7 +1229,7 @@ NUCL_DIV8	SUBROUTINE
 	sta reserved0
 	jsr NUCL_DIV8
 	lda reserved0
-	IF !PUSHF
+	IF !FPUSH
 	pha
 	ENDIF
 	ENDM
@@ -1332,42 +1360,42 @@ NUCL_DIVU16 SUBROUTINE
 	; poke routine (byte type)
 	; requires that arguments are pushed backwards (value first)
 	MAC pokeb
-	IF !PULLF
+	IF !FPULL
 	pla
-	sta reserved1
+	sta .selfmod_code+2
 	pla
-	sta reserved0
+	sta .selfmod_code+1
 	ELSE
-	sta reserved0
-	sty reserved1
+	sta .selfmod_code+1
+	sty .selfmod_code+2
 	ENDIF
-	ldy #$00
 	pla
-	sta (reserved0),y
+.selfmod_code:
+	sta.w $0000
 	ENDM
 
 	; poke routine (word type)
 	; requires that arguments are pushed backwards (value first)
 	MAC pokew
-	IF !PULLF
+	IF !FPULL
 	pla
-	sta reserved1
+	sta .selfmod_code+2
 	pla
-	sta reserved0
+	sta .selfmod_code+1
 	ELSE
-	sta reserved0
-	sty reserved1
+	sta .selfmod_code+1
+	sty .selfmod_code+2
 	ENDIF
-	ldy #$00
 	pla ;discard high byte
 	pla
-	sta (reserved0),y
+.selfmod_code:
+	sta.w $0000
 	ENDM
 	
 	; doke routine
 	; requires that arguments are pushed backwards (value first)
 	MAC doke
-	IF !PULLF
+	IF !FPULL
 	pla
 	sta reserved1
 	pla
@@ -1459,44 +1487,46 @@ NUCL_DIVU16 SUBROUTINE
 
 	; Opcode for PEEK! (byte)
 	MAC peekb
-	IF !PULLF
+	IF !FPULL
 	pla
-	sta reserved1
+	sta .selfmod_code+2
 	pla
-	sta reserved0
+	sta .selfmod_code+1
 	ELSE
-	sta reserved0
-	sty reserved1
+	sta .selfmod_code+1
+	sty .selfmod_code+2
 	ENDIF
-	ldy #$00
-	lda (reserved0),y
-	IF !PUSHF
+.selfmod_code:
+	lda $0000
+	IF !FPUSH
 	pha
 	ENDIF
 	ENDM
 
 	; Opcode for PEEK (integer)
 	MAC peekw
-	IF !PULLF
+	IF !FPULL
 	pla
-	sta reserved1
+	sta .selfmod_code+2
 	pla
-	sta reserved0
+	sta .selfmod_code+1
 	ELSE
-	sta reserved0
-	sty reserved1
+	sta .selfmod_code+1
+	sty .selfmod_code+2
 	ENDIF
-	ldy #$00
-	lda (reserved0),y
-	IF !PUSHF
+.selfmod_code:
+	lda $0000
+	IF !FPUSH
 	pha
 	pzero
+	ELSE
+	ldy #$00
 	ENDIF
 	ENDM
 	
 	; Opcode for DEEK (integer)
 	MAC deek
-	IF !PULLF
+	IF !FPULL
 	pla
 	sta reserved1
 	pla
@@ -1505,7 +1535,7 @@ NUCL_DIVU16 SUBROUTINE
 	sta reserved0
 	sty reserved1
 	ENDIF
-	IF !PUSHF
+	IF !FPUSH
 	ldy #$00
 	lda (reserved0),y
 	pha
@@ -1525,14 +1555,14 @@ NUCL_DIVU16 SUBROUTINE
 
 	MAC inkeyb
 	jsr KERNAL_GETIN
-	IF !PUSHF
+	IF !FPUSH
 	pha
 	ENDIF
 	ENDM
 	
 	MAC inkeyw
 	inkeyb
-	IF !PUSHF
+	IF !FPUSH
 	lda #0
 	pha
 	ELSE
@@ -1565,7 +1595,7 @@ NUCL_DIVU16 SUBROUTINE
 	ENDM
 
     MAC sys
-    IF !PULLF
+    IF !FPULL
     pla
     sta .selfmod+2
     pla
@@ -1579,7 +1609,7 @@ NUCL_DIVU16 SUBROUTINE
     ENDM
 
     MAC usr
-    IF !PULLF
+    IF !FPULL
     pla
     sta .selfmod+2
     pla
@@ -1601,7 +1631,7 @@ NUCL_DIVU16 SUBROUTINE
     MAC rndb
 	jsr STDLIB_RND
 	lda random+1
-	IF !PUSHF
+	IF !FPUSH
 	pha
 	ENDIF
 	ENDM
@@ -1609,7 +1639,7 @@ NUCL_DIVU16 SUBROUTINE
     ; Push random integer on stack
     MAC rndw
 	jsr STDLIB_RND
-	IF !PUSHF
+	IF !FPUSH
 	lda random
 	pha
 	lda random+1

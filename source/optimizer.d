@@ -9,7 +9,7 @@ class Optimizer
 
     const string[] pushers = [
         "pzero",  "pone", "pbyte", "pword",
-        "pwvar", "pbarray", "pwarray", "cmpblt",
+        "pwvar", "pbarray", "pbarray_fast", "pwarray", "cmpblt",
         "cmpblte", "cmpbgte", "cmpbeq", "cmpbneq",
         "cmpbgt", "cmpweq", "cmpwneq", "cmpwlt",
         "cmpwgte", "cmpwgt", "cmpwlte", "addb",
@@ -20,7 +20,7 @@ class Optimizer
 
     const string[] pullers = [
         "pbarray", "pwarray", "plb2var", "plw2var",
-        "plbarray", "pwbarray", "cmpblt", "cmpblte",
+        "plbarray", "plbarray_fast", "pwbarray", "cmpblt", "cmpblte",
         "cmpbgte", "cmpbeq", "cmpbneq", "cmpbgt",
         "cmpweq", "cmpwneq", "addb", "orb", "andb",
         "xorb", "mulb", "mulw", "divb", "pokeb",
@@ -59,11 +59,50 @@ class Optimizer
 
             string opc = this.get_opc(line);
             if(opc == "") {
+                this.outcode ~= line ~ "\n";
                 continue;
             }
 
+            string next_opc = "";
+            string next_line = "";
+            if(i+1 < lines.length) {
+                int j = i+1;
+                do {
+                    next_line = lines[j];
+                    next_opc = this.get_opc(next_line);
+                    j++;
+                }
+                while(next_line == "");
 
+                if(this.is_puller(opc) && pushf) {
+                    if(!pullf) {
+                        this.outcode ~= "FPULL\tSET 1\n";
+                        pullf = true;
+                    }
 
+                }
+                else {
+                    if(pullf) {
+                        this.outcode ~= "FPULL\tSET 0\n";
+                        pullf = false;
+                    }
+                }
+
+                if(this.is_pusher(opc) && this.is_puller(next_opc)) {
+                    if(!pushf) {
+                        this.outcode ~= "FPUSH\tSET 1\n";
+                        pushf = true;
+                    }
+                }
+                else {
+                    if(pushf) {
+                        this.outcode ~= "FPUSH\tSET 0\n";
+                        pushf = false;
+                    }
+                }
+            }
+
+            this.outcode ~= line ~ "\n";
         }
     }
 
@@ -72,12 +111,11 @@ class Optimizer
         if(line == "") {
             return "";
         }
-        string[] parts = line.split!isWhite;
         if(this.is_puller(parts[0]) || this.is_pusher(parts[0])) {
             return parts[0];
         }
-        else if(this.is_puller(parts[1]) || this.is_pusher(parts[1])) {
-            return parts[0];
+        else if(parts.length > 1 && (this.is_puller(parts[1]) || this.is_pusher(parts[1]))) {
+            return parts[1];
         }
         else {
             return "";

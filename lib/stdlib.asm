@@ -183,7 +183,7 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	
 	; opcode for print word as decimal  	
 	MAC stdlib_printw
-	IF !PULLF
+	IF !FPULL
 	pla
 	sta reserved2+1
 	pla
@@ -208,7 +208,7 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	ENDM
 		
 	MAC textat
-	IF !PULLF
+	IF !FPULL
 	pla
 	sta reserved3
 	pla
@@ -233,7 +233,7 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	
 	; Output integer as decimal at col, row
 	MAC wat
-	IF !PULLF
+	IF !FPULL
 	pla
 	sta reserved3
 	pla
@@ -251,7 +251,7 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	
 	; Output byte as decimal at col, row
 	MAC bat
-	IF !PULLF
+	IF !FPULL
 	pla
 	ENDIF
 	tax
