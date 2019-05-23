@@ -4,6 +4,7 @@ import core.stdc.stdlib;
 import statements;
 import basicstdlib;
 import nucleus;
+import stringlib;
 import globals;
 
 struct Variable {
@@ -73,7 +74,7 @@ class Program
 	string current_proc_name = "";
 
     string source_path = "";
-	bool use_floats = true;
+	bool use_stringlib = false;
 
     /**
      * Constructor
@@ -81,10 +82,10 @@ class Program
 
 	this() {
 		/* As of now, vartypes with the same length are not allowed. Needs refactoring if it is a must */
-		this.varlen['b'] = 1; this.vartype[1] = 'b';
-		this.varlen['w'] = 2; this.vartype[2] = 'w';
-		//this.varlen['s'] = 2; this.vartype[2] = 's';
-		this.varlen['f'] = 5; this.vartype[5] = 'f';
+		this.varlen['b'] = 1;
+		this.varlen['w'] = 2;
+		this.varlen['s'] = 2;
+		this.varlen['f'] = 5;
 
 		this.vartype_names['w'] = "integer";
 		this.vartype_names['s'] = "string";
@@ -136,7 +137,7 @@ class Program
                 return 1;
             }
 
-            if(type == 'i') {
+            if(type == 'w' || type == 's') {
                 return 2;
             }
 
@@ -232,11 +233,12 @@ class Program
         asm_code ~= "library_start:\n";
 		asm_code ~= nucleus.code;
 		asm_code ~= basicstdlib.code;
+        if(this.use_stringlib) {
+            asm_code ~= stringlib.code;
+        }
         asm_code ~= "\tECHO \"Library     :\",library_start,\"-\", *-1\n";
 
-		if(this.use_floats) {
-			//asm_code ~= floatlib.code;
-		}
+
 
 		asm_code ~= this.getCodeSegment();
         asm_code ~= "\tECHO \"Code        :\",prg_start,\"-\", *-1\n";
@@ -319,6 +321,10 @@ class Program
 		}
 
 		this.variables ~= var;
+
+        if(var.type == 's') {
+            this.use_stringlib = true;
+        }
 	}
 
 	bool is_variable(string id, string sigil, bool check_type = true)

@@ -59,6 +59,14 @@ Fun FunFactory(ParseTree node, Program program) {
             fun = new AtnFun(node, program);
         break;
 
+        case "strlen":
+            fun = new StrlenFun(node, program);
+        break;
+
+        case "strcmp":
+            fun = new StrcmpFun(node, program);
+        break;
+
         default:
         assert(0);
     }
@@ -278,6 +286,50 @@ class AbsFun:Fun
         this.fncode ~= "\tabs" ~ to!string(this.type) ~ "\n";
     }
 }
+
+class StrlenFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['b'];
+    }
+
+    void process()
+    {
+        if(this.arglist[0].detect_type() != 's') {
+            this.program.error("Wrong type passed to strlen()");
+        }
+
+        this.program.use_stringlib = true;
+        this.fncode ~= "\tstrlen\n";
+    }
+}
+
+class StrcmpFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 2;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['w'];
+    }
+
+    void process()
+    {
+        if(this.arglist[0].detect_type() != 's' || this.arglist[1].detect_type() != 's') {
+            this.program.error("Wrong type passed to strcmp()");
+        }
+        this.program.use_stringlib = true;
+        this.fncode ~= "\tstrcmp\n";
+    }
+}
+
 class CastFun:Fun
 {
     mixin FunConstructor;

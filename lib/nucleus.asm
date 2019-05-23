@@ -43,6 +43,7 @@ SETNAM		EQU $ffbd
 SETLFS		EQU $ffba
 LOAD		EQU $ffd5
 SAVE		EQU $ffd8
+PLOT		EQU $fff0
 
 	PROCESSOR 6502
 	
@@ -107,6 +108,10 @@ SAVE		EQU $ffd8
 	pha
 	lda.w {1}+1
 	pha
+	ENDM
+	
+	MAC psvar
+	pwvar {1}
 	ENDM
 	
 	; Push one float variable on the stack (floats go reversed!)
@@ -1545,6 +1550,15 @@ NUCL_DIVU16 SUBROUTINE
 	ferrb
 	lda #$00
 	pha
+	ENDM
+	
+	MAC curpos
+	pla
+	tay
+	pla
+	tax
+	clc
+	jsr PLOT
 	ENDM
 	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00

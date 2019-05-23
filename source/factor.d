@@ -12,6 +12,7 @@ import core.stdc.stdlib;
 import excess;
 import term;
 import number;
+import stringliteral;
 
 class Factor
 {
@@ -43,6 +44,10 @@ class Factor
                 ParseTree v = this.node.children[0];
                 Number num = new Number(v, this.program);
                 ret = num.type;
+            break;
+
+            case "XCBASIC.String":
+                ret = 's';
             break;
 
             case "XCBASIC.Fn_call":
@@ -208,13 +213,19 @@ class Factor
                 this.asmcode ~= to!string(fun);
             break;
 
-	    case "XCBASIC.Parenthesis":
-	        ParseTree ex = this.node.children[0].children[0];
+	        case "XCBASIC.Parenthesis":
+	            ParseTree ex = this.node.children[0].children[0];
                 auto Ex = new Expression(ex, this.program);
                 Ex.eval();
                 this.asmcode ~= to!string(Ex);
+	        break;
 
-	    break;
+            case "XCBASIC.String":
+                string str = join(this.node.children[0].matches[1..$-1]);
+                Stringliteral sl = new Stringliteral(str, this.program);
+                sl.register();
+                this.asmcode ~= "\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n";
+            break;
 
         }
 
@@ -223,11 +234,18 @@ class Factor
         }
 
         if(this.expected_type != this.type) {
-            this.asmcode ~= "\t" ~ to!string(this.type) ~ "to" ~ to!string(this.expected_type) ~"\n";
-            // Don't warn about b->w conversion
-            if(!(this.type == 'b' && this.expected_type == 'w')) {
-                this.program.warning("Implicit type conversion");
+            if(indexOf("sw", this.expected_type) > -1 && indexOf("sw", this.type) > -1) {
+                // Nothing to do!
             }
+            else {
+                char to_type = (this.expected_type == 's' ? 'w' : this.expected_type);
+                this.asmcode ~= "\t" ~ to!string(this.type) ~ "to" ~ to!string(to_type) ~"\n";
+                // Don't warn about b->w conversion
+                if(!(this.type == 'b' && this.expected_type == 'w')) {
+                    this.program.warning("Implicit type conversion");
+                }
+            }
+
         }
     }
 

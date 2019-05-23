@@ -29,13 +29,20 @@ class Simplexp
         foreach(ref child; this.node.children) {
             if(child.name == "XCBASIC.Term") {
                 tmpTerm = new Term(child, this.program);
-                if(tmpTerm.detect_type() == 'f') {
+                char tmpTermType = tmpTerm.detect_type();
+                if(tmpTermType == 'f') {
                     // if only one term is a float,
                     // the whole expr will be of type float
                     type = 'f';
                     break;
                 }
-                else if(tmpTerm.detect_type() == 'w') {
+                else if(tmpTermType == 's') {
+                    // if only one term is an sp,
+                    // the whole expr will be of type sp
+                    type = 's';
+                    break;
+                }
+                else if(tmpTermType == 'w' && type == 'b') {
                     type = 'w';
                 }
             }
@@ -58,7 +65,7 @@ class Simplexp
                 t.expected_type = this.expected_type;
                 t.eval();
                 this.asmcode ~= to!string(t);
-                string type = to!string(this.expected_type);
+                string type = to!string(this.expected_type == 's' ? 'w' : this.expected_type);
                 final switch(e_op) {
                     case "+":
                         this.asmcode ~= "\tadd"~type~"\n";

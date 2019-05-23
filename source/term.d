@@ -27,13 +27,19 @@ class Term
         foreach(ref child; this.node.children) {
             if(child.name == "XCBASIC.Factor") {
                 tmpFact = new Factor(child, this.program);
-                if(tmpFact.detect_type() == 'f') {
+                char tmpFactType = tmpFact.detect_type();
+                if(tmpFactType == 'f') {
                     // if only one factor is a float,
                     // the whole term will be of type float
                     tmptype = 'f';
                     break;
                 }
-                else if(tmpFact.detect_type() == 'w') {
+                else if(tmpFactType == 's') {
+                    // if only one factor is a sp,
+                    // the whole term will be of type sp
+                    tmptype = 's';
+                }
+                else if(tmpFactType == 'w' && tmptype == 'b') {
                     tmptype = 'w';
                 }
             }
@@ -56,7 +62,7 @@ class Term
                 f.expected_type = this.expected_type;
                 f.eval();
                 this.asmcode ~= to!string(f);
-                string type = to!string(this.expected_type);
+                string type = to!string(this.expected_type == 's' ? 'w' : this.expected_type);
                 final switch(t_op) {
                     case "*":
                         this.asmcode ~= "\tmul"~type~"\n";
