@@ -525,6 +525,12 @@ class Call_stmt:Stmt
 			}
 		}
 
+        bool recursive = false;
+        if(lbl == this.program.current_proc_name) {
+            // recursive call!
+            recursive = true;
+        }
+
 		this.program.program_segment ~= "\tjsr " ~ proc.getLabel() ~ "\n";
 	}
 }
