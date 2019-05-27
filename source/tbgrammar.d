@@ -88,7 +88,7 @@ XCBASIC:
                  "end"i / "rem"i / "poke"i / "peek"i / "for"i / "to"i / "next"i / "dim"i / "data"i / "charat"i / "textat"i /
                  "inkey"i / "rnd"i / "incbin"i / "inc"i / "dec"i / "proc"i / "endproc"i / "sys"i / "usr"i / "and"i / "origin"i /
                   "or"i / "load"i / "save"i / "ferr"i / "deek"i / "doke"i /
-                 "abs"i / "cast"i / "sin"i / "cos"i / "tan"i / "atn"i / "asm"i)
+                 "abs"i / "cast"i / "sin"i / "cos"i / "tan"i / "atn"i / "asm"i / "sqr"i / "sgn"i)
     WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 

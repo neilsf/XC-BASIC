@@ -59,6 +59,14 @@ Fun FunFactory(ParseTree node, Program program) {
             fun = new AtnFun(node, program);
         break;
 
+        case "sqr":
+            fun = new SqrFun(node, program);
+        break;
+
+        case "sgn":
+            fun = new SgnFun(node, program);
+        break;
+
         default:
         assert(0);
     }
@@ -364,5 +372,53 @@ class AtnFun:TrigonometricFun
     override string getName()
     {
         return "atn";
+    }
+}
+
+class SqrFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['w', 'f'];
+    }
+
+    void process()
+    {
+        if(this.type != this.arglist[0].detect_type()) {
+            this.program.error("The sqr() function's argument type and return type must match");
+        }
+
+        this.fncode ~= "\tsqr" ~ to!string(this.type) ~ "\n";
+    }
+}
+
+class SgnFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['w'];
+    }
+
+    void process()
+    {
+        char argtype = this.arglist[0].detect_type();
+
+        if(indexOf("bwf", argtype) == -1) {
+            this.program.error("The argument passed to SGN must be an int or float");
+        }
+
+        if(argtype == 'b') {
+            this.arglist[0].convert('w');
+        }
+
+        this.fncode ~= "\tsgn" ~ to!string(this.type) ~ "\n";
     }
 }

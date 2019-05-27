@@ -42,19 +42,19 @@ STDLIB_BYTE_TO_PETSCII SUBROUTINE
 ; print byte type as decimal
 STDLIB_PRINT_BYTE SUBROUTINE
 	ldy #$00
-	sty reserved0 ; has a digit been printed?
+	sty R0 ; has a digit been printed?
 	jsr STDLIB_BYTE_TO_PETSCII
 	pha
 	tya
 	cmp #$30
 	beq .skip                                      
 	jsr KERNAL_PRINTCHR
-	inc reserved0
+	inc R0
 .skip
 	txa
 	cmp #$30
 	bne .printit
-	ldy reserved0
+	ldy R0
 	beq .skip2
 .printit	
 	jsr KERNAL_PRINTCHR
@@ -70,13 +70,13 @@ STDLIB_PRINT_BYTE SUBROUTINE
 	ENDM
 		
 ; converts word to string
-; input in reserved2
+; input in R2
 ; output on stack
 ; last char has 7. bit ON
 	MAC word_to_string
-.number			EQU reserved2
-.negative 	 	EQU reserved8
-.numchars		EQU reserved9
+.number			EQU R2
+.negative 	 	EQU R8
+.numchars		EQU R9
 	lda #$00
 	sta .negative ; is it negative?
 	sta .numchars
@@ -84,17 +84,17 @@ STDLIB_PRINT_BYTE SUBROUTINE
 	lda .number+1
 	bpl .skip1
 	; negate number remember it's negative
-	twoscomplement reserved2
+	twoscomplement R2
 	lda #$01
 	sta .negative
 .skip1
 	lda #10
-	sta reserved0
+	sta R0
 	lda #$00
-	sta reserved0+1
+	sta R0+1
 .loop
 	jsr NUCL_DIVU16
-	lda reserved4 ; remainder
+	lda R4 ; remainder
 	pha
 	inc .numchars
 	lda .number
@@ -111,7 +111,7 @@ STDLIB_PRINT_BYTE SUBROUTINE
 ; print word as petscii decimal
 STDLIB_PRINT_WORD SUBROUTINE
 	word_to_string
-	ldx reserved9
+	ldx R9
 .loop
 	pla
 	clc
@@ -128,36 +128,36 @@ STDLIB_OUTPUT_WORD SUBROUTINE
 	pla
 	clc
 	adc #$30
-	sta (reservedA),y
+	sta (RA),y
 	iny
-	cpy reserved9
+	cpy R9
 	bne .loop
 	rts
 	
 STDLIB_OUTPUT_BYTE SUBROUTINE
 	ldy #$00
-	sty reserved0 ; has a digit been printed?
+	sty R0 ; has a digit been printed?
 	jsr STDLIB_BYTE_TO_PETSCII
 	pha
 	tya
 	ldy #$00
 	cmp #$30
 	beq .skip                                  
-	sta (reservedA),y
-	inc reserved0
+	sta (RA),y
+	inc R0
 .skip
 	txa
 	cmp #$30
 	bne .printit
-	ldx reserved0
+	ldx R0
 	beq .skip2
 .printit	
 	iny
-	sta (reservedA),y
+	sta (RA),y
 .skip2
 	pla
 	iny
-	sta (reservedA),y
+	sta (RA),y
 	rts
 	
 STDLIB_OUTPUT_FLOAT SUBROUTINE
@@ -172,7 +172,7 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 .loop:	
 	lda $0100,x
 	beq .end
-	sta (reservedA),y
+	sta (RA),y
 	inx
 	iny
 	jmp .loop
@@ -182,9 +182,9 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	; opcode for print word as decimal  	
 	MAC stdlib_printw
 	pla
-	sta reserved2+1
+	sta R2+1
 	pla
-	sta reserved2
+	sta R2
 	jsr STDLIB_PRINT_WORD
 	ENDM
 
@@ -202,18 +202,18 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 		
 	MAC textat
 	pla
-	sta reserved3
+	sta R3
 	pla
-	sta reserved2
+	sta R2
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	ldy #$00
 .loop:
-	lda (reserved0),y
+	lda (R0),y
 	beq .end
-	sta (reserved2),y
+	sta (R2),y
 	iny
 	jmp .loop
 .end:
@@ -222,13 +222,13 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	; Output integer as decimal at col, row
 	MAC wat
 	pla
-	sta reserved3
+	sta R3
 	pla
-	sta reserved2
+	sta R2
 	pla
-	sta reservedB
+	sta RB
 	pla
-	sta reservedA
+	sta RA
 	jsr STDLIB_OUTPUT_WORD
 	ENDM
 	
@@ -237,9 +237,9 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	pla
 	tax
 	pla
-	sta reservedB
+	sta RB
 	pla
-	sta reservedA
+	sta RA
 	txa
 	jsr STDLIB_OUTPUT_BYTE
 	ENDM
@@ -249,16 +249,16 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	basicin
 	pullfac
 	pla
-	sta reservedB
+	sta RB
 	pla
-	sta reservedA
+	sta RA
 	jsr STDLIB_OUTPUT_FLOAT
 	basicout
 	ENDM
 	
 STDLIB_INPUT SUBROUTINE
 	
-.init:
+.init:                                        
 	ldx #INPUT_MAXCHARS
 	lda #$00
 .loop:
@@ -362,11 +362,11 @@ STDLIB_STRVAL SUBROUTINE
 	beq .error
 	sec
 	sbc #$30	
-	sta reserved0
+	sta R0
 	lda #$00	
-	sta reserved1	
-	sta reserved2	
-	sta reserved3
+	sta R1	
+	sta R2	
+	sta R3
 			
 .loop:
 	inc .digit_counter
@@ -377,31 +377,31 @@ STDLIB_STRVAL SUBROUTINE
 	beq .minus
 	sec
 	sbc #$30
-	sta reserved2
+	sta R2
 	lda #$00
-	sta reserved3
+	sta R3
 	jsr .mult
 	clc
-	lda reserved2
-	adc reserved0
-	sta reserved0
-	lda reserved3
-	adc reserved1
-	sta reserved1
+	lda R2
+	adc R0
+	sta R0
+	lda R3
+	adc R1
+	sta R1
 	jmp .loop
 	
 .done:
 	rts
 .minus
-	lda reserved0
+	lda R0
 	pha
-	lda reserved1
+	lda R1
 	pha
 	negw
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	rts
 	
 .error
@@ -415,29 +415,29 @@ STDLIB_STRVAL SUBROUTINE
 	ldy .digit_counter
 .mult10
 	clc
-	rol reserved2	; x2
-	rol reserved2+1
+	rol R2	; x2
+	rol R2+1
     
-    lda reserved2	; save to temp
-    sta reserved4
-    lda reserved2+1
-    sta reserved4+1
+    lda R2	; save to temp
+    sta R4
+    lda R2+1
+    sta R4+1
     
     clc
-	rol reserved2	; x2
-	rol reserved2+1
+	rol R2	; x2
+	rol R2+1
 	
 	clc
-	rol reserved2	; x2
-	rol reserved2+1
+	rol R2	; x2
+	rol R2+1
         
 	clc
-    lda reserved4
-    adc reserved2
-    sta reserved2
-    lda reserved4+1
-    adc reserved2+1
-    sta reserved2+1
+    lda R4
+    adc R2
+    sta R2
+    lda R4+1
+    adc R2+1
+    sta R2+1
     
     dey
     bne .mult10
@@ -448,9 +448,9 @@ STDLIB_STRVAL SUBROUTINE
 
 	MAC input
 	jsr STDLIB_INPUT
-	lda reserved0
+	lda R0
 	pha
-	lda reserved1
+	lda R1
 	pha
 	lda #13
 	jsr KERNAL_PRINTCHR
