@@ -180,8 +180,8 @@ STR_COPY_STRING_TO_SCREEN	SUBROUTINE
 	ENDM
 	
 STR_STRPOS	SUBROUTINE
-	; A/X - pointer to needle
-	; pointer to haystack must already be in reserved2/3
+	; A/X - pointer to haystack
+	; pointer to needle must already be in reserved2/3
 	; Returns result in A
 	sta reserved0
 	stx reserved1
@@ -189,23 +189,23 @@ STR_STRPOS	SUBROUTINE
 .again
 	ldy #$00
 .loop
-	lda (reserved2),y	
+	lda (reserved0),y	
 	beq .notfound
-	lda (reserved0),y
+	lda (reserved2),y
 	beq .found
-	cmp (reserved2),y
+	cmp (reserved0),y
 	bne	 .next
 	iny
 	bne .loop
 	jmp .notfound		
 .next
 	inx
-	inc reserved2
+	inc reserved0
 	bne .again
-	inc reserved3
+	inc reserved1
 	jmp .again
 .notfound
-	lda (reserved0),y
+	lda (reserved2),y
 	beq .found
 	lda #$ff
 	rts
