@@ -17,7 +17,7 @@ XCBASIC:
     Print_stmt <    "print"i :WS? ExprList
     If_stmt <       "if"i :WS? Relation :WS? (Logop :WS? Relation)? :WS? "then"i :WS? Statements :WS? ("else"i :WS? Statements)?
     Goto_stmt <     "goto"i :WS? (Label_ref / Unsigned)
-    Input_stmt <    "input"i :WS? VarList
+    Input_stmt <    "input"i :WS? Var :WS? "," :WS? Expression :WS? ("," :WS? String)?
     Gosub_stmt <    "gosub"i :WS? (Label_ref / Unsigned)
     Call_stmt <     "call"i :WS? (Label_ref / Unsigned) :WS? (:"(" :WS? ExprList :WS? :")")?
     Return_stmt <   "return"i

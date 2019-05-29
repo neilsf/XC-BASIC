@@ -67,6 +67,10 @@ Fun FunFactory(ParseTree node, Program program) {
             fun = new StrcmpFun(node, program);
         break;
 
+        case "strpos":
+            fun = new StrposFun(node, program);
+        break;
+
         default:
         assert(0);
     }
@@ -327,6 +331,27 @@ class StrcmpFun:Fun
         }
         this.program.use_stringlib = true;
         this.fncode ~= "\tstrcmp\n";
+    }
+}
+
+class StrposFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 2;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['b'];
+    }
+
+    void process()
+    {
+        if(this.arglist[0].detect_type() != 's' || this.arglist[1].detect_type() != 's') {
+            this.program.error("Wrong type passed to strcmp()");
+        }
+        this.program.use_stringlib = true;
+        this.fncode ~= "\tstrpos\n";
     }
 }
 
