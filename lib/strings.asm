@@ -63,8 +63,7 @@ STR_STRCMP	SUBROUTINE
 STR_STRCPY	SUBROUTINE
 	; STRCPY routine
 	; A/X - pointer to string1
-	; pointer to string2 must already be in reserved2/3
-	; Returns result in A
+	; pointer to string2 in reserved2/3
 	sta reserved0
 	stx reserved1
 	ldy #$00
@@ -88,11 +87,11 @@ STR_STRCPY	SUBROUTINE
 	jsr STR_STRCPY
 	ENDM
 
-STR_STNRCPY	SUBROUTINE
+STR_STRNCPY	SUBROUTINE
 	; STRNCPY routine
 	; A/X - pointer to string1
-	; pointer to string2 must already be in reserved2/3
-	; Returns result in A
+	; pointer to string2 in reserved2/3
+	; Length in reserved4
 	sta reserved0
 	stx reserved1
 	ldy #$00
@@ -101,11 +100,16 @@ STR_STNRCPY	SUBROUTINE
 	sta (reserved0),y
 	beq	 .exit
 	iny
+	cpy reserved4
 	bne .loop
+	lda #$00
+	sta (reserved0),y
 .exit
 	rts
 	
 	MAC strncpy
+	pla
+	sta reserved4
 	pla
 	sta reserved3
 	pla
