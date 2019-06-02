@@ -446,7 +446,7 @@ STR_VALW	SUBROUTINE
 	lda .acc1+1
 	adc .ret+1
 	sta .ret+1
-	bcs .invalid 
+	bmi .invalid 
 	inc .poft
 	jmp .loop
 	
