@@ -38,6 +38,7 @@ FCOS		EQU $e264
 FATN		EQU $e30e
 FTAN		EQU $e2b4
 BYTETOF		EQU $bc3c
+STRVAL			EQU $b7b5
 
 SETNAM		EQU $ffbd
 SETLFS		EQU $ffba

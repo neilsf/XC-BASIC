@@ -45,6 +45,7 @@ STR_STRCMP	SUBROUTINE
 .exit
 	rts
 
+	; Opcode for strcmp
 	MAC strcmp
 	pla
 	sta reserved3
@@ -76,6 +77,7 @@ STR_STRCPY	SUBROUTINE
 .exit
 	rts
 	
+	; Opcode for STRCPY
 	MAC strcpy
 	pla
 	sta reserved3
@@ -107,6 +109,7 @@ STR_STRNCPY	SUBROUTINE
 .exit
 	rts
 	
+	; Opcode for strncpy
 	MAC strncpy
 	pla
 	sta reserved4
@@ -120,10 +123,8 @@ STR_STRNCPY	SUBROUTINE
 	jsr STR_STRNCPY
 	ENDM
 
-
 	; PETSCII to screencode conversion
 	; By Mace
-	
 STR_PET2SC	SUBROUTINE
 	cmp #$20
 	bcc .ddRev
@@ -217,6 +218,7 @@ STR_STRPOS	SUBROUTINE
 	txa
 	rts
 	
+	; Opcode for strpos
 	MAC strpos
 	pla
 	sta reserved3
@@ -286,6 +288,7 @@ STR_INPUT	SUBROUTINE
 	sta $cc
 	rts
 	
+	; Opcode for input
 	MAC input
 	; mask address
 	pla
@@ -312,3 +315,195 @@ str_default_mask
 	HEX C0 C1 C2 C3 C4 C5 C6 C7 C8 C9 CA CB CC CD CE CF
 	HEX D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 DA DB DC DD DE DF
 	HEX FF 00
+	
+	; Numeric value of a byte
+	;
+STR_VALB	SUBROUTINE
+	; A/X: pointer to string
+.ret	EQU	reserved2
+.ptr	EQU reserved0
+	jsr STR_STRLEN
+	cmp #4
+	bcc .length_ok
+	jmp .invalid
+.length_ok	
+	tay
+	dey
+	bmi .invalid
+	lda #$00
+	sta .ret
+	lda (.ptr),y
+	jsr STR_CHARISNUMERIC
+	bcc .invalid
+	sbc #$30
+	clc
+	adc .ret
+	sta .ret
+	dey
+	bmi .end
+	lda (.ptr),y
+	jsr STR_CHARISNUMERIC
+	bcc .invalid
+	sbc #$30
+	tax
+	lda btens,x
+	clc
+	adc .ret
+	sta .ret
+	dey
+	bmi .end
+	lda (.ptr),y
+	jsr STR_CHARISNUMERIC
+	bcc .invalid
+	sbc #$30
+	cmp #3
+	bcs .invalid
+	tax
+	lda bthous,x
+	clc
+	adc .ret
+	bcs .invalid
+	rts
+.end
+	lda .ret
+	rts
+.invalid
+	lda #$00
+	rts
+	
+btens  DC.B 0, 10, 20, 30, 40, 50, 60, 70, 80, 90
+bthous DC.B 0, 100, 200
+
+STR_CHARISNUMERIC	SUBROUTINE
+	; char in A
+	; carry set means true
+	cmp #$30
+	bcc .false+1
+	cmp #$3a
+	bcs .false
+	sec
+	rts
+.false
+	clc
+	rts
+
+	; Numeric value of a signed word	
+STR_VALW	SUBROUTINE
+	; A/X: pointer to string
+.ret	EQU	reservedA		
+.ptr	EQU reserved8
+.neg	EQU reserved4
+.acc1	EQU reserved0
+.acc2	EQU reserved2
+	sta .ptr
+	stx .ptr+1
+	ldy #$00
+	; reset temp regs
+	sty .ret
+	sty .ret+1
+	sty .poft
+	; check if negative
+	lda (.ptr),y
+	cmp #$2d
+	bne .positive
+	lda #$01
+	sta .neg
+	inc .ptr
+	bne .positive
+	inc .ptr+1
+.positive
+.cloop
+	lda (.ptr),y
+	beq .exit
+	iny
+	bne .cloop
+.exit
+	cpy #7
+	bcc .length_ok
+	jmp .invalid
+.length_ok
+.loop
+	dey
+	bmi .end
+	lda (.ptr),y
+	jsr STR_CHARISNUMERIC
+	bcc .invalid
+	sbc #$30
+	sta .acc1
+	lda #$00
+	sta .acc1+1
+	lda .poft
+	tax
+	lda lwone,x
+	sta .acc2
+	lda hwone,x
+	sta .acc2+1
+	jsr NUCL_MUL16
+	clc
+	lda .acc1
+	adc .ret
+	sta .ret
+	lda .acc1+1
+	adc .ret+1
+	sta .ret+1
+	bcs .invalid 
+	inc .poft
+	jmp .loop
+	
+.end
+	lda .neg
+	beq .skip
+	twoscomplement reservedA
+.skip	
+	lda .ret
+	ldx .ret+1
+	rts
+.invalid
+	lda #$00
+	ldx #$00
+	rts
+.poft 	DC.B 0
+
+lwone	DC.B 1	
+lwten	DC.B 10	
+lwhund	DC.B 100	
+lwthou	DC.B <1000	
+lwtthou	DC.B <10000
+
+hwone	DC.B 0	
+hwten	DC.B 0	
+hwhund	DC.B 0	
+hwthou	DC.B >1000	
+hwtthou	DC.B >10000
+
+	MAC valw
+	pla
+	tax
+	pla
+	jsr STR_VALW
+	pha
+	txa
+	pha
+	ENDM
+	
+	MAC valb
+	pla
+	tax
+	pla
+	jsr STR_VALB
+	pha
+	ENDM
+	
+	MAC valf
+	basicin
+	pla
+	sta $23
+	tax
+	pla
+	sta $22
+	jsr STR_STRLEN
+	jsr STRVAL
+	pushfac
+	basicout
+	ENDM
+	

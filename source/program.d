@@ -81,7 +81,6 @@ class Program
      */
 
 	this() {
-		/* As of now, vartypes with the same length are not allowed. Needs refactoring if it is a must */
 		this.varlen['b'] = 1;
 		this.varlen['w'] = 2;
 		this.varlen['s'] = 2;

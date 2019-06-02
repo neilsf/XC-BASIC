@@ -92,7 +92,7 @@ XCBASIC:
                  "inkey"i / "rnd"i / "incbin"i / "inc"i / "dec"i / "proc"i / "endproc"i / "sys"i / "usr"i / "and"i / "origin"i /
                   "or"i / "load"i / "save"i / "ferr"i / "deek"i / "doke"i /
                  "abs"i / "cast"i / "sin"i / "cos"i / "tan"i / "atn"i / "asm"i / "strcpy"i / "strncpy"i / "strlen"i / "strcmp"i / "curpos"i /
-                 "strpos"i)
+                 "strpos"i / "val"i)
     WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 

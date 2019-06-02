@@ -71,6 +71,10 @@ Fun FunFactory(ParseTree node, Program program) {
             fun = new StrposFun(node, program);
         break;
 
+        case "val":
+            fun = new ValFun(node, program);
+        break;
+
         default:
         assert(0);
     }
@@ -441,5 +445,28 @@ class AtnFun:TrigonometricFun
     override string getName()
     {
         return "atn";
+    }
+}
+
+class ValFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['b', 'w', 'f'];
+    }
+
+    void process()
+    {
+        this.program.use_stringlib = true;
+        char argtype = this.arglist[0].type;
+        if(argtype != 's') {
+            this.program.error("Argument 1 of VAL() must be a string pointer");
+        }
+
+        this.fncode = "\tval"~to!string(this.type)~"\n";
     }
 }
