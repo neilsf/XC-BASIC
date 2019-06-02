@@ -24,7 +24,6 @@ RB	EQU $46
 stack 		EQU $0100
 
 ; Floating point routines
-
 MOVFM		EQU $bba2
 CONUPK		EQU $ba8c
 MOVMF		EQU $bbd4
@@ -46,13 +45,14 @@ FTAN		EQU $e2b4
 BYTETOF		EQU $bc3c
 SQR			EQU $bf71
 SGN			EQU $bc39
+STRVAL		EQU $b7b5
 
 ; KERNAL routines
-
 SETNAM		EQU $ffbd
 SETLFS		EQU $ffba
 LOAD		EQU $ffd5
 SAVE		EQU $ffd8
+PLOT		EQU $fff0
 
 	; Push a zero on the stack
 	; EXAMINE REFS BEFORE CHANGING!
@@ -115,6 +115,10 @@ SAVE		EQU $ffd8
 	pha
 	lda.w {1}+1
 	pha
+	ENDM
+	
+	MAC psvar
+	pwvar {1}
 	ENDM
 	
 	; Push one float variable on the stack (floats go reversed!)
@@ -1637,6 +1641,14 @@ NUCL_SQRW	SUBROUTINE
 	pla
 	pword #65535
 .end	
+
+	MAC curpos
+	pla
+	tay
+	pla
+	tax
+	clc
+	jsr PLOT
 	ENDM
 	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00

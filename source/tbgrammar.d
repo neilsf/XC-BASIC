@@ -11,13 +11,13 @@ XCBASIC:
     Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt /
                 Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Incbin_stmt /
                 Include_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt / Sys_stmt / Load_stmt / Save_stmt /
-                Origin_stmt / Asm_stmt / Doke_stmt
+                Origin_stmt / Asm_stmt / Doke_stmt / Strcpy_stmt / Strncpy_stmt / Curpos_stmt
     Const_stmt <    "const"i :WS? Var :WS? "=" :WS? Number
     Let_stmt <      ("let"i / eps) :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print"i :WS? ExprList
     If_stmt <       "if"i :WS? Relation :WS? (Logop :WS? Relation)? :WS? "then"i :WS? Statements :WS? ("else"i :WS? Statements)?
     Goto_stmt <     "goto"i :WS? (Label_ref / Unsigned)
-    Input_stmt <    "input"i :WS? VarList
+    Input_stmt <    "input"i :WS? Var :WS? "," :WS? Expression :WS? ("," :WS? String)?
     Gosub_stmt <    "gosub"i :WS? (Label_ref / Unsigned)
     Call_stmt <     "call"i :WS? (Label_ref / Unsigned) :WS? (:"(" :WS? ExprList :WS? :")")?
     Return_stmt <   "return"i
@@ -25,7 +25,7 @@ XCBASIC:
     Doke_stmt <     "doke"i :WS? Expression :WS? "," :WS? Expression
     End_stmt <      "end"i
     Rem_stmt <      "rem"i (!eol .)*
-    For_stmt <      "for"i :WS? Var :WS? "=" :WS? Expression :WS? "to"i :WS? Expression
+    For_stmt <      "for"i :WS? Var :WS? "=" :WS    ? Expression :WS? "to"i :WS? Expression
     Next_stmt <     "next"i :WS? Var
     Dim_stmt <      "dim"i :WS? Var
     Data_stmt <     "data"i :WS? Varname Vartype "[]" :WS? "=" :WS? (Datalist / Incbin_stmt)
@@ -42,16 +42,19 @@ XCBASIC:
     Load_stmt <     "load"i :WS? String :WS? "," :WS? Expression (:WS? "," :WS? Expression)?
     Save_stmt <     "save"i :WS? String :WS? "," :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
     Origin_stmt <   "origin"i :WS? Number
+    Strcpy_stmt <   "strcpy"i :WS? Expression :WS? "," :WS? Expression
+    Strncpy_stmt <  "strncpy"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
+    Curpos_stmt <   "curpos"i :WS? Expression :WS? "," :WS? Expression
 
     Relation < Expression :WS? Relop :WS? Expression
-    ExprList < (String / Expression) :WS? ("," :WS? (String / Expression) )*
+    ExprList < Expression :WS? ("," :WS? Expression)*
     VarList < Var (:WS? "," :WS? Var)*
     Datalist < Number (:WS? "," :WS? Number :WS?)*
 
     Expression < Simplexp (:WS? BW_OP :WS? Simplexp :WS?)*
     Simplexp < Term (:WS? E_OP :WS? Term :WS?)*
     Term < Factor (:WS? T_OP :WS? Factor :WS?)*
-    Factor < (Var / Number / Parenthesis / Expression / Fn_call / Address)
+    Factor < (Var / Number / Parenthesis / String / Expression / Fn_call / Address)
     Fn_call < Id Vartype  "(" :WS? (ExprList / eps) :WS? ")"
 
     Var < Varname Vartype Subscript?
@@ -64,7 +67,7 @@ XCBASIC:
     Varname <- !Reserved "\\" ? [a-zA-Z_] [a-zA-Z_0-9]*
     Address < "@" Varname Vartype
     Id <- [a-zA-Z_] [a-zA-Z_0-9]*
-    Vartype <- ("%" / "#" / "!" / eps)
+    Vartype <- ("%" / "#" / "!" / "$" / eps)
     Subscript <- "[" Expression (:WS? "," :WS? Expression)? "]"
     Logop < "and" | "or"
     Relop < "<" | "<=" | "=" | "<>" | ">" | ">="
@@ -88,7 +91,8 @@ XCBASIC:
                  "end"i / "rem"i / "poke"i / "peek"i / "for"i / "to"i / "next"i / "dim"i / "data"i / "charat"i / "textat"i /
                  "inkey"i / "rnd"i / "incbin"i / "inc"i / "dec"i / "proc"i / "endproc"i / "sys"i / "usr"i / "and"i / "origin"i /
                   "or"i / "load"i / "save"i / "ferr"i / "deek"i / "doke"i /
-                 "abs"i / "cast"i / "sin"i / "cos"i / "tan"i / "atn"i / "asm"i / "sqr"i / "sgn"i)
+                 "abs"i / "cast"i / "sin"i / "cos"i / "tan"i / "atn"i / "asm"i / "strcpy"i / "strncpy"i / "strlen"i / "strcmp"i / "curpos"i /
+                 "strpos"i / "val"i / "sqr"i / "sgn"i)
     WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 

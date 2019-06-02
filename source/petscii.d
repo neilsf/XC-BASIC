@@ -103,10 +103,16 @@ char[] replace_numeric_escapes(char[] s) {
 string ascii_to_petscii_hex(string ascii_string, bool newline = true)
 {
     char[] ascii_repl = replace_numeric_escapes(replace_petscii_escapes(ascii_string));
-    string hex = "";
+    string hex = "HEX ";
 
+    int counter=0;
     for(ubyte i=0; i<ascii_repl.length; i++) {
         hex ~= rightJustify(to!string(ascii_to_petscii(ascii_repl[i]), 16), 2, '0') ~ " ";
+        counter++;
+        if(counter == 16 && i < ascii_repl.length-1) {
+            hex ~= "\n\tHEX ";
+            counter = 0;
+        }
     }
 
     if(newline) {
@@ -118,9 +124,15 @@ string ascii_to_petscii_hex(string ascii_string, bool newline = true)
 
 string ascii_to_screencode_hex(string ascii_string)
 {
-    string hex = "";
+    string hex = "HEX ";
+    int counter=0;
     for(ubyte i=0; i<ascii_string.length; i++) {
         hex ~= rightJustify(to!string(petscii_to_screencode(ascii_to_petscii(ascii_string[i])), 16), 2, '0') ~ " ";
+        counter++;
+        if(counter == 16 && i < ascii_string.length-1) {
+            hex ~= "\n\tHEX ";
+            counter = 0;
+        }
     }
     hex ~= "00";
     return hex;

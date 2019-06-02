@@ -35,13 +35,20 @@ class Expression
         foreach(ref child; this.node.children) {
             if(child.name == "XCBASIC.Simplexp") {
                 tmpSimplexp = new Simplexp(child, this.program);
-                if(tmpSimplexp.detect_type() == 'f') {
+                char tmpSimplexpType = tmpSimplexp.detect_type();
+                if(tmpSimplexpType == 'f') {
                     // if only one term is a float,
                     // the whole expr will be of type float
                     this.type = 'f';
                     break;
                 }
-                else if(tmpSimplexp.detect_type() == 'w') {
+                else if(tmpSimplexpType == 's') {
+                    // if only one term is an sp,
+                    // the whole expr will be of type sp
+                    this.type = 's';
+                    break;
+                }
+                else if(tmpSimplexpType == 'w' && this.type == 'b') {
                    this.type = 'w';
                 }
             }
@@ -75,17 +82,18 @@ class Expression
                 s.expected_type = this.type;
                 s.eval();
                 this.asmcode ~= to!string(s);
+                string type = to!string(this.type == 's' ? 'w' : this.type);
                 final switch(bw_op) {
                     case "&":
-                        this.asmcode ~= "\tand"~to!string(this.type)~"\n";
+                        this.asmcode ~= "\tand"~type~"\n";
                     break;
 
                     case "|":
-                        this.asmcode ~= "\tor"~to!string(this.type)~"\n";
+                        this.asmcode ~= "\tor"~type~"\n";
                     break;
 
                     case "^":
-                        this.asmcode ~= "\txor"~to!string(this.type)~"\n";
+                        this.asmcode ~= "\txor"~type~"\n";
                     break;
                 }
             }
@@ -107,14 +115,22 @@ class Expression
         int[char] type_prec;
         type_prec['b'] = 0;
         type_prec['w'] = 1;
-        type_prec['f'] = 2;
-        this.asmcode ~= "\t"~to!string(this.type)~"to"~to!string(to_type)~"\n";
-        if(!(to_type == 'w' && this.type == 'b') && type_prec[to_type] > type_prec[this.type]) {
-            this.program.warning("Implicit type conversion");
+        type_prec['s'] = 2;
+        type_prec['f'] = 3;
+        if(indexOf("sw", this.type) > -1 && indexOf("sw", to_type) > -1) {
+            // Nothing to do!
         }
-        else if(type_prec[to_type] < type_prec[this.type]) {
-            this.program.warning("Implicit type conversion with truncation or possible loss of precision");
+        else {
+            to_type = (to_type == 's' ? 'w' : to_type);
+            this.asmcode ~= "\t"~to!string(this.type)~"to"~to!string(to_type)~"\n";
+            if(!(indexOf("sw", to_type) && this.type == 'b') && type_prec[to_type] > type_prec[this.type]) {
+                this.program.warning("Implicit type conversion");
+            }
+            else if(type_prec[to_type] < type_prec[this.type]) {
+                this.program.warning("Implicit type conversion with truncation or possible loss of precision");
+            }
         }
+
     }
    
     void _type_error()
