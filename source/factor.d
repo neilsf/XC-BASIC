@@ -13,6 +13,7 @@ import excess;
 import term;
 import number;
 import stringliteral;
+import xcbarray;
 
 class Factor
 {
@@ -115,38 +116,9 @@ class Factor
                         }
                         */
                         auto subscript = v.children[2];
-                        if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
-                            this.program.error("Bad subscript");
-                        }
-                        ushort[2] dimensions;
-                        ubyte i = 0;
-                        foreach(ref expr; subscript.children) {
-                            Expression Ex2 = new Expression(expr, this.program);
-                            Ex2.eval();
-                            if(Ex2.type == 'b') {
-                                Ex2.btow();
-                            }
-                            else if(Ex2.type == 'f') {
-                                this.program.error("Bad subscript");
-                            }
-                            this.asmcode ~= to!string(Ex2);
+                        XCBArray arr = new XCBArray(this.program, var, subscript);
+                        this.asmcode ~= arr.lookup();
 
-                            if(i == 1) {
-                                // must multiply with first dimension length
-                                this.asmcode ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
-                                                            ~ "\tmulw\n"
-                                                            ~ "\taddw\n";
-                            }
-
-                            i++;
-                        }
-                        // if not a byte, must multiply with the variable length!
-                        if(var.type != 'b') {
-                            this.asmcode ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
-                                          ~ "\tmulw\n" ;
-                        }
-
-                        this.asmcode ~= "\tp" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
                     }
                     else {
                         this.asmcode ~= "\tp" ~ to!string(vartype) ~ "var " ~ var.getLabel() ~ "\n";

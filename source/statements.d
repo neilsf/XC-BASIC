@@ -7,6 +7,7 @@ import expression;
 import stringliteral;
 import number;
 import excess;
+import xcbarray;
 
 Stmt StmtFactory(ParseTree node, Program program) {
 	string stmt_class =node.children[0].name;
@@ -278,36 +279,8 @@ class Let_stmt:Stmt
             }
             */
             auto subscript = v.children[2];
-            if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
-                this.program.error("Bad subscript");
-            }
-            ushort[2] dimensions;
-            ubyte i = 0;
-            foreach(ref expr; subscript.children) {
-                Expression Ex2 = new Expression(expr, this.program);
-                Ex2.eval();
-                if(Ex2.type == 'b') {
-                    Ex2.btow();
-                }
-                this.program.program_segment ~= to!string(Ex2);
-
-
-                if(i == 1) {
-                    // must multiply with first dimension length
-                    this.program.program_segment ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
-                                                  ~ "\tmulw\n"
-                                                  ~ "\taddw\n";
-                }
-
-                i++;
-            }
-            // if not a byte, must multiply with the variable length!
-            if(vartype != 'b') {
-                this.program.program_segment ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
-                                          ~ "\tmulw\n" ;
-            }
-
-            this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
+            XCBArray arr = new XCBArray(this.program, var, subscript);
+            this.program.program_segment ~= arr.store();
         }
         else {
             this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n";

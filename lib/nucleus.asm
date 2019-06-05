@@ -149,6 +149,16 @@ PLOT		EQU $fff0
 	lda (R0),y
 	pha
 	ENDM
+	
+	;Push one byte variable (indexed) on the stack
+	;Expects array index being on top of stack
+	;Fast version: can be used if index is a byte
+	MAC pbarray_fast
+	pla
+	tax
+	lda {1},x
+	pha
+	ENDM
 
 	;Push one word variable (indexed) on the stack
 	;Expects array index being on top of stack
@@ -249,6 +259,16 @@ PLOT		EQU $fff0
 	pla
 	sta (R0),y
 	ENDM	
+	
+	;Pull one byte variable (indexed)
+	;Expects array index on top of stack
+	;Fast version: can be used if index is a byte
+	MAC plbarray_fast
+	pla
+	tax
+	pla
+	sta {1},x
+	ENDM
 	
 	;Pull one word variable (indexed)
 	;Expects array index on top of stack
@@ -1235,7 +1255,6 @@ NUCL_DIVU16 SUBROUTINE
 	sta R1
 	pla
 	sta R0
-
 	; compare them
 	lda R0
 	cmp {1}
@@ -1253,6 +1272,32 @@ NUCL_DIVU16 SUBROUTINE
 	jmp $0000;                                          
 .end
 	ENDM
+	
+	; NEXT routine (byte index)
+	; usage next variable
+	MAC nextb
+	; increment variable
+	inc {1}
+	; don't roll over
+	beq .end
+.skip
+    ; pull address
+    pla
+    sta .selfmod_code+2
+    pla
+    sta .selfmod_code+1
+    ; pull max_value
+    pla
+    cmp {1}
+    bcs .jump_back
+    jmp .end
+.jump_back
+    ; push max_value back
+    pha
+.selfmod_code
+    jmp $0000;
+.end
+    ENDM
 
 	; Opcode for PEEK! (byte)
 	MAC peekb
