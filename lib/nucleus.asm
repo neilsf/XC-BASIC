@@ -865,16 +865,16 @@ PLOT		EQU $fff0
 	basicout
 	ENDM
 	
-	; Add bytes on stack
 	MAC addb
 	IF !FPULL
 	pla
 	ENDIF
-	tsx
+	sta R0
+	pla
 	clc
-	adc.wx stack+1
+	adc R0
 	IF !FPUSH
-	sta.wx stack+1
+	pha
 	ENDIF
 	ENDM
 

@@ -8,7 +8,7 @@ class Optimizer
     string outcode;
 
     const string[] pushers = [
-        "pzero",  "pone", "pbyte", "pword",
+        "pzero",  "pone", "pbyte", "pbvar", "pword",
         "pwvar", "pbarray", "pbarray_fast", "pwarray", "cmpblt",
         "cmpblte", "cmpbgte", "cmpbeq", "cmpbneq",
         "cmpbgt", "cmpweq", "cmpwneq", "cmpwlt",
@@ -111,6 +111,7 @@ class Optimizer
         if(line == "") {
             return "";
         }
+        string[] parts = line.split!isWhite;
         if(this.is_puller(parts[0]) || this.is_pusher(parts[0])) {
             return parts[0];
         }
