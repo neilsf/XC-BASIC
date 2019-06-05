@@ -1,24 +1,30 @@
 
-reserved0	EQU $fb
-reserved1	EQU $fc
+	PROCESSOR 6502
+	LIST OFF	
+		
+; Pseudo-registers
+	
+R0	EQU $fb
+R1	EQU $fc
 
-reserved2	EQU $fd
-reserved3	EQU $fe
+R2	EQU $fd
+R3	EQU $fe
 
-reserved4	EQU $3f
-reserved5	EQU $40
+R4	EQU $3f
+R5	EQU $40
 
-reserved6	EQU $41
-reserved7	EQU $42
+R6	EQU $41
+R7	EQU $42
 
-reserved8	EQU $43                              
-reserved9	EQU $44
+R8	EQU $43                              
+R9	EQU $44
 
-reservedA	EQU $45
-reservedB	EQU $46
+RA	EQU $45
+RB	EQU $46
 
 stack 		EQU $0100
 
+; Floating point routines
 MOVFM		EQU $bba2
 CONUPK		EQU $ba8c
 MOVMF		EQU $bbd4
@@ -38,16 +44,17 @@ FCOS		EQU $e264
 FATN		EQU $e30e
 FTAN		EQU $e2b4
 BYTETOF		EQU $bc3c
+SQR			EQU $bf71
+SGN			EQU $bc39
+STRVAL		EQU $b7b5
 
+; KERNAL routines
 SETNAM		EQU $ffbd
 SETLFS		EQU $ffba
 LOAD		EQU $ffd5
 SAVE		EQU $ffd8
+PLOT		EQU $fff0
 
-	PROCESSOR 6502
-	
-	LIST OFF
-	
 	; Push a zero on the stack
 	; EXAMINE REFS BEFORE CHANGING!
 	MAC pzero
@@ -128,6 +135,10 @@ SAVE		EQU $ffd8
 	ENDIF
 	ENDM
 	
+	MAC psvar
+	pwvar {1}
+	ENDM
+	
 	; Push one float variable on the stack (floats go reversed!)
 	MAC pfvar
 	ldy #$04
@@ -143,30 +154,29 @@ SAVE		EQU $ffd8
 	MAC pbarray
 	IF !FPULL
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	ELSE
-	sta reserved0
-	sty reserved1
+	sta R0
+	sty R1
 	ENDIF
 	lda #<{1}
 	clc
-	adc reserved0
-	sta reserved0
+	adc R0
+	sta R0
 	lda #>{1}
-	adc reserved1
-	sta reserved1
+	adc R1
+	sta R1
 	ldy #$00
-	lda (reserved0),y
-	IF !FPUSH
+	lda (R0),y
+	IF !FPUSH	
 	pha
 	ENDIF
 	ENDM
 	
 	;Push one byte variable (indexed) on the stack
 	;Expects array index being on top of stack
-	;
 	;Used in case both variable and index are bytes
 	MAC pbarray_fast
 	IF !FPULL
@@ -184,33 +194,33 @@ SAVE		EQU $ffd8
 	MAC pwarray
 	IF !FPULL
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	ELSE
-	sta reserved0
-	sty reserved1
+	sta R0
+	sty R1
 	ENDIF
 	lda #<{1}
 	clc
-	adc reserved0
-	sta reserved0
+	adc R0
+	sta R0
 	lda #>{1}
-	adc reserved1
-	sta reserved1
+	adc R1
+	sta R1
 	IF !FPUSH
 	ldy #$00
-	lda (reserved0),y
+	lda (R0),y
 	pha
 	iny
-	lda (reserved0),y
+	lda (R0),y
 	pha
 	ELSE
 	ldy #$00
-	lda (reserved0),y
+	lda (R0),y
 	tax
 	iny
-	lda (reserved0),y
+	lda (R0),y
 	tay
 	txa
 	ENDIF
@@ -220,19 +230,19 @@ SAVE		EQU $ffd8
 	;Expects array index being on top of stack
 	MAC pfarray
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	lda #<{1}
 	clc
-	adc reserved0
-	sta reserved0
+	adc R0
+	sta R0
 	lda #>{1}
-	adc reserved1
-	sta reserved1
+	adc R1
+	sta R1
 	ldy #$04
 .loop	
-	lda (reserved0),y
+	lda (R0),y
 	pha
 	dey
 	bpl .loop
@@ -287,23 +297,23 @@ SAVE		EQU $ffd8
 	MAC plbarray
 	IF !FPULL
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	ELSE
-	sta reserved0
-	sty reserved1
+	sta R0
+	sty R1
 	ENDIF
 	lda #<{1}
 	clc
-	adc reserved0
-	sta reserved0
+	adc R0
+	sta R0
 	lda #>{1}
-	adc reserved1
-	sta reserved1
+	adc R1
+	sta R1
 	ldy #$00
 	pla
-	sta (reserved0),y
+	sta (R0),y
 	ENDM	
 	
 	;Pull one byte variable (indexed)
@@ -324,26 +334,26 @@ SAVE		EQU $ffd8
 	MAC plwarray
 	IF !FPULL
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	ELSE
-	sta reserved0
-	sty reserved1
+	sta R0
+	sty R1
 	ENDIF
 	lda #<{1}
 	clc
-	adc reserved0
-	sta reserved0
+	adc R0
+	sta R0
 	lda #>{1}
-	adc reserved1
-	sta reserved1
+	adc R1
+	sta R1
 	ldy #$01
 	pla
-	sta (reserved0),y
+	sta (R0),y
 	dey
 	pla
-	sta (reserved0),y
+	sta (R0),y
 	ENDM
 	
 	; Pull one float variable (indexed)
@@ -351,24 +361,24 @@ SAVE		EQU $ffd8
 	MAC plfarray
 	IF !FPULL
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	ELSE
-	lda reserved0
-	ldy reserved1
+	lda R0
+	ldy R1
 	ENDIF
 	lda #<{1}
 	clc
-	adc reserved0
-	sta reserved0
+	adc R0
+	sta R0
 	lda #>{1}
-	adc reserved1
-	sta reserved1
+	adc R1
+	sta R1
 	ldy #$00
 	REPEAT 5	
 	pla
-	sta (reserved0),y
+	sta (R0),y
 	iny
 	REPEND
 	ENDM
@@ -426,9 +436,9 @@ SAVE		EQU $ffd8
 	IF !FPULL
 	pla
 	ENDIF
-	sta reserved1
+	sta R1
 	pla
-	cmp reserved1
+	cmp R1
 	bcs .phf
 	pone
 	IF !FPUSH
@@ -444,9 +454,9 @@ SAVE		EQU $ffd8
 	IF !FPULL
 	pla
 	ENDIF
-	sta reserved1
+	sta R1
 	pla
-	cmp reserved1
+	cmp R1
 	bcc .pht
 	beq .pht
 	pzero
@@ -463,9 +473,9 @@ SAVE		EQU $ffd8
 	IF !FPULL
 	pla
 	ENDIF                 
-	sta reserved1
+	sta R1
 	pla
-	cmp reserved1
+	cmp R1
 	bcs .pht
 	pzero
 	IF !FPUSH
@@ -480,10 +490,10 @@ SAVE		EQU $ffd8
 	MAC cmpbeq
 	IF !FPULL
 	pla
-	ENDIF 
-	sta reserved1
+	ENDIF                 
+	sta R1
 	pla
-	cmp reserved1
+	cmp R1
 	beq .pht
 	pzero
 	IF !FPUSH
@@ -498,10 +508,10 @@ SAVE		EQU $ffd8
 	MAC cmpbneq
 	IF !FPULL
 	pla
-	ENDIF
-	sta reserved1
+	ENDIF                 
+	sta R1
 	pla
-	cmp reserved1
+	cmp R1
 	bne .pht
 	pzero
 	IF !FPUSH
@@ -516,10 +526,10 @@ SAVE		EQU $ffd8
 	MAC cmpbgt
 	IF !FPULL
 	pla
-	ENDIF
-	sta reserved1
+	ENDIF                 
+	sta R1
 	pla
-	cmp reserved1
+	cmp R1
 	bcc .phf
 	beq .phf
 	pone
@@ -535,18 +545,18 @@ SAVE		EQU $ffd8
 	MAC cmpweq
 	IF !FPULL
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved2
+	sta R2
 	ELSE
-	sta reserved1
-	sty reserved2
+	sta R1
+	sty R2
 	ENDIF
 	pla
-	cmp reserved1
+	cmp R1
 	bne .phf
 	pla
-	cmp reserved2
+	cmp R2
 	bne .phf+1
 	pone
 	IF !FPUSH
@@ -563,18 +573,18 @@ SAVE		EQU $ffd8
 	MAC cmpwneq
 	IF !FPULL
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved2
+	sta R2
 	ELSE
-	sta reserved1
-	sty reserved2
+	sta R1
+	sty R2
 	ENDIF
 	pla
-	cmp reserved1
+	cmp R1
 	bne .pht
 	pla
-	cmp reserved2
+	cmp R2
 	bne .pht+1
 	pzero
 	IF !FPUSH
@@ -873,9 +883,9 @@ SAVE		EQU $ffd8
     IF !FPULL
     pla
     ENDIF
-    sta reserved1
+    sta R1
     pla
-    ora reserved1
+    ora R1
     IF !FPUSH
     pha
     ENDIF
@@ -883,12 +893,12 @@ SAVE		EQU $ffd8
 
     ; Perform AND on top 2 bytes of stack
     MAC andb
-    IF !FPULL
+     IF !FPULL
     pla
     ENDIF
-    sta reserved1
+    sta R1
     pla
-    and reserved1
+    and R1
     IF !FPUSH
     pha
     ENDIF
@@ -896,12 +906,12 @@ SAVE		EQU $ffd8
 
     ; Perform XOR on top 2 bytes of stack
     MAC xorb
-    IF !FPULL
+     IF !FPULL
     pla
     ENDIF
-    sta reserved1
+    sta R1
     pla
-    eor reserved1
+    eor R1
     IF !FPUSH
     pha
     ENDIF
@@ -1065,18 +1075,18 @@ SAVE		EQU $ffd8
 	IF !FPULL
 	pla
 	ENDIF
-	sta reserved1
+	sta R1
 	pla
-	sta reserved2
+	sta R2
 	lda #$00
 	beq .enterLoop		
 .doAdd:
 	clc
-	adc reserved1	
+	adc R1	
 .loop:		
-	asl reserved1
+	asl R1
 .enterLoop:
-	lsr reserved2
+	lsr R2
 	bcs .doAdd
 	bne .loop
 .end:	
@@ -1094,77 +1104,80 @@ SAVE		EQU $ffd8
 	clc
 	adc #$01
 	sta {1}
+	bne .skip
+	inc {1}+1
+.skip
 	ENDM
 	
 	; Signed 16-bit multiplication
 NUCL_SMUL16
 	ldy #$00					; .y will hold the sign of product
-	lda reserved1
+	lda R1
 	bpl .skip					; if factor1 is negative
-	twoscomplement reserved0	; then factor1 := -factor1
+	twoscomplement R0	; then factor1 := -factor1
 	iny							; and switch sign
 .skip
-	lda reserved3				
+	lda R3				
 	bpl .skip2					; if factor2 is negative
-	twoscomplement reserved2	; then factor2 := -factor2
+	twoscomplement R2	; then factor2 := -factor2
 	iny							; and switch sign
 .skip2
 	jsr NUCL_MUL16				; do unsigned multiplication
 	tya
 	and #$01					; if .x is odd
 	beq .q
-	twoscomplement reserved0	; then product := -product
+	twoscomplement R0	; then product := -product
 .q	rts
 
-	;Multiply words at reserved0 and reserved2, with 16-bit result at reserved0
-	;and 16-bit overflow at reserved5
+	;Multiply words at R0 and R2, with 16-bit result at R0
+	;and 16-bit overflow at R5
 NUCL_MUL16	SUBROUTINE
 	ldx #$11		
 	lda #$00
-	sta reserved5
+	sta R5
 	clc
 .1:	ror
-	ror reserved5
-	ror reserved1
-	ror reserved0
+	ror R5
+	ror R1
+	ror R0
 	dex
 	beq .q
 	bcc .1
-	sta reserved6
-	lda reserved5
+	sta R6
+	lda R5
 	clc
-	adc reserved2
-	sta reserved5
-	lda reserved6
-	adc reserved3
+	adc R2
+	sta R5
+	lda R6
+	adc R3
 	jmp .1
-.q:	sta reserved6
+.q:	sta R6
 	rts
 	
 	; Multiply words on stack
 	MAC mulw
 	IF !FPULL
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	ELSE
-	sta reserved0
-	sty reserved1
+	sta R0
+	sty R1
 	ENDIF
 	pla
-	sta reserved3
+	sta R3
 	pla
-	sta reserved2
+	sta R2
 	jsr NUCL_SMUL16
 	IF !FPUSH
-	lda reserved0
+	lda R0
 	pha
-	lda reserved1
+	lda R1
 	pha
 	ELSE
-	lda reserved0
-	ldy reserved1
+	lda R0
+	ldy R1
 	ENDIF
 	ENDM
 	
@@ -1196,24 +1209,24 @@ NUCL_MUL16	SUBROUTINE
 	; submitted by Graham at CSDb forum
 	
 NUCL_DIV8	SUBROUTINE
-	asl reserved0
+	asl R0
 	lda #$00
 	rol
 	ldx #$08
 .loop1
-	cmp reserved1
+	cmp R1
 	bcc *+4
-	sbc reserved1
-	rol reserved0
+	sbc R1
+	rol R0
 	rol
 	dex
 	bne .loop1
 	ldx #$08
 .loop2
-   	cmp reserved1
+   	cmp R1
 	bcc *+4
-	sbc reserved1
-	rol reserved2
+	sbc R1
+	rol R2
 	asl
 	dex
 	bne .loop2
@@ -1224,11 +1237,11 @@ NUCL_DIV8	SUBROUTINE
 	IF !FPULL
 	pla
 	ENDIF
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	jsr NUCL_DIV8
-	lda reserved0
+	lda R0
 	IF !FPUSH
 	pha
 	ENDIF
@@ -1286,9 +1299,11 @@ NUCL_DIV8	SUBROUTINE
 
 	; Divide integers on stack
 	MAC divw
-	lda reserved0
+	plw2var R0
+	plw2var R2
+	lda R0
 	bne .ok
-	lda reserved1
+	lda R1
 	bne .ok
 	lda #<err_divzero
 	pha
@@ -1296,22 +1311,20 @@ NUCL_DIV8	SUBROUTINE
 	pha
 	jmp RUNTIME_ERROR
 .ok
-	plw2var reserved0
-	plw2var reserved2
 	jsr NUCL_DIV16
-	pwvar reserved2
+	pwvar R2
 	ENDM
 
 NUCL_DIV16	SUBROUTINE
 	ldx #$00
-	lda reserved2+1
+	lda R2+1
 	bpl .skip
-	twoscomplement reserved2
+	twoscomplement R2
 	inx
 .skip
-	lda reserved0+1		
+	lda R0+1		
 	bpl .skip2
-	twoscomplement reserved0
+	twoscomplement R0
 	inx
 .skip2
 	txa
@@ -1320,16 +1333,16 @@ NUCL_DIV16	SUBROUTINE
 	pla
 	and #$01
 	beq .q
-	twoscomplement reserved2
+	twoscomplement R2
 .q	rts
 
 	; 16 bit division routine
 	; Author: unknown
 	
 NUCL_DIVU16 SUBROUTINE
-.divisor 	EQU reserved0
-.dividend 	EQU reserved2
-.remainder 	EQU reserved4
+.divisor 	EQU R0
+.dividend 	EQU R2
+.remainder 	EQU R4
 .result 	EQU .dividend ; save memory by reusing divident to store the result
 
 	lda #0	        ;preset remainder to 0
@@ -1386,7 +1399,7 @@ NUCL_DIVU16 SUBROUTINE
 	sta .selfmod_code+1
 	sty .selfmod_code+2
 	ENDIF
-	pla ;discard high byte
+	pla ; discard HB
 	pla
 .selfmod_code:
 	sta.w $0000
@@ -1397,54 +1410,29 @@ NUCL_DIVU16 SUBROUTINE
 	MAC doke
 	IF !FPULL
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	ELSE
-	sta reserved0
-	sty reserved1
+	sta R0
+	sty R1
 	ENDIF
 	ldy #$01
 	pla
-	sta (reserved0),y
+	sta (R0),y
 	pla
 	dey
-	sta (reserved0),y
+	sta (R0),y
 	ENDM
 
 	MAC for
 	; max value already pushed
 	; push address
-	lda #<*
+.addr
+	lda #<.addr
 	pha
-	lda #>*
-	pha                     
-	ENDM
-
-	; NEXT routine (byte index)
-	; usage next variable
-	MAC nextb
-	; increment variable
-	inc {1}
-	; don't roll over
-	beq .end
-.skip
-	; pull address
-	pla
-	sta .selfmod_code+2
-	pla
-	sta .selfmod_code+1
-	; pull max_value
-	pla
-	cmp {1}
-	bcs .jump_back
-	jmp .end
-.jump_back
-	; push max_value back
+	lda #>.addr
 	pha
-.selfmod_code
-	jmp $0000;                                          
-.end
 	ENDM
 
 	; NEXT routine (integer index)
@@ -1463,27 +1451,52 @@ NUCL_DIVU16 SUBROUTINE
 	sta .selfmod_code+1
 	; pull max_value
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
-
+	sta R0
 	; compare them
-	lda reserved0
+	lda R0
 	cmp {1}
-	lda reserved1
+	lda R1
 	sbc {1}+1
 	bcs .jump_back
 	jmp .end ;variable is higher, exit loop
 .jump_back
 	; push max_value back
-	lda reserved0
+	lda R0
 	pha
-	lda reserved1
+	lda R1
 	pha
 .selfmod_code
 	jmp $0000;                                          
 .end
 	ENDM
+	
+	; NEXT routine (byte index)
+	; usage next variable
+	MAC nextb
+	; increment variable
+	inc {1}
+	; don't roll over
+	beq .end
+.skip
+    ; pull address
+    pla
+    sta .selfmod_code+2
+    pla
+    sta .selfmod_code+1
+    ; pull max_value
+    pla
+    cmp {1}
+    bcs .jump_back
+    jmp .end
+.jump_back
+    ; push max_value back
+    pha
+.selfmod_code
+    jmp $0000;
+.end
+    ENDM
 
 	; Opcode for PEEK! (byte)
 	MAC peekb
@@ -1528,19 +1541,19 @@ NUCL_DIVU16 SUBROUTINE
 	MAC deek
 	IF !FPULL
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	ELSE
-	sta reserved0
-	sty reserved1
+	sta R0
+	sty R1
 	ENDIF
 	IF !FPUSH
 	ldy #$00
-	lda (reserved0),y
+	lda (R0),y
 	pha
 	iny
-	lda (reserved0),y
+	lda (R0),y
 	pha
 	ELSE
 	ldy #$00
@@ -1719,6 +1732,24 @@ NUCL_DIVU16 SUBROUTINE
 	pushfac
 	basicout
 	ENDM
+	
+	; Square root of float
+	MAC sqrf
+	basicin
+	pullfac
+	jsr SQR
+	pushfac
+	basicout
+	ENDM
+	
+	; Sign of float
+	MAC sgnf
+	basicin
+	pullfac
+	jsr SGN
+	pushfac
+	basicout
+	ENDM
 
 	MAC basicin
 	lda $01
@@ -1815,14 +1846,14 @@ NUCL_DIVU16 SUBROUTINE
 	jsr SETLFS
 	; get address
 	pla
-	sta reserved1
+	sta R1
 	pla
-	sta reserved0
+	sta R0
 	pla
 	tay
 	pla
 	tax
-	lda #reserved0
+	lda #R0
 	jsr SAVE
 	bcs .error
 	lda #$00
@@ -1842,7 +1873,82 @@ NUCL_DIVU16 SUBROUTINE
 	pha
 	ENDM
 	
+	; From the book
+	; 6502 Software Design by Leo J. Scanlon
+	
+NUCL_SQRW	SUBROUTINE
+	lda R1
+	bpl .ok
+	lda #<err_illegal_quantity
+	pha
+	lda #>err_illegal_quantity
+	pha
+	jmp RUNTIME_ERROR
+.ok	
+	ldy #$01
+	sty R2
+	dey
+	sty R3
+.again
+	sec
+	lda R0
+	tax
+	sbc R2
+	sta R0
+	lda R1
+	sbc R3
+	sta R1
+	bcc .nomore
+	iny
+	lda R2
+	adc #$01
+	sta R2
+	bcc .again
+	inc R3
+	jmp .again
+.nomore
+	tya
+	rts
+	
+	MAC sqrw
+	pla
+	sta R1
+	pla
+	sta R0
+	jsr NUCL_SQRW
+	pha
+	pzero
+	ENDM
+	
+	MAC sgnw
+	pla
+	bmi .neg
+	beq .plz
+	pla
+.pos
+	pword #1
+	jmp .end
+.plz
+	pla
+	bne .pos
+	pword #0
+	jmp .end
+.neg
+	pla
+	pword #65535
+.end	
+
+	MAC curpos
+	pla
+	tay
+	pla
+	tax
+	clc
+	jsr PLOT
+	ENDM
+	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
+err_illegal_quantity HEX 49 4C 4C 45 47 41 4C 20 51 55 41 4E 54 49 54 59 00
 
 RUNTIME_ERROR	SUBROUTINE
 	pla

@@ -59,6 +59,30 @@ Fun FunFactory(ParseTree node, Program program) {
             fun = new AtnFun(node, program);
         break;
 
+        case "sqr":
+            fun = new SqrFun(node, program);
+        break;
+
+        case "sgn":
+            fun = new SgnFun(node, program);
+        break;
+
+        case "strlen":
+            fun = new StrlenFun(node, program);
+        break;
+
+        case "strcmp":
+            fun = new StrcmpFun(node, program);
+        break;
+
+        case "strpos":
+            fun = new StrposFun(node, program);
+        break;
+
+        case "val":
+            fun = new ValFun(node, program);
+        break;
+
         default:
         assert(0);
     }
@@ -278,6 +302,71 @@ class AbsFun:Fun
         this.fncode ~= "\tabs" ~ to!string(this.type) ~ "\n";
     }
 }
+
+class StrlenFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['b'];
+    }
+
+    void process()
+    {
+        if(this.arglist[0].detect_type() != 's') {
+            this.program.error("Wrong type passed to strlen()");
+        }
+
+        this.program.use_stringlib = true;
+        this.fncode ~= "\tstrlen\n";
+    }
+}
+
+class StrcmpFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 2;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['w'];
+    }
+
+    void process()
+    {
+        if(this.arglist[0].detect_type() != 's' || this.arglist[1].detect_type() != 's') {
+            this.program.error("Wrong type passed to strcmp()");
+        }
+        this.program.use_stringlib = true;
+        this.fncode ~= "\tstrcmp\n";
+    }
+}
+
+class StrposFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 2;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['b'];
+    }
+
+    void process()
+    {
+        if(this.arglist[0].detect_type() != 's' || this.arglist[1].detect_type() != 's') {
+            this.program.error("Wrong type passed to strcmp()");
+        }
+        this.program.use_stringlib = true;
+        this.fncode ~= "\tstrpos\n";
+    }
+}
+
 class CastFun:Fun
 {
     mixin FunConstructor;
@@ -364,5 +453,78 @@ class AtnFun:TrigonometricFun
     override string getName()
     {
         return "atn";
+    }
+}
+
+
+class SqrFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['w', 'f'];
+    }
+
+    void process()
+    {
+        if(this.type != this.arglist[0].detect_type()) {
+            this.program.error("The sqr() function's argument type and return type must match");
+        }
+
+        this.fncode ~= "\tsqr" ~ to!string(this.type) ~ "\n";
+    }
+}
+
+
+class ValFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['b', 'w', 'f'];
+    }
+
+    void process()
+    {
+        this.program.use_stringlib = true;
+        char argtype = this.arglist[0].type;
+        if(argtype != 's') {
+            this.program.error("Argument 1 of VAL() must be a string pointer");
+        }
+
+        this.fncode = "\tval"~to!string(this.type)~"\n";
+    }
+}
+
+class SgnFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['w'];
+    }
+
+    void process()
+    {
+        char argtype = this.arglist[0].detect_type();
+
+        if(indexOf("bwf", argtype) == -1) {
+            this.program.error("The argument passed to SGN must be an int or float");
+        }
+
+        if(argtype == 'b') {
+            this.arglist[0].convert('w');
+        }
+
+        this.fncode ~= "\tsgn" ~ to!string(this.type) ~ "\n";
     }
 }

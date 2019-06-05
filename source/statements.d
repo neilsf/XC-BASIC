@@ -7,6 +7,7 @@ import expression;
 import stringliteral;
 import number;
 import excess;
+import xcbarray;
 
 Stmt StmtFactory(ParseTree node, Program program) {
 	string stmt_class =node.children[0].name;
@@ -132,6 +133,18 @@ Stmt StmtFactory(ParseTree node, Program program) {
             stmt = new Asm_stmt(node, program);
         break;
 
+        case "XCBASIC.Strcpy_stmt":
+            stmt = new Strcpy_stmt(node, program);
+        break;
+
+        case "XCBASIC.Strncpy_stmt":
+            stmt = new Strncpy_stmt(node, program);
+        break;
+
+        case "XCBASIC.Curpos_stmt":
+            stmt = new Curpos_stmt(node, program);
+        break;
+
 		default:
             program.error("Unknown statement "~node.name);
 		    assert(0);
@@ -176,6 +189,10 @@ class Const_stmt:Stmt
 		string varname = join(v.children[0].matches);
         string sigil = join(v.children[1].matches);
 		char vartype = this.program.resolve_sigil(sigil);
+
+        if(vartype == 's') {
+            this.program.error("A string pointer cannot be constant");
+        }
 
         Number number = new Number(num, this.program);
 
@@ -231,6 +248,9 @@ class Let_stmt:Stmt
 
         char extype = Ex.detect_type();
 
+        extype = (extype == 's' ? 'w' : extype);
+        vartype = (vartype == 's' ? 'w' : vartype);
+
         if
         (
             (extype == 'f' && vartype != 'f') ||
@@ -259,55 +279,8 @@ class Let_stmt:Stmt
             }
             */
             auto subscript = v.children[2];
-            if((var.dimensions[1] == 1 && subscript.children.length > 1) || (var.dimensions[1] > 1 && subscript.children.length == 1)) {
-                this.program.error("Bad subscript");
-            }
-            ushort[2] dimensions;
-
-            bool fast_store = false;
-            if(subscript.children.length == 1 && vartype == 'b') {
-                Expression fex = new Expression(subscript.children[0], this.program);
-                if(fex.detect_type() == 'b') {
-                    fast_store = true;
-                }
-            }
-
-            if(fast_store) {
-                // Fast store (set byte by byte index)
-                Expression fex = new Expression(subscript.children[0], this.program);
-                fex.eval();
-                this.program.program_segment  ~= to!string(fex);
-                this.program.program_segment  ~= "\tplbarray_fast "~ var.getLabel() ~ "\n";
-            }
-            else {
-                ubyte i = 0;
-                foreach(ref expr; subscript.children) {
-                    Expression Ex2 = new Expression(expr, this.program);
-                    Ex2.eval();
-                    if(Ex2.type == 'b') {
-                        Ex2.btow();
-                    }
-                    this.program.program_segment ~= to!string(Ex2);
-
-
-                    if(i == 1) {
-                        // must multiply with first dimension length
-                        this.program.program_segment ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
-                                                      ~ "\tmulw\n"
-                                                      ~ "\taddw\n";
-                    }
-
-                    i++;
-                }
-                // if not a byte, must multiply with the variable length!
-                if(vartype != 'b') {
-                    this.program.program_segment ~= "\tpword #" ~ to!string(this.program.varlen[vartype]) ~ "\n"
-                                              ~ "\tmulw\n" ;
-                }
-
-                this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~"array "~ var.getLabel() ~ "\n";
-            }
-
+            XCBArray arr = new XCBArray(this.program, var, subscript);
+            this.program.program_segment ~= arr.store();
         }
         else {
             this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n";
@@ -396,17 +369,19 @@ class Print_stmt:Stmt
 					Ex.eval();
                     char type = Ex.detect_type();
 					this.program.program_segment ~= to!string(Ex);
-                    this.program.program_segment ~= "\tstdlib_print"~ to!string(type) ~"\n";
+                    if(type == 's') {
+                        this.program.program_segment ~= "\tstdlib_putstr\n";
+                    }
+                    else {
+                        this.program.program_segment ~= "\tstdlib_print"~ to!string(type) ~"\n";
+                    }
 				break;
 
 				case "XCBASIC.String":
 					string str = join(exlist.children[i].matches[1..$-1]);
 					Stringliteral sl = new Stringliteral(str, this.program);
 					sl.register();
-					this.program.program_segment ~= "\tlda #<_S" ~ to!string(Stringliteral.id) ~ "\n";
-					this.program.program_segment ~= "\tpha\n";
-					this.program.program_segment ~= "\tlda #>_S" ~ to!string(Stringliteral.id) ~ "\n";
-					this.program.program_segment ~= "\tpha\n";
+					this.program.program_segment ~= "\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n";
 					this.program.program_segment ~= "\tstdlib_putstr\n";
 				break;
 			}
@@ -440,21 +415,33 @@ class Textat_stmt:Stmt
             row.btow();
         }
 
-		if(exlist.children[2].name == "XCBASIC.Expression") {
-			this.program.program_segment ~= to!string(row); // rownum
-			// multiply by 40
-			this.program.program_segment ~="\tpword #40\n" ~ "\tmulw\n";
-			// add column
-			this.program.program_segment ~= to!string(col); // colnum
-			this.program.program_segment ~= "\taddw\n";
-			// add 1024
-			this.program.program_segment ~="\tpword #1024\n" ~ "\taddw\n";
+        string offset_code = "";
 
-			// numeric
-			Expression ex = new Expression(exlist.children[2], this.program);
-			ex.eval();
-			this.program.program_segment ~= to!string(ex) ~ "\n";
-			this.program.program_segment ~= "\t"~to!string(ex.type)~"at\n";
+        offset_code ~= to!string(row); // rownum second
+        // multiply by 40
+        offset_code ~="\tpword #40\n" ~ "\tmulw\n";
+        // add column
+        offset_code ~= to!string(col); // colnum last
+        offset_code ~= "\taddw\n";
+        // add 1024
+        offset_code ~="\tpword #1024\n" ~ "\taddw\n";
+
+		if(exlist.children[2].name == "XCBASIC.Expression") {
+
+            Expression ex = new Expression(exlist.children[2], this.program);
+            ex.eval();
+
+            if(ex.type != 's') {
+                this.program.program_segment ~= offset_code;
+                this.program.program_segment ~= to!string(ex) ~ "\n";
+                this.program.program_segment ~= "\t"~to!string(ex.type)~"at\n";
+            }
+            else {
+                this.program.program_segment ~= to!string(ex) ~ "\n";
+                this.program.program_segment ~= offset_code;
+                this.program.program_segment ~="\tstringat\n";
+            }
+
 		}
 		else {
 			// string literal
@@ -462,19 +449,8 @@ class Textat_stmt:Stmt
 			Stringliteral sl = new Stringliteral(str, this.program);
 			sl.register(false, true);
 			// text first
-			this.program.program_segment ~= "\tlda #<_S" ~ to!string(Stringliteral.id) ~ "\n";
-			this.program.program_segment ~= "\tpha\n";
-			this.program.program_segment ~= "\tlda #>_S" ~ to!string(Stringliteral.id) ~ "\n";
-			this.program.program_segment ~= "\tpha\n";
-
-			this.program.program_segment ~= to!string(row); // rownum second
-			// multiply by 40
-			this.program.program_segment ~="\tpword #40\n" ~ "\tmulw\n";
-			// add column
-			this.program.program_segment ~= to!string(col); // colnum last
-			this.program.program_segment ~= "\taddw\n";
-			// add 1024
-			this.program.program_segment ~="\tpword #1024\n" ~ "\taddw\n";
+			this.program.program_segment ~= "\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n";
+            this.program.program_segment ~= offset_code;
 			this.program.program_segment ~="\ttextat\n";
 		}
 	}
@@ -525,6 +501,12 @@ class Call_stmt:Stmt
 				this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ varlabel ~ "\n";
 			}
 		}
+
+        bool recursive = false;
+        if(lbl == this.program.current_proc_name) {
+            // recursive call!
+            recursive = true;
+        }
 
 		this.program.program_segment ~= "\tjsr " ~ proc.getLabel() ~ "\n";
 	}
@@ -653,6 +635,7 @@ class If_stmt:Stmt
 					break;
 			}
 
+            exp_type = (exp_type == "s" ? "w" : exp_type);
 			this.program.program_segment~="\tcmp" ~ exp_type ~rel_type~"\n";
 		}
 
@@ -829,26 +812,47 @@ class Input_stmt:Stmt
 
 	void process()
 	{
-		ParseTree list = this.node.children[0].children[0];
+        this.program.use_stringlib = true;
+		ParseTree list = this.node.children[0];
 
-        this.program.warning("The INPUT command is deprecated since version 2.0 and may be changed or removed in a future version");
-
-        for(char i=0; i< list.children.length; i++) {
-            ParseTree v = list.children[i];
-            string varname = join(v.children[0].matches);
-            string sigil = join(v.children[1].matches);
-            char vartype = this.program.resolve_sigil(sigil);
-            if(!this.program.is_variable(varname, sigil)) {
-                this.program.variables ~= Variable(0, varname, vartype);
-            }
-            Variable var = this.program.findVariable(varname, sigil);
-            if(var.isConst) {
-                this.program.error("Can't INPUT to a constant");
-            }
-
-            this.program.program_segment~="\tinput\n";
-            this.program.program_segment~="\tplw2var " ~ var.getLabel() ~ "\n";
+        ParseTree v = list.children[0];
+        string varname = join(v.children[0].matches);
+        string sigil = join(v.children[1].matches);
+        char vartype = this.program.resolve_sigil(sigil);
+        if(!this.program.is_variable(varname, sigil)) {
+            this.program.error("Variable does not exist");
         }
+        Variable var = this.program.findVariable(varname, sigil);
+        if(vartype != 's') {
+            this.program.error("Argument 1 of INPUT must be a string pointer");
+        }
+
+        this.program.program_segment ~= "\tpwvar "~var.getLabel()~"\n";
+
+        ParseTree len = list.children[1];
+        Expression e = new Expression(len, this.program);
+        if(e.detect_type() != 'b') {
+            this.program.error("Argument 2 of INPUT must be a byte");
+        }
+
+        e.eval();
+        this.program.program_segment ~= e.asmcode;
+
+        if(list.children.length > 2) {
+            string mask = join(list.children[2].matches)[1..$-1];
+            if(mask == "") {
+                this.program.error("Empty string");
+            }
+
+            auto sl = new Stringliteral(mask, this.program);
+            sl.register();
+            this.program.program_segment ~= "\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n";
+        }
+        else {
+            this.program.program_segment ~= "\tpaddr str_default_mask\n";
+        }
+
+        this.program.program_segment~="\tinput\n";
 	}
 }
 
@@ -1137,6 +1141,99 @@ class Sys_stmt:Stmt
 		this.program.program_segment ~= to!string(Ex1);
 		this.program.program_segment~="\tsys\n";
 	}
+}
+
+class Strcpy_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        auto e1 = this.node.children[0].children[0];
+        auto Ex1 = new Expression(e1, this.program);
+        Ex1.eval();
+
+        auto e2 = this.node.children[0].children[1];
+        auto Ex2 = new Expression(e2, this.program);
+        Ex2.eval();
+
+        if(Ex1.type != 's' || Ex2.type != 's') {
+            this.program.error("STRCPY accepts string pointers only");
+        }
+
+        this.program.program_segment ~= to!string(Ex1);
+        this.program.program_segment ~= to!string(Ex2);
+        this.program.use_stringlib = true;
+        this.program.program_segment~="\tstrcpy\n";
+    }
+}
+
+class Strncpy_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        auto e1 = this.node.children[0].children[0];
+        auto Ex1 = new Expression(e1, this.program);
+        Ex1.eval();
+
+        auto e2 = this.node.children[0].children[1];
+        auto Ex2 = new Expression(e2, this.program);
+        Ex2.eval();
+
+        if(Ex1.type != 's' || Ex2.type != 's') {
+            this.program.error("STRNCPY accepts string pointers only");
+        }
+
+        auto e3 = this.node.children[0].children[2];
+        auto Ex3 = new Expression(e3, this.program);
+        Ex3.eval();
+
+        if(Ex3.type != 'b') {
+            this.program.error("The length param passed to STRNCPY must be a byte");
+        }
+
+        this.program.program_segment ~= to!string(Ex1);
+        this.program.program_segment ~= to!string(Ex2);
+        this.program.program_segment ~= to!string(Ex3);
+        this.program.use_stringlib = true;
+        this.program.program_segment~="\tstrncpy\n";
+    }
+}
+
+class Curpos_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        auto e1 = this.node.children[0].children[0];
+        auto xpos = new Expression(e1, this.program);
+        xpos.eval();
+
+        auto e2 = this.node.children[0].children[1];
+        auto ypos = new Expression(e2, this.program);
+        ypos.eval();
+
+        if(indexOf("bw", xpos.type) == -1 || indexOf("bw", ypos.type) == -1) {
+            this.program.error("CURPOS accepts arguments of type byte or int");
+        }
+
+        if(xpos.type == 'w') {
+            xpos.convert('b');
+        }
+
+        if(ypos.type == 'w') {
+            ypos.convert('b');
+        }
+
+        this.program.program_segment ~= to!string(ypos);
+        this.program.program_segment ~= to!string(xpos);
+
+        this.program.use_stringlib = true;
+        this.program.program_segment~="\tcurpos\n";
+    }
 }
 
 class Load_stmt:Stmt

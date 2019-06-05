@@ -26,6 +26,6 @@ class Stringliteral
         else {
             data = ascii_to_petscii_hex(this.str, newline);
         }
-        this.program.data_segment ~= "_S" ~ to!string(Stringliteral.id) ~ " HEX " ~ data ~ "\n";
+        this.program.data_segment ~= "_S" ~ to!string(Stringliteral.id) ~ "\t" ~ data ~ "\n";
     }
 }
