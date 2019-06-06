@@ -1500,7 +1500,7 @@ NUCL_DIVU16 SUBROUTINE
 
 	MAC basicin
 	lda $01
-	ora #%00000001
+	ora #%00000001         
 	sta $01
 	ENDM
 	
@@ -1686,6 +1686,7 @@ NUCL_SQRW	SUBROUTINE
 	pla
 	pword #65535
 .end	
+	ENDM
 
 	MAC curpos
 	pla
@@ -1694,7 +1695,7 @@ NUCL_SQRW	SUBROUTINE
 	tax
 	clc
 	jsr PLOT
-	ENDM
+	ENDM                   
 	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
 err_illegal_quantity HEX 49 4C 4C 45 47 41 4C 20 51 55 41 4E 54 49 54 59 00
