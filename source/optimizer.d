@@ -15,7 +15,7 @@ class Optimizer
         "cmpwgte", "cmpwgt", "cmpwlte", "addb",
         "orb", "andb", "xorb", "mulb", "mulw",
         "divb", "peekb", "peekw", "deek", "inkeyb",
-        "inkeyw", "rndb", "rndw"
+        "inkeyw", "rndb", "rndw", "sqrw"
     ];
 
     const string[] pullers = [
@@ -26,7 +26,7 @@ class Optimizer
         "xorb", "mulb", "mulw", "divb", "pokeb",
         "pokew", "doke", "peekb", "peekw", "deek",
         "sys", "usr", "stdlib_printw", "textat", "wat",
-        "bat"
+        "bat", "ongoto", "ongosub", "sqrw"
     ];
 
     this(string incode)

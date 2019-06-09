@@ -8,6 +8,7 @@ import stringliteral;
 import number;
 import excess;
 import xcbarray;
+import std.algorithm.mutation;
 
 Stmt StmtFactory(ParseTree node, Program program) {
 	string stmt_class =node.children[0].name;
@@ -143,6 +144,10 @@ Stmt StmtFactory(ParseTree node, Program program) {
 
         case "XCBASIC.Curpos_stmt":
             stmt = new Curpos_stmt(node, program);
+        break;
+
+        case "XCBASIC.On_stmt":
+            stmt = new On_stmt(node, program);
         break;
 
 		default:
@@ -504,11 +509,40 @@ class Call_stmt:Stmt
 
         bool recursive = false;
         if(lbl == this.program.current_proc_name) {
-            // recursive call!
             recursive = true;
+            // push local vars
+            foreach(ref var; this.program.localVariables()) {
+                if(var.dimensions == [1,1]) {
+                    this.program.program_segment ~= "\tp"~to!string(var.type)~"var " ~ var.getLabel() ~ "\n";
+                }
+                else {
+                    // an array
+                    int length = var.dimensions[0] * var.dimensions[1] * this.program.varlen[var.type];
+                    for(int offset = 0; offset < length; offset++) {
+                        this.program.program_segment ~= "\tpbvar " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
+                    }
+                }
+            }
         }
 
 		this.program.program_segment ~= "\tjsr " ~ proc.getLabel() ~ "\n";
+
+        if(recursive) {
+            // pull local vars
+            foreach(ref var; this.program.localVariables().reverse) {
+                if(var.dimensions == [1,1]) {
+                    this.program.program_segment ~= "\tpl"~to!string(var.type)~"2var " ~ var.getLabel() ~ "\n";
+                }
+                else {
+                    // an array
+                    int length = var.dimensions[0] * var.dimensions[1] * this.program.varlen[var.type];
+                    for(int offset = length -1 ; offset >= 0; offset--) {
+                        this.program.program_segment ~= "\tplb2var " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
+                    }
+                }
+
+            }
+        }
 	}
 }
 
@@ -1365,5 +1399,48 @@ class Asm_stmt:Stmt
         this.program.program_segment~="\t; Inline ASM start\n";
         this.program.program_segment~=asm_string~"\n";
         this.program.program_segment~="\t; Inline ASM end\n";
+    }
+}
+
+class On_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    private static int counter = 0;
+
+    void process()
+    {
+        On_stmt.counter++;
+        auto args = this.node.children[0].children;
+        auto e1 = args[0];
+        auto index = new Expression(e1, this.program);
+        index.eval();
+
+        if(indexOf("bw", index.type) == -1 || indexOf("bw", index.type) == -1) {
+            this.program.error("ON accepts argument of type byte or int");
+        }
+
+        if(index.type == 'w') {
+            index.convert('b');
+        }
+
+        string branch_type = join(args[1].matches);
+        string lbs ="_On_LB"~to!string(On_stmt.counter)~": DC.B ";
+        string hbs ="_On_HB"~to!string(On_stmt.counter)~": DC.B ";
+        for(int i=2; i < args.length; i++) {
+            string lbl = join(args[i].matches);
+            if(!this.program.labelExists(lbl)) {
+                this.program.error("Label "~lbl~" does not exist");
+            }
+
+            lbl = "_L" ~ (this.program.in_procedure ? this.program.current_proc_name ~ "." ~ lbl : lbl);
+            string comma = (i < args.length - 1 ? ", " : "");
+            lbs~="<"~lbl~ comma;
+            hbs~=">"~lbl~ comma;
+        }
+
+        this.program.data_segment ~= lbs ~ "\n" ~ hbs ~ "\n";
+        this.program.program_segment ~= to!string(index);
+        this.program.program_segment ~= "\ton" ~ branch_type ~ " _On_LB"~to!string(On_stmt.counter)~", _On_HB"~to!string(On_stmt.counter) ~ "\n";
     }
 }

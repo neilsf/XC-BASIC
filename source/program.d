@@ -280,7 +280,23 @@ class Program
 		assert(0);
 	}
 
-	Procedure findProcedure(string name)
+    /**
+     * Get variables of the current scope
+     */
+
+    Variable[] localVariables()
+    {
+        Variable[] ret;
+        foreach(var; this.variables) {
+            if(!var.isConst && !var.isGlobal && var.procname == this.current_proc_name) {
+                ret ~= var;
+            }
+        }
+
+        return ret;
+    }
+
+    Procedure findProcedure(string name)
 	{
 		foreach(ref elem; this.procedures) {
 			if(name == elem.name) {
@@ -366,6 +382,10 @@ class Program
 		return false;
 	}
 
+    /**
+     * Displays error message and halts compilation
+     */
+
 	void error(string error_message, bool is_warning = false)
 	{
 		uint error_location = to!uint(this.current_node.begin);
@@ -384,6 +404,10 @@ class Program
 	{
 		this.error(msg, true);
 	}
+
+    /**
+     * Processes one line of code
+     */
 
 	void processLine(ParseTree node, ubyte pass)
 	{

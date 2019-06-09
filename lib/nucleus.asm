@@ -1510,7 +1510,7 @@ NUCL_DIVU16 SUBROUTINE
 	sty .selfmod_code+2
 	ENDIF
 .selfmod_code:
-	lda $0000
+	lda.w $0000
 	IF !FPUSH
 	pha
 	ENDIF
@@ -1753,7 +1753,7 @@ NUCL_DIVU16 SUBROUTINE
 
 	MAC basicin
 	lda $01
-	ora #%00000001
+	ora #%00000001         
 	sta $01
 	ENDM
 	
@@ -1911,13 +1911,22 @@ NUCL_SQRW	SUBROUTINE
 	rts
 	
 	MAC sqrw
+	IF !FPULL
 	pla
 	sta R1
 	pla
 	sta R0
+	ELSE
+	sta R0
+	sty R1
+	ENDIF
 	jsr NUCL_SQRW
+	IF !FPUSH
 	pha
 	pzero
+	ELSE
+	ldy #$00
+	ENDIF
 	ENDM
 	
 	MAC sgnw
@@ -1937,6 +1946,7 @@ NUCL_SQRW	SUBROUTINE
 	pla
 	pword #65535
 .end	
+	ENDM
 
 	MAC curpos
 	pla
@@ -1945,6 +1955,42 @@ NUCL_SQRW	SUBROUTINE
 	tax
 	clc
 	jsr PLOT
+	ENDM
+	
+	; {1} points to the list of
+	;     low bytes of addresses
+	; {2} points to the list of
+	;     high bytes of addresses
+	; index on top of stack
+	MAC ongoto
+	IF !FPULL
+	pla
+	ENDIF
+	tax
+	lda.wx {1}
+	sta .selfmod_code+1
+	lda.wx {2}
+	sta .selfmod_code+2
+.selfmod_code	
+	jmp $0000
+	ENDM
+	
+	; {1} points to the list of
+	;     low bytes of addresses
+	; {2} points to the list of
+	;     high bytes of addresses
+	; index on top of stack
+	MAC ongosub
+	IF !FPULL
+	pla
+	ENDIF
+	tax
+	lda.wx {1}
+	sta .selfmod_code+1
+	lda.wx {2}
+	sta .selfmod_code+2
+.selfmod_code	
+	jsr $0000
 	ENDM
 	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00

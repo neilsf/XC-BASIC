@@ -3,9 +3,10 @@ XC=BASIC Release Notes
 Current Release Number:
    v2.0
 Release Date:
-  01/06/2019
+  15/06/2019
 
 What's new in version 2.0?
+==========================
 
 (1) Loads of bugfixes
 
@@ -13,18 +14,30 @@ What's new in version 2.0?
 
 (3) New type: float
 
-(4) Support for binary and hexa numeric literals
+(4) New type: string pointer
 
-(5) Inline assembly through the ASM directive
+(5) Support for binary and hexa numeric literals
 
-(6) Floating point functions like SIN(), COS() etc.
+(6) Inline assembly through the ASM directive
 
-(7) CAST() function
+(7) Floating point functions like SIN(), COS() etc.
 
-(8) DEEK() function and DOKE command
+(8) String functions and commands
 
-(9) Support for source inclusion through the
+(9) CAST() function
+
+(10) DEEK() function and DOKE command
+
+(11) Support for source inclusion through the
     INCLUDE directive
+
+(12) Direct recursion
+
+(13) Better documentation
+
+(14) Keywords are now case-insensitive
+
+(15) CURPOS command
 
 What's new in version 1.2-beta?
 ===============================
