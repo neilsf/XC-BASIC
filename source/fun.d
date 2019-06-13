@@ -95,10 +95,25 @@ template FunConstructor()
     this(ParseTree node, Program program)
     {
         super(node, program);
-        for(ubyte i=0; i<this.arg_count; i++) {
-            auto e = this.node.children[2].children[i];
-            this.arglist[i] = new Expression(e, this.program);
-            this.arglist[i].eval();
+        if(this.node.children.length > 2) {
+            auto exprlist = this.node.children[2];
+            if(this.check_argcount) {
+                if(exprlist.children.length < this.arg_count || exprlist.children.length > this.arg_count + this.opt_arg_count) {
+                    this.program.error("Wrong number of arguments");
+                }
+            }
+
+
+            for(ubyte i=0; i<this.arg_count; i++) {
+                auto e = exprlist.children[i];
+                this.arglist[i] = new Expression(e, this.program);
+                this.arglist[i].eval();
+            }
+        }
+        else {
+            if(this.check_argcount && this.arg_count > 0) {
+                this.program.error("Wrong number of arguments");
+            }
         }
     }
 }
@@ -112,7 +127,9 @@ abstract class Fun:FunInterface
 {
     protected ParseTree node;
     protected Program program;
-    protected ubyte arg_count;
+    protected ubyte arg_count = 0;
+    protected ubyte opt_arg_count = 0;
+    protected bool check_argcount = true;
     protected Expression[8] arglist;
     protected string fncode;
     public char type;
