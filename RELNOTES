@@ -16,7 +16,7 @@ What's new in version 2.0?
 
 (4) New type: string pointer
 
-(5) Support for binary and hexa numeric literals
+(5) Support for binary and hexadecimal numeric literals
 
 (6) Inline assembly through the ASM directive
 
@@ -38,6 +38,8 @@ What's new in version 2.0?
 (14) Keywords are now case-insensitive
 
 (15) CURPOS command
+
+(16) A full-feature game, Puralax! is added to the examples
 
 What's new in version 1.2-beta?
 ===============================
