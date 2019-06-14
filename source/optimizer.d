@@ -20,7 +20,7 @@ class Optimizer
 
     const string[] pullers = [
         "pbarray", "pwarray", "plb2var", "plw2var",
-        "plbarray", "plbarray_fast", "pwbarray", "cmpblt", "cmpblte",
+        "plbarray", "plbarray_fast", "plwarray", "cmpblt", "cmpblte",
         "cmpbgte", "cmpbeq", "cmpbneq", "cmpbgt",
         "cmpweq", "cmpwneq", "addb", "orb", "andb",
         "xorb", "mulb", "mulw", "divb", "pokeb",

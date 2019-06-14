@@ -545,18 +545,18 @@ PLOT		EQU $fff0
 	MAC cmpweq
 	IF !FPULL
 	pla
-	sta R1
-	pla
 	sta R2
+	pla
+	sta R1
 	ELSE
 	sta R1
 	sty R2
 	ENDIF
 	pla
-	cmp R1
+	cmp R2
 	bne .phf
 	pla
-	cmp R2
+	cmp R1
 	bne .phf+1
 	pone
 	IF !FPUSH
@@ -573,18 +573,18 @@ PLOT		EQU $fff0
 	MAC cmpwneq
 	IF !FPULL
 	pla
-	sta R1
-	pla
 	sta R2
+	pla
+	sta R1
 	ELSE
 	sta R1
 	sty R2
 	ENDIF
 	pla
-	cmp R1
+	cmp R2
 	bne .pht
 	pla
-	cmp R2
+	cmp R1
 	bne .pht+1
 	pzero
 	IF !FPUSH
@@ -1528,7 +1528,7 @@ NUCL_DIVU16 SUBROUTINE
 	sty .selfmod_code+2
 	ENDIF
 .selfmod_code:
-	lda $0000
+	lda.w $0000
 	IF !FPUSH
 	pha
 	pzero
