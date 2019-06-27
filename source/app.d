@@ -14,6 +14,11 @@ int line_count = 0;
 
 void main(string[] args)
 {
+    if(args.length < 2) {
+        stderr.writeln("Error: input file not specified");
+        exit(1);
+    }
+
     string filename = args[1];
 
     string source = build_source(filename);
