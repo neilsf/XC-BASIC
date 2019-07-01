@@ -26,7 +26,7 @@ class Optimizer
         "xorb", "mulb", "mulw", "divb", "pokeb",
         "pokew", "doke", "peekb", "peekw", "deek",
         "sys", "usr", "stdlib_printw", "textat", "wat",
-        "bat", "ongoto", "ongosub", "sqrw", "wait"
+        "bat", "ongoto", "ongosub", "sqrw", "wait", "watch"
     ];
 
     this(string incode)

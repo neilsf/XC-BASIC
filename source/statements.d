@@ -154,6 +154,10 @@ Stmt StmtFactory(ParseTree node, Program program) {
             stmt = new Wait_stmt(node, program);
         break;
 
+        case "XCBASIC.Watch_stmt":
+            stmt = new Watch_stmt(node, program);
+        break;
+
 		default:
             program.error("Unknown statement "~node.name);
 		    assert(0);
@@ -1492,5 +1496,36 @@ class Wait_stmt: Stmt
         this.program.program_segment ~= to!string(mask);
         this.program.program_segment ~= to!string(address);
         this.program.program_segment ~= "\twait\n";
+    }
+}
+
+class Watch_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        auto args = this.node.children[0].children;
+        auto address = new Expression(args[0], this.program);
+        address.eval();
+        if(address.type == 'f') {
+            this.program.error("Argument #1 of WATCH must not be a float");
+        }
+        else if(address.type == 'b') {
+            address.convert('w');
+        }
+
+        auto mask = new Expression(args[1], this.program);
+        mask.eval();
+        if(mask.type == 'f') {
+            this.program.error("Argument #2 of WATCH must not be a float");
+        }
+        else if(mask.type == 'w') {
+            mask.convert('b');
+        }
+
+        this.program.program_segment ~= to!string(mask);
+        this.program.program_segment ~= to!string(address);
+        this.program.program_segment ~= "\twatch\n";
     }
 }

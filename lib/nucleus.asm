@@ -2037,6 +2037,24 @@ NUCL_SQRW	SUBROUTINE
 	beq .selfmod_code
 	ENDM
 	
+	MAC WATCH
+	IF !FPULL
+	pla
+	sta .selfmod_code+2
+	pla
+	sta .selfmod_code+1
+	ELSE
+	sta .selfmod_code+1
+	sty .selfmod_code+2
+	ENDIF
+	pla
+	sta R0
+.selfmod_code
+	lda.w $0000
+	cmp R0
+	bne .selfmod_code
+	ENDM
+	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
 err_illegal_quantity HEX 49 4C 4C 45 47 41 4C 20 51 55 41 4E 54 49 54 59 00
 
