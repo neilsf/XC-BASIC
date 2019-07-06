@@ -24,7 +24,7 @@ XCBASIC:
     Poke_stmt <     "poke"i :WS? Expression :WS? "," :WS? Expression
     Doke_stmt <     "doke"i :WS? Expression :WS? "," :WS? Expression
     End_stmt <      "end"i
-    Rem_stmt <      "rem"i (!eol .)*
+    Rem_stmt <      (";" / "rem"i) (!eol .)*
     For_stmt <      "for"i :WS? Var :WS? "=" :WS    ? Expression :WS? "to"i :WS? Expression
     Next_stmt <     "next"i :WS? Var
     Dim_stmt <      "dim"i :WS? Var
