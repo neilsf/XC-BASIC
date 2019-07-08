@@ -85,8 +85,9 @@ XCBASIC:
     Binary     < "%" ("0" / "1")+
     Scientific < Floating ('e' / 'E' ) Integer
     Floating   < "-"? Unsigned "." Unsigned
+    Charlit    < "'" . "'"
 
-    Number < (Scientific / Floating / Integer / Hexa / Binary)
+    Number < (Scientific / Floating / Integer / Hexa / Binary / Charlit)
 
     Label < [a-zA-Z_] [a-zA-Z_0-9]* ":"
     Label_ref < [a-zA-Z_] [a-zA-Z_0-9]*
