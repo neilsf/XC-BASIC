@@ -76,6 +76,8 @@ class Program
     string source_path = "";
 	bool use_stringlib = false;
 
+    int[string] compiler_options;
+
     /**
      * Constructor
      */
@@ -90,7 +92,22 @@ class Program
 		this.vartype_names['s'] = "string";
 		this.vartype_names['f'] = "float";
         this.vartype_names['b'] = "byte";
+
+        this.compiler_options = [
+            "civars" : 0
+        ];
 	}
+
+    void setCompilerOption(string option_key, int option_value)
+    {
+        int* ptr = (option_key in this.compiler_options);
+        if(ptr !is null) {
+            *ptr = option_value;
+        }
+        else {
+            this.warning("Compiler option '" ~ option_key ~ "' not recognized");
+        }
+    }
 
     /**
      * Checks if a label exists
@@ -264,6 +281,10 @@ class Program
 			id = stripLeft(id, "\\");
 		}
 
+        if(this.compiler_options["civars"] == 1) {
+            id = toLower(id);
+        }
+
 		foreach(ref elem; this.variables) {
 			if(this.in_procedure && !global_mod) {
 				if(elem.name == id && elem.procname == this.current_proc_name && elem.type == type) {
@@ -314,6 +335,10 @@ class Program
 			var.name = stripLeft(var.name, "\\");
 		}
 
+        if(this.compiler_options["civars"] == 1) {
+            var.name = toLower(var.name);
+        }
+
         bool name_exists = false;
         string id = var.name;
 
@@ -354,6 +379,10 @@ class Program
 		if(global_mod) {
 			id = stripLeft(id, "\\");
 		}
+
+        if(this.compiler_options["civars"] == 1) {
+            id = toLower(id);
+        }
 
 		foreach(ref elem; this.variables) {
 			if(this.in_procedure && !global_mod) {
@@ -514,9 +543,32 @@ class Program
 		}
 	}
 
+    void checkPragmas(ParseTree node)
+    {
+        bool other_statement_found = false;
+        foreach(ref child; node.children[0].children) {
+            // empty row?
+            if(child.name != "XCBASIC.Line" || child.children.length < 2) {
+                continue;
+            }
+
+            auto stmt = child.children[1].children[0].children[0];
+            this.current_node = stmt;
+            if(stmt.name != "XCBASIC.Pragma_stmt" && stmt.name != "XCBASIC.Rem_stmt") {
+                other_statement_found = true;
+                continue;
+            }
+            else if(stmt.name == "XCBASIC.Pragma_stmt" && other_statement_found) {
+                this.error("PRAGMA is only allowed in the beginning of the program");
+            }
+        }
+    }
+
 	void processAst(ParseTree node)
 	{
-		fetchLabels(node);
+        this.checkPragmas(node);
+		this.fetchLabels(node);
+
 		void walkAst(ParseTree node, ubyte pass)
 		{
 			this.current_node = node;

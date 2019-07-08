@@ -158,6 +158,10 @@ Stmt StmtFactory(ParseTree node, Program program) {
             stmt = new Watch_stmt(node, program);
         break;
 
+        case "XCBASIC.Pragma_stmt":
+            stmt = new Pragma_stmt(node, program);
+        break;
+
 		default:
             program.error("Unknown statement "~node.name);
 		    assert(0);
@@ -742,6 +746,7 @@ class If_stmt:Stmt
 		counter++;
 	}
 }
+
 
 class Poke_stmt:Stmt
 {
@@ -1527,5 +1532,18 @@ class Watch_stmt: Stmt
         this.program.program_segment ~= to!string(mask);
         this.program.program_segment ~= to!string(address);
         this.program.program_segment ~= "\twatch\n";
+    }
+}
+
+class Pragma_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        auto stmt = this.node.children[0];
+        string option_key = join(stmt.children[0].matches);
+        auto num = new Number(stmt.children[1], this.program);
+        this.program.setCompilerOption(option_key, num.intval);
     }
 }
