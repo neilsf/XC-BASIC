@@ -50,6 +50,8 @@ XCBASIC:
     Wait_stmt <     "wait"i :WS? Expression :WS? "," :WS? Expression (:WS? "," :WS? Expression)?
     Watch_stmt <    "watch"i :WS? Expression :WS? "," :WS? Expression
     Pragma_stmt <   "pragma"i :WS? Id :WS? "=" :WS? Number
+    While_stmt  <   "while"i :WS? Relation :WS? (Logop :WS? Relation)?
+    Endwhile_stmt < "endwhile"i
 
     Branch_type < "goto"i / "gosub"i
     Relation < Expression :WS? Relop :WS? Expression
