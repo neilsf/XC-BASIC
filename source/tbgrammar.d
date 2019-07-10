@@ -12,7 +12,7 @@ XCBASIC:
                 Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Incbin_stmt /
                 Include_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt / End_stmt / Sys_stmt / Load_stmt / Save_stmt /
                 Origin_stmt / Asm_stmt / Doke_stmt / Strcpy_stmt / Strncpy_stmt / Curpos_stmt / On_stmt / Wait_stmt / Watch_stmt /
-                Pragma_stmt
+                Pragma_stmt / Memset_stmt / Memcpy_stmt / Memshift_stmt
     Const_stmt <    "const"i :WS? Var :WS? "=" :WS? Number
     Let_stmt <      ("let"i / eps) :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print"i :WS? ExprList
@@ -50,6 +50,9 @@ XCBASIC:
     Wait_stmt <     "wait"i :WS? Expression :WS? "," :WS? Expression (:WS? "," :WS? Expression)?
     Watch_stmt <    "watch"i :WS? Expression :WS? "," :WS? Expression
     Pragma_stmt <   "pragma"i :WS? Id :WS? "=" :WS? Number
+    Memset_stmt <   "memset"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
+    Memcpy_stmt <   "memcpy"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
+    Memshift_stmt < "memshift"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
 
     Branch_type < "goto"i / "gosub"i
     Relation < Expression :WS? Relop :WS? Expression
@@ -99,7 +102,7 @@ XCBASIC:
                  "inkey"i / "rnd"i / "incbin"i / "inc"i / "dec"i / "proc"i / "endproc"i / "sys"i / "usr"i / "and"i / "origin"i /
                   "or"i / "load"i / "save"i / "ferr"i / "deek"i / "doke"i /
                  "abs"i / "cast"i / "sin"i / "cos"i / "tan"i / "atn"i / "asm"i / "strcpy"i / "strncpy"i / "strlen"i / "strcmp"i / "curpos"i /
-                 "strpos"i / "val"i / "sqr"i / "sgn"i / "wait"i / "watch"i / "pragma"i)
+                 "strpos"i / "val"i / "sqr"i / "sgn"i / "wait"i / "watch"i / "pragma"i / "memset"i / "memcpy"i / "memshift"i)
     WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 
