@@ -4,7 +4,7 @@ import core.stdc.stdlib;
 import statements;
 import basicstdlib;
 import nucleus;
-import stringlib;
+import stringlib, memlib;
 import globals;
 
 struct Variable {
@@ -75,6 +75,7 @@ class Program
 
     string source_path = "";
 	bool use_stringlib = false;
+    bool use_memlib = false;
 
     int[string] compiler_options;
 
@@ -253,8 +254,13 @@ class Program
         asm_code ~= "library_start:\n";
 		asm_code ~= nucleus.code;
 		asm_code ~= basicstdlib.code;
+
         if(this.use_stringlib) {
             asm_code ~= stringlib.code;
+        }
+
+        if(this.use_memlib) {
+            asm_code ~= memlib.code;
         }
         asm_code ~= "\tECHO \"Library     :\",library_start,\"-\", *-1\n";
 

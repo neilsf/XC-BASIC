@@ -162,6 +162,18 @@ Stmt StmtFactory(ParseTree node, Program program) {
             stmt = new Pragma_stmt(node, program);
         break;
 
+        case "XCBASIC.Memset_stmt":
+            stmt = new Memset_stmt(node, program);
+        break;
+
+        case "XCBASIC.Memcpy_stmt":
+            stmt = new Memcpy_stmt(node, program);
+        break;
+
+        case "XCBASIC.Memshift_stmt":
+            stmt = new Memshift_stmt(node, program);
+        break;
+
 		default:
             program.error("Unknown statement "~node.name);
 		    assert(0);
@@ -1545,5 +1557,110 @@ class Pragma_stmt: Stmt
         string option_key = join(stmt.children[0].matches);
         auto num = new Number(stmt.children[1], this.program);
         this.program.setCompilerOption(option_key, num.intval);
+    }
+}
+
+class Memset_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        auto args = this.node.children[0].children;
+        auto source = new Expression(args[0], this.program);
+        source.eval();
+        if(source.type == 'f') {
+            this.program.error("Argument #1 of MEMSET must not be a float");
+        }
+        else if(source.type == 'b') {
+            source.convert('w');
+        }
+
+        auto len = new Expression(args[1], this.program);
+        len.eval();
+        if(len.type == 'f') {
+            this.program.error("Argument #2 of MEMSET must not be a float");
+        }
+        else if(len.type == 'b') {
+            len.convert('w');
+        }
+
+        auto val = new Expression(args[2], this.program);
+        val.eval();
+        if(val.type == 'f') {
+            this.program.error("Argument #3 of MEMSET must not be a float");
+        }
+        else if(val.type == 'w') {
+            val.convert('b');
+        }
+
+        this.program.program_segment ~= to!string(val);
+        this.program.program_segment ~= to!string(len);
+        this.program.program_segment ~= to!string(source);
+        this.program.program_segment ~= "\tmemset\n";
+
+        this.program.use_memlib = true;
+    }
+}
+
+abstract class Memmove_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    abstract protected string getName();
+    abstract protected string getMenmonic();
+
+    void process()
+    {
+        auto args = this.node.children[0].children;
+
+        Expression e;
+
+        for(int i=2; i>=0; i--) {
+            e = new Expression(args[i], this.program);
+            e.eval();
+            if(e.type == 'f') {
+                this.program.error("Argument #" ~to!string(i+1)~ " of " ~this.getName()~ " must not be a float");
+            }
+            else if(e.type == 'b') {
+                e.convert('w');
+            }
+
+            this.program.program_segment ~= to!string(e);
+        }
+
+        this.program.program_segment ~= "\t" ~this.getMenmonic()~ "\n";
+
+        this.program.use_memlib = true;
+    }
+}
+
+class Memcpy_stmt: Memmove_stmt
+{
+    mixin StmtConstructor;
+
+    override protected string getName()
+    {
+        return "MEMCPY";
+    }
+
+    override protected string getMenmonic()
+    {
+        return "memcpy";
+    }
+}
+
+class Memshift_stmt: Memmove_stmt
+{
+    mixin StmtConstructor;
+
+    override protected string getName()
+    {
+        return "MEMSHIFT";
+    }
+
+    override protected string getMenmonic()
+    {
+        return "memshift";
     }
 }
