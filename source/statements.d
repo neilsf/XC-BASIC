@@ -8,6 +8,7 @@ import stringliteral;
 import number;
 import excess;
 import xcbarray;
+import condition;
 import std.algorithm.mutation;
 
 Stmt StmtFactory(ParseTree node, Program program) {
@@ -172,6 +173,34 @@ Stmt StmtFactory(ParseTree node, Program program) {
 
         case "XCBASIC.Memshift_stmt":
             stmt = new Memshift_stmt(node, program);
+        break;
+
+        case "XCBASIC.While_stmt":
+            stmt = new While_stmt(node, program);
+        break;
+
+        case "XCBASIC.Endwhile_stmt":
+            stmt = new Endwhile_stmt(node, program);
+        break;
+
+        case "XCBASIC.Repeat_stmt":
+            stmt = new Repeat_stmt(node, program);
+        break;
+
+        case "XCBASIC.Until_stmt":
+            stmt = new Until_stmt(node, program);
+        break;
+
+        case "XCBASIC.If_sa_stmt":
+            stmt = new If_standalone_stmt(node, program);
+        break;
+
+        case "XCBASIC.Else_stmt":
+            stmt = new Else_stmt(node, program);
+        break;
+
+        case "XCBASIC.Endif_stmt":
+            stmt = new Endif_stmt(node, program);
         break;
 
 		default:
@@ -624,95 +653,12 @@ class If_stmt:Stmt
 
 	void process()
 	{
-		ParseTree[] relations;
-		int rel_count = 1;
-		bool logop_present = false;
+        auto statement = this.node.children[0];
+        Condition cond = new Condition(statement.children[0], this.program);
+        cond.eval();
+        this.program.program_segment ~= cond.asmcode;
 
-		auto statement = this.node.children[0];
-		relations ~= statement.children[0];
-
-		if(statement.children[1].name == "XCBASIC.Logop") {
-			relations ~= statement.children[2];
-			rel_count++;
-			logop_present = true;
-		}
-
-		for(int i; i < rel_count; i++) {
-			auto e1 = relations[i].children[0];
-			string rel = join(relations[i].children[1].matches);
-			auto e2 = relations[i].children[2];
-
-			auto Ex1 = new Expression(e1, this.program);
-			Ex1.eval();
-			auto Ex2 = new Expression(e2, this.program);
-			Ex2.eval();
-
-            string exp_type;
-
-            if(Ex1.detect_type() == Ex2.detect_type()) {
-                exp_type = to!string(Ex1.type);
-            }
-            else {
-                char common_type = this.program.get_higher_type(Ex1.type, Ex2.type);
-                if(Ex1.type != common_type) {
-                    Ex1.convert(common_type);
-                }
-                else {
-                    Ex2.convert(common_type);
-                }
-                exp_type = to!string(common_type);
-            }
-			this.program.program_segment ~= to!string(Ex1);
-			this.program.program_segment ~= to!string(Ex2);
-
-			string rel_type;
-
-			final switch(rel) {
-				case "<":
-					rel_type = "lt";
-					break;
-
-				case "<=":
-					rel_type = "lte";
-					break;
-
-				case "<>":
-					rel_type = "neq";
-					break;
-
-				case ">":
-					rel_type = "gt";
-					break;
-
-				case ">=":
-					rel_type = "gte";
-					break;
-
-				case "=":
-					rel_type = "eq";
-					break;
-			}
-
-            exp_type = (exp_type == "s" ? "w" : exp_type);
-			this.program.program_segment~="\tcmp" ~ exp_type ~rel_type~"\n";
-		}
-
-		// relations are evaluated, now the comes logical op if present
-
-		if(logop_present) {
-			string logop = join(statement.children[1].matches);
-			final switch(logop) {
-				case "and":
-					this.program.program_segment~="\tandb\n";
-				break;
-
-				case "or":
-					this.program.program_segment~="\torb\n";
-				break;
-			}
-		}
-
-		int cursor = logop_present ? 3 : 1;
+		int cursor = 1;
 		auto st = statement.children[cursor];
 		bool else_present = false;
 
@@ -759,6 +705,117 @@ class If_stmt:Stmt
 	}
 }
 
+class If_standalone_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    public static int counter = 0;
+
+    void process()
+    {
+        counter++;
+        this.program.if_stack.push(counter);
+
+        auto statement = this.node.children[0];
+        Condition cond = new Condition(statement.children[0], this.program);
+        cond.eval();
+        this.program.program_segment ~= cond.asmcode;
+        this.program.program_segment ~= "\tifstmt "~to!string(counter) ~ "\n";
+    }
+}
+
+class Else_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        this.program.program_segment ~= "_EL_"~ to!string(this.program.if_stack.top()) ~ ":\n";
+    }
+}
+
+class Endif_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        this.program.program_segment ~= "_EI_"~ to!string(this.program.if_stack.pull()) ~ ":\n";
+    }
+}
+
+class While_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    public static int counter = 0;
+
+    void process()
+    {
+        counter++;
+        this.program.while_stack.push(counter);
+
+        string ret;
+        string strcounter = to!string(counter);
+
+        ret ~= "_WH_" ~ strcounter ~ ":\n";
+
+        auto statement = this.node.children[0];
+        Condition cond = new Condition(statement.children[0], this.program);
+        cond.eval();
+        ret ~= cond.asmcode;
+
+        ret ~= "\twhile " ~ strcounter ~ "\n";
+        this.program.program_segment ~= ret;
+    }
+}
+
+class Endwhile_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        int counter = this.program.while_stack.pull();
+        this.program.program_segment ~= "\tjmp _WH_" ~ to!string(counter) ~ "\n";
+        this.program.program_segment ~= "_EW_" ~ to!string(counter) ~ ":\n";
+    }
+}
+
+class Repeat_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    public static int counter = 0;
+
+    void process()
+    {
+        counter++;
+        this.program.repeat_stack.push(counter);
+        this.program.program_segment ~= "_RP_" ~ to!string(counter) ~ ":\n";
+    }
+}
+
+class Until_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        int counter = this.program.repeat_stack.pull();
+
+        string ret;
+        string strcounter = to!string(counter);
+
+        auto statement = this.node.children[0];
+        Condition cond = new Condition(statement.children[0], this.program);
+        cond.eval();
+        ret ~= cond.asmcode;
+
+        ret ~= "\tuntil " ~ strcounter ~ "\n";
+        this.program.program_segment ~= ret;
+    }
+}
 
 class Poke_stmt:Stmt
 {

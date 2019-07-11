@@ -6,6 +6,7 @@ import basicstdlib;
 import nucleus;
 import stringlib, memlib;
 import globals;
+import std.algorithm.mutation;
 
 struct Variable {
 	ushort location;
@@ -48,6 +49,29 @@ struct Procedure {
 	}
 }
 
+struct Stack {
+    int[] elements;
+
+    void push(int value)
+    {
+        this.elements ~= value;
+    }
+
+    int pull()
+    {
+        ulong last_index = elements.length - 1;
+        int last_value = this.elements[last_index];
+        this.elements = this.elements.remove(last_index);
+        return last_value;
+    }
+
+    int top()
+    {
+        ulong last_index = elements.length - 1;
+        return this.elements[last_index];
+    }
+}
+
 class Program
 {
 	ubyte[char] varlen;
@@ -78,6 +102,8 @@ class Program
     bool use_memlib = false;
 
     int[string] compiler_options;
+
+    Stack if_stack, while_stack, repeat_stack;
 
     /**
      * Constructor
