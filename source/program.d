@@ -59,16 +59,14 @@ struct Stack {
 
     int pull()
     {
-        ulong last_index = elements.length - 1;
-        int last_value = this.elements[last_index];
-        this.elements = this.elements.remove(last_index);
+        int last_value = this.elements[elements.length - 1];
+        this.elements = this.elements.remove(elements.length - 1);
         return last_value;
     }
 
     int top()
     {
-        ulong last_index = elements.length - 1;
-        return this.elements[last_index];
+        return this.elements[elements.length - 1];
     }
 }
 
