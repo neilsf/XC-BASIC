@@ -31,7 +31,13 @@ class Number
                 this.type = 'b';
                 string chrlit = join(node.children[0].matches);
                 char chr = chrlit[1];
-                this.intval = to!int(ascii_to_petscii(chr));
+                if(chr != 123) {    // not a "{" character
+                    this.intval = to!int(ascii_to_petscii(chr));
+                }
+                else {
+                    char[] replaced_chrlit = replace_petscii_escapes(chrlit[1..$-1]);
+                    this.intval = to!int(replaced_chrlit[0]);
+                }
                 break;
 
             case "XCBASIC.Integer":

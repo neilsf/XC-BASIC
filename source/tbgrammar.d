@@ -97,7 +97,7 @@ XCBASIC:
     Binary     < "%" ("0" / "1")+
     Scientific < Floating ('e' / 'E' ) Integer
     Floating   < "-"? Unsigned "." Unsigned
-    Charlit    < "'" . "'"
+    Charlit    < ("'{" [a-zA-Z_0-9]+ "}'") / ("'" . "'")
 
     Number < (Scientific / Floating / Integer / Hexa / Binary / Charlit)
 

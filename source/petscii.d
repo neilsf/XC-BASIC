@@ -20,6 +20,74 @@ char[] petscii = [
     0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff
 ];
 
+string[string] escape_sequences;
+
+static this()
+{
+    escape_sequences = [
+    "{CLR}":        "\x93",
+    "{CLEAR}":      "\x93",
+    "{HOME}":       "\x13",
+    "{INSERT}":     "\x94",
+    "{INS}":        "\x94",
+    "{DELETE}":     "\x14",
+    "{DEL}":        "\x14",
+    "{CR}":         "\x0d",
+    "{RETURN}":     "\x0d",
+    "{REV_ON}":     "\x12",
+    "{REVERSE ON}": "\x12",
+    "{REV_OFF}":    "\x92",
+    "{REVERSE OFF}":"\x92",
+    "{CRSR_UP}":    "\x91",
+    "{UP}":         "\x91",
+    "{CRSR_DOWN}":  "\x11",
+    "{DOWN}":       "\x11",
+    "{CRSR_LEFT}":  "\x9d",
+    "{LEFT}":       "\x9d",
+    "{CRSR_RIGHT}": "\x1d",
+    "{RIGHT}":      "\x1d",
+    "{SPACE}":      "\x20",
+    "{WHITE}":      "\x05",
+    "{RED}":        "\x1c",
+    "{GREEN}":      "\x1e",
+    "{BLUE}":       "\x1f",
+    "{ORANGE}":     "\x81",
+    "{BLACK}":      "\x90",
+    "{BROWN}":      "\x95",
+    "{LIGHT_RED}":  "\x96",
+    "{PINK}":       "\x96",
+    "{DARK_GRAY}":  "\x97",
+    "{DARK GRAY}":  "\x97",
+    "{MED_GRAY}":   "\x98",
+    "{GRAY}":       "\x98",
+    "{LIGHT_GREEN}":"\x99",
+    "{LIGHT GREEN}":"\x99",
+    "{LIGHT_BLUE}": "\x9a",
+    "{LIGHT BLUE}": "\x9a",
+    "{LIGHT_GRAY}": "\x9b",
+    "{LIGHT GRAY}": "\x9b",
+    "{PURPLE}":     "\x9c",
+    "{YELLOW}":     "\x9e",
+    "{CYAN}":       "\x9f",
+    "{LOWER_CASE}": "\x0e",
+    "{UPPER_CASE}": "\x8e",
+    "{F1}":         "\x85",
+    "{F2}":         "\x86",
+    "{F3}":         "\x87",
+    "{F4}":         "\x88",
+    "{F5}":         "\x89",
+    "{F6}":         "\x8a",
+    "{F7}":         "\x8b",
+    "{F8}":         "\x8c",
+    "{POUND}":      "\x5c",
+    "{ARROW UP}":   "\x5e",
+    "{ARROW_UP}":   "\x5e",
+    "{ARROW LEFT}": "\x5f",
+    "{ARROW_LEFT}": "\x5f",
+    "{PI}":         "\xff"
+    ];
+}
+
 ubyte ascii_to_petscii(char ascii_char)
 {
     for(ubyte i=0; i<=0xff; i++) {
@@ -33,45 +101,10 @@ ubyte ascii_to_petscii(char ascii_char)
 
 char[] replace_petscii_escapes(string s)
 {
-    string ret;
-    ret = replace(s,     "{CLR}", "\x93");
-    ret = replace(ret,   "{HOME}", "\x13");
-    ret = replace(ret,   "{INSERT}", "\x94");
-    ret = replace(ret,   "{DEL}", "\x14");
-    ret = replace(ret,   "{CR}", "\x0d");
-    ret = replace(ret,   "{REV_ON}", "\x12");
-    ret = replace(ret,   "{REV_OFF}", "\x92");
-    ret = replace(ret,   "{CRSR_UP}", "\x91");
-    ret = replace(ret,   "{CRSR_DOWN}", "\x11");
-    ret = replace(ret,   "{CRSR_LEFT}", "\x9d");
-    ret = replace(ret,   "{CRSR_RIGHT}", "\x1d");
-    ret = replace(ret,   "{WHITE}", "\x05");
-    ret = replace(ret,   "{RED}", "\x1c");
-    ret = replace(ret,   "{GREEN}", "\x1e");
-    ret = replace(ret,   "{BLUE}", "\x1f");
-    ret = replace(ret,   "{ORANGE}", "\x81");
-    ret = replace(ret,   "{BLACK}", "\x90");
-    ret = replace(ret,   "{BROWN}", "\x95");
-    ret = replace(ret,   "{LIGHT_RED}", "\x96");
-    ret = replace(ret,   "{DARK_GRAY}", "\x97");
-    ret = replace(ret,   "{MED_GRAY}", "\x98");
-    ret = replace(ret,   "{LIGHT_GREEN}", "\x99");
-    ret = replace(ret,   "{LIGHT_BLUE}", "\x9a");
-    ret = replace(ret,   "{LIGHT_GRAY}", "\x9b");
-    ret = replace(ret,   "{PURPLE}", "\x9c");
-    ret = replace(ret,   "{YELLOW}", "\x9e");
-    ret = replace(ret,   "{CYAN}", "\x9f");
-    ret = replace(ret,   "{LOWER_CASE}", "\x0e");
-    ret = replace(ret,   "{UPPER_CASE}", "\x8e");
-    ret = replace(ret,   "{F1}", "\x85");
-    ret = replace(ret,   "{F2}", "\x86");
-    ret = replace(ret,   "{F3}", "\x87");
-    ret = replace(ret,   "{F4}", "\x88");
-    ret = replace(ret,   "{F5}", "\x89");
-    ret = replace(ret,   "{F6}", "\x8a");
-    ret = replace(ret,   "{F7}", "\x8b");
-    ret = replace(ret,   "{F8}", "\x8c");
-
+    string ret = s.dup;
+    foreach(key, value; escape_sequences) {
+        ret = replace(ret, key, value);
+    }
     return ret.dup;
 }
 

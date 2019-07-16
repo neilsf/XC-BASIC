@@ -1,0 +1,1 @@
+print joska(1)
