@@ -1370,7 +1370,7 @@ NUCL_DIVU16 SUBROUTINE
 	bne .divloop	
 	rts
 
-	; poke routine (byte type)
+	; poke pseudo-op (byte type)
 	; requires that arguments are pushed backwards (value first)
 	MAC pokeb
 	IF !FPULL
@@ -1386,8 +1386,17 @@ NUCL_DIVU16 SUBROUTINE
 .selfmod_code:
 	sta.w $0000
 	ENDM
+	
+	; poke pseudo-op (byte type)
+	; used when the address is constant
+	MAC pokeb_c
+	IF !FPULL
+	pla
+	ENDIF
+	sta.w {1}
+	ENDM
 
-	; poke routine (word type)
+	; poke pseudo.op (word type)
 	; requires that arguments are pushed backwards (value first)
 	MAC pokew
 	IF !FPULL
@@ -1403,6 +1412,16 @@ NUCL_DIVU16 SUBROUTINE
 	pla
 .selfmod_code:
 	sta.w $0000
+	ENDM
+	
+	; poke pseudo-op (word type)
+	; used when the address is constant
+	MAC pokew_c
+	IF !FPULL
+	pla
+	pla
+	ENDIF
+	sta.w {1}
 	ENDM
 	
 	; doke routine

@@ -23,6 +23,11 @@ class Expression
         this.program = program;
     }
 
+    bool is_const()
+    {
+        return false;
+    }
+
     /**
      * Pre-parses the expression to find out
      * the final result type (byte, int or float)
@@ -162,6 +167,11 @@ class Expression
     override string toString()
     {
         return this.asmcode;
+    }
+
+    real eval_const()
+    {
+        return 1.0;
     }
 }
 

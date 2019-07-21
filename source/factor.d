@@ -14,6 +14,7 @@ import term;
 import number;
 import stringliteral;
 import xcbarray;
+import var;
 
 class Factor
 {
@@ -27,6 +28,34 @@ class Factor
     {
         this.node = node;
         this.program = program;
+    }
+
+    bool is_const()
+    {
+        string ftype = this.node.children[0].name;
+        switch(ftype) {
+            case "XCBASIC.Number":
+                return true;
+
+            case "XCBASIC.Var":
+                ParseTree v = this.node.children[0];
+                string varname = join(v.children[0].matches);
+                string sigil = v.children[1].matches[0];
+                if(!this.program.is_variable(varname, sigil)) {
+                    this.program.error("Undefined variable: " ~ varname);
+                }
+                Variable var = this.program.findVariable(varname, sigil);
+                return var.isConst;
+
+            case "XCBASIC.Parenthesis":
+            case "XCBASIC.Expression":
+                ParseTree ex = this.node.children[0];
+                auto expr = new Expression(ex, this.program);
+                return expr.is_const();
+
+            default:
+                return false;
+        }
     }
 
     char detect_type()
@@ -84,47 +113,8 @@ class Factor
         final switch(ftype) {
             case "XCBASIC.Var":
                 ParseTree v = this.node.children[0];
-                string varname = join(v.children[0].matches);
-                string sigil = v.children[1].matches[0];
-
-                if(!this.program.is_variable(varname, sigil)) {
-                    this.program.error("Undefined variable: " ~ varname);
-                }
-
-                Variable var = this.program.findVariable(varname, sigil);
-                char vartype = var.type;
-
-                if(var.isConst) {
-                    if(var.type == 'w') {
-                        this.asmcode ~= "\tpword #" ~ to!string(var.constValInt) ~ "\n";
-                    }
-                    else if(var.type == 'b') {
-                        this.asmcode ~= "\tpbyte #" ~ to!string(var.constValInt) ~ "\n";
-                    }
-                    else {
-                        ubyte[5] bytes = float_to_hex(to!real(var.constValFloat));
-                            this.asmcode ~= "\tpfloat $" ~ to!string(bytes[0], 16) ~ ", $" ~ to!string(bytes[1], 16) ~ ", $"
-                            ~ to!string(bytes[2], 16) ~ ", $" ~ to!string(bytes[3], 16)  ~ ", $" ~ to!string(bytes[4], 16) ~ "\n";
-                    }
-
-                }
-                else {
-                    if(v.children.length > 2) {
-                        /* any variable can be accessed as an array
-                        if(var.dimensions[0] == 1 && var.dimensions[1] == 1) {
-                            this.program.error("Not an array");
-                        }
-                        */
-                        auto subscript = v.children[2];
-                        XCBArray arr = new XCBArray(this.program, var, subscript);
-                        this.asmcode ~= arr.lookup();
-
-                    }
-                    else {
-                        this.asmcode ~= "\tp" ~ to!string(vartype) ~ "var " ~ var.getLabel() ~ "\n";
-                    }
-                }
-
+                Var var = new Var(v, this.program);
+                this.asmcode = var.get_asm_code();
             break;
 
             case "XCBASIC.Address":
@@ -172,7 +162,8 @@ class Factor
             break;
 
             case "XCBASIC.Expression":
-                ParseTree ex = this.node.children[0];
+            case "XCBASIC.Parenthesis":
+                ParseTree ex = ftype == "XCBASIC.Expression" ? this.node.children[0] : this.node.children[0].children[0];
                 auto Ex = new Expression(ex, this.program);
                 Ex.eval();
                 this.asmcode ~= to!string(Ex);
@@ -184,13 +175,6 @@ class Factor
                 fun.process();
                 this.asmcode ~= to!string(fun);
             break;
-
-	        case "XCBASIC.Parenthesis":
-	            ParseTree ex = this.node.children[0].children[0];
-                auto Ex = new Expression(ex, this.program);
-                Ex.eval();
-                this.asmcode ~= to!string(Ex);
-	        break;
 
             case "XCBASIC.String":
                 string str = join(this.node.children[0].matches[1..$-1]);
@@ -221,9 +205,85 @@ class Factor
         }
     }
 
-    void _type_error()
+    real eval_const_float()
     {
+        string ftype = this.node.children[0].name;
+        real val;
+        final switch(ftype) {
+            case "XCBASIC.Var":
+                ParseTree v = this.node.children[0];
+                Var var = new Var(v, this.program);
+                val = var.get_fconstval();
+            break;
 
+            case "XCBASIC.Number":
+                ParseTree v = this.node.children[0];
+                Number num = new Number(v, this.program);
+                val = num.floatval;
+            break;
+
+            case "XCBASIC.Expression":
+            case "XCBASIC.Parenthesis":
+                ParseTree ex = ftype == "XCBASIC.Expression" ? this.node.children[0] : this.node.children[0].children[0];
+                auto Ex = new Expression(ex, this.program);
+                val = Ex.eval_const_float();
+            break;
+        }
+        return val;
+    }
+
+    byte eval_const_byte()
+    {
+        string ftype = this.node.children[0].name;
+        byte val;
+        final switch(ftype) {
+            case "XCBASIC.Var":
+                ParseTree v = this.node.children[0];
+                Var var = new Var(v, this.program);
+                val = var.get_bconstval();
+            break;
+
+            case "XCBASIC.Number":
+                ParseTree v = this.node.children[0];
+                Number num = new Number(v, this.program);
+                val = cast(byte)num.intval;
+            break;
+
+            case "XCBASIC.Expression":
+            case "XCBASIC.Parenthesis":
+                ParseTree ex = ftype == "XCBASIC.Expression" ? this.node.children[0] : this.node.children[0].children[0];
+                auto Ex = new Expression(ex, this.program);
+                val = Ex.eval_const_byte();
+            break;
+        }
+        return val;
+    }
+
+    short eval_const_int()
+    {
+        string ftype = this.node.children[0].name;
+        short val;
+        final switch(ftype) {
+            case "XCBASIC.Var":
+                ParseTree v = this.node.children[0];
+                Var var = new Var(v, this.program);
+                val = var.get_wconstval();
+            break;
+
+            case "XCBASIC.Number":
+                ParseTree v = this.node.children[0];
+                Number num = new Number(v, this.program);
+                val = cast(short)num.intval;
+            break;
+
+            case "XCBASIC.Expression":
+            case "XCBASIC.Parenthesis":
+                ParseTree ex = ftype == "XCBASIC.Expression" ? this.node.children[0] : this.node.children[0].children[0];
+                auto Ex = new Expression(ex, this.program);
+                val = Ex.eval_const_int();
+            break;
+        }
+        return val;
     }
 
     override string toString()

@@ -20,6 +20,23 @@ class Term
         this.program = program;
     }
 
+    bool is_const()
+    {
+        Factor tmpFact;
+        bool is_const = true;
+        foreach(ref child; this.node.children) {
+            if(child.name == "XCBASIC.Factor") {
+                tmpFact = new Factor(child, this.program);
+                if(!tmpFact.is_const()) {
+                    is_const = false;
+                    break;
+                }
+            }
+        }
+
+        return is_const;
+    }
+
     char detect_type()
     {
         Factor tmpFact;
@@ -50,6 +67,11 @@ class Term
 
     void eval()
     {
+        if(this.is_const()) {
+            this.eval_const();
+            return;
+        }
+
         char i = 0; 
     	Factor f1 = new Factor(this.node.children[i], this.program);
         f1.expected_type = this.expected_type;
@@ -74,6 +96,22 @@ class Term
                 }
             }
         }
+    }
+
+    void eval_const_byte()
+    {
+        byte ret;
+        Factor f1 = new Factor(this.node.children[i], this.program);
+        ret = f1.eval_const_byte();
+        if(this.node.children.length > 1) {
+            for(i = 1; i < this.node.children.length; i += 2) {
+                string t_op = this.node.children[i].matches[0];
+                Factor f = new Factor(this.node.children[i+1], this.program);
+                byte bval = f.eval_const_byte();
+                ret = t_op == "*" ? cast(byte)(ret * bval) : cast(byte)(ret / bval);
+            }
+        }
+        return ret;
     }
    
     void _type_error()
