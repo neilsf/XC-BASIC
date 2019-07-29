@@ -4,22 +4,29 @@ import core.stdc.stdlib;
 import statements;
 import basicstdlib;
 import nucleus;
+import opt;
 import stringlib, memlib;
 import globals;
 import std.algorithm.mutation;
 
 struct Variable {
-	ushort location;
+	ubyte location;
 	string name;
 	char type;
+
 	ushort[2] dimensions = [1,1];
 	bool isConst = false;
 	bool isData = false;
 	bool isGlobal = true;
+    bool isFast = false;
 	string procname;
 
 	int constValInt = 0;
 	real constValFloat = 0;
+
+    static const ubyte zp_low = 0x02;
+    static const ubyte zp_high = 0x10;
+    static ubyte zp_ptr = zp_low;
 
 	string getLabel()
 	{
@@ -229,6 +236,11 @@ class Program
 		varsegment ~= "\tORG data_end+1\n";
 
 		foreach(ref variable; this.variables) {
+            if(variable.isFast) {
+                varsegment ~= variable.getLabel() ~"\tEQU $" ~ to!string(variable.location, 16) ~ "\n";
+                continue;
+            }
+
 			if(!variable.isData && !variable.isConst) {
 				ubyte varlen = this.varlen[variable.type];
 				int array_length = variable.dimensions[0] * variable.dimensions[1];
@@ -277,6 +289,7 @@ class Program
         asm_code ~= "\tECHO \"BASIC loader: $801 -\", *-1\n";
         asm_code ~= "library_start:\n";
 		asm_code ~= nucleus.code;
+        asm_code ~= opt.code;
 		asm_code ~= basicstdlib.code;
 
         if(this.use_stringlib) {
@@ -287,9 +300,6 @@ class Program
             asm_code ~= memlib.code;
         }
         asm_code ~= "\tECHO \"Library     :\",library_start,\"-\", *-1\n";
-
-
-
 		asm_code ~= this.getCodeSegment();
         asm_code ~= "\tECHO \"Code        :\",prg_start,\"-\", *-1\n";
 		asm_code ~= this.getDataSegment();
@@ -358,7 +368,7 @@ class Program
 		assert(0);
 	}
 
-	void addVariable(Variable var)
+	void addVariable(Variable var, bool is_fast = false)
 	{
 		bool global_mod = var.name[0] == '\\';
 		if(global_mod) {
@@ -393,6 +403,18 @@ class Program
 			var.isGlobal = false;
 			var.procname = this.current_proc_name;
 		}
+
+        if(is_fast) {
+            if(Variable.zp_ptr + this.varlen[var.type] * var.dimensions[0] * var.dimensions[1] - 1 <= Variable.zp_high) {
+                var.isFast = true;
+                var.location = Variable.zp_ptr;
+                Variable.zp_ptr += this.varlen[var.type];
+            }
+            else {
+                this.warning("Out of zeropage space, ignoring directive");
+            }
+
+        }
 
 		this.variables ~= var;
 

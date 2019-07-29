@@ -1,7 +1,7 @@
 module var;
 import program;
 import pegged.grammar;
-import std.conv;
+import std.conv, std.stdio;
 import xcbarray;
 import std.array;
 import excess;
@@ -20,6 +20,7 @@ class Var
     this(ParseTree node, Program program)
     {
         this.program = program;
+        this.node = node;
         string varname = join(this.node.children[0].matches);
         string sigil = this.node.children[1].matches[0];
 

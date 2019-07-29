@@ -1389,7 +1389,7 @@ NUCL_DIVU16 SUBROUTINE
 	bne .divloop	
 	rts
 
-	; poke routine (byte type)
+	; poke pseudo-op (byte type)
 	; requires that arguments are pushed backwards (value first)
 	MAC pokeb
 	IF !FPULL
@@ -1405,8 +1405,17 @@ NUCL_DIVU16 SUBROUTINE
 .selfmod_code:
 	sta.w $0000
 	ENDM
+	
+	; poke pseudo-op (byte type)
+	; used when the address is constant
+	MAC pokeb_c
+	IF !FPULL
+	pla
+	ENDIF
+	sta.w {1}
+	ENDM
 
-	; poke routine (word type)
+	; poke pseudo.op (word type)
 	; requires that arguments are pushed backwards (value first)
 	MAC pokew
 	IF !FPULL
@@ -1422,6 +1431,16 @@ NUCL_DIVU16 SUBROUTINE
 	pla
 .selfmod_code:
 	sta.w $0000
+	ENDM
+	
+	; poke pseudo-op (word type)
+	; used when the address is constant
+	MAC pokew_c
+	IF !FPULL
+	pla
+	pla
+	ENDIF
+	sta.w {1}
 	ENDM
 	
 	; doke routine
@@ -2109,6 +2128,124 @@ RUNTIME_ERROR	SUBROUTINE
 tmp_floatvar HEX 00 00 00 00 00	
 
 	LIST ON
+	PROCESSOR 6502
+	
+	; [OPT_MACRO]
+	MAC opt_pbyte_plbtovar
+	; > pbyte+plb2var
+	; > pbvar+plb2var
+	; [/OPT_MACRO]
+	lda {1}
+	sta {2}
+	ENDM
+	
+	
+	; [OPT_MACRO]
+	MAC opt_pbyte_pbyte_add
+	; > pbyte+pbyte+addb
+	; > pbyte+pbvar+addb
+	; > pbvar+pbyte+addb
+	; > pbvar+pbvar+addb
+	; [/OPT_MACRO]
+	lda {1}
+	clc
+	adc {2}
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
+	
+	; [OPT_MACRO]
+	; pbarray_fast+pbyte+addb
+	; pbarray_fast+pbvar+addb
+	; [/OPT_MACRO]
+	MAC opt_pbarray_fast_pbyte_addb
+	IF !FPULL
+	pla
+	ENDIF
+	tax
+	lda.wx {1}
+	clc
+	adc {2}
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
+	
+	; [OPT_MACRO]
+	; pbyte+pbarray_fast+addb
+	; pbvar+pbarray_fast+addb
+	; [/OPT_MACRO]
+	MAC opt_pbyte_pbarray_fast_subb
+	IF !FPULL
+	pla
+	ENDIF
+	tax
+	lda.wx {1}
+	sec
+	sbc {2}
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
+	
+	MAC opt_pbyte_pbyte_cmpblt
+	lda {1}
+	cmp {2}
+	bcs .false
+	pone
+	IF !FPUSH
+	jmp *+6
+	ELSE
+	jmp *+5
+	ENDIF
+.false:
+	pzero
+	ENDM
+	
+	MAC opt_pbyte_pbyte_cmpblte
+	lda {1}
+	cmp {2}
+	bcs .false
+	pone
+	IF !FPUSH
+	jmp *+6
+	ELSE
+	jmp *+5
+	ENDIF
+.false:
+	pzero
+	ENDM
+	
+	MAC opt_pword_pword_addw
+	lda #<{1}
+	clc
+	adc #<{2}
+	pha
+	lda #>{1}
+	adc #>{2}
+	IF !FPUSH
+	pha
+	ELSE
+	tay
+	pla
+	ENDIF
+	ENDM
+	
+	MAC opt_pword_pword_subw
+	lda #<{1}
+	sec
+	sbc #<{2}
+	pha
+	lda #>{1}
+	sbc #>{2}
+	IF !FPUSH
+	pha
+	ELSE
+	tay
+	pla
+	ENDIF
+	ENDM
 KERNAL_PRINTCHR	EQU $e716
 KERNAL_GETIN EQU $ffe4	
 
@@ -2594,52 +2731,16 @@ prg_start:
 FPUSH	SET 0
 FPULL	SET 0
 	init_program
-FPUSH	SET 1
-	pbyte #0
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _c1A
-FPULL	SET 0
-FPUSH	SET 1
-	pbyte #0
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _c1B
-FPULL	SET 0
-FPUSH	SET 1
-	pbyte #0
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _c2A
-FPULL	SET 0
-FPUSH	SET 1
-	pbyte #0
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _c2B
+	opt_pbyte_plbtovar  #0,  _c1A
+	opt_pbyte_plbtovar  #0,  _c1B
+	opt_pbyte_plbtovar  #0,  _c2A
+	opt_pbyte_plbtovar  #0,  _c2B
 	jmp _Pdoplasma_end
 _Pdoplasma:
-FPULL	SET 0
-FPUSH	SET 1
-	pbvar _c1A
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _doplasma.c1a
-FPULL	SET 0
-FPUSH	SET 1
-	pbvar _c1B
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _doplasma.c1b
-FPULL	SET 0
-FPUSH	SET 1
-	pbyte #0
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _doplasma.i
-FPULL	SET 0
-	pbyte #24
-	for
+	opt_pbyte_plbtovar  _c1A,  _doplasma.c1a
+	opt_pbyte_plbtovar  _c1B,  _doplasma.c1b
+	opt_pbyte_plbtovar  #0,  _doplasma.i
+_RP_1:
 	pbvar _doplasma.c1a
 	pbarray_fast _sntable
 	pbvar _doplasma.c1b
@@ -2658,15 +2759,17 @@ FPUSH	SET 0
 	incb _doplasma.c1a
 	incb _doplasma.c1a
 	incb _doplasma.c1a
+	opt_pbyte_pbyte_add  _doplasma.c1b,  #9
 FPULL	SET 0
-	pbvar _doplasma.c1b
-FPUSH	SET 1
-	pbyte #9
-FPULL	SET 1
-	addb
-FPUSH	SET 0
 	plb2var _doplasma.c1b
-	nextb _doplasma.i
+	incb _doplasma.i
+	pbvar _doplasma.i
+FPUSH	SET 1
+	pbyte #25
+FPULL	SET 1
+FPUSH	SET 0
+	cmpbeq
+	until 1
 	incb _c1A
 	incb _c1A
 	incb _c1A
@@ -2675,27 +2778,11 @@ FPUSH	SET 0
 	decb _c1B
 	decb _c1B
 	decb _c1B
+	opt_pbyte_plbtovar  _c2A,  _doplasma.c2a
+	opt_pbyte_plbtovar  _c2B,  _doplasma.c2b
+	opt_pbyte_plbtovar  #0,  _doplasma.i
+_RP_2:
 FPULL	SET 0
-FPUSH	SET 1
-	pbvar _c2A
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _doplasma.c2a
-FPULL	SET 0
-FPUSH	SET 1
-	pbvar _c2B
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _doplasma.c2b
-FPULL	SET 0
-FPUSH	SET 1
-	pbyte #0
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _doplasma.i
-FPULL	SET 0
-	pbyte #39
-	for
 	pbvar _doplasma.c2a
 	pbarray_fast _sntable
 	pbvar _doplasma.c2b
@@ -2713,36 +2800,32 @@ FPUSH	SET 0
 	incb _doplasma.c2a
 	incb _doplasma.c2a
 	incb _doplasma.c2a
+	opt_pbyte_pbyte_add  _doplasma.c2b,  #7
 FPULL	SET 0
-	pbvar _doplasma.c2b
-FPUSH	SET 1
-	pbyte #7
-FPULL	SET 1
-	addb
-FPUSH	SET 0
 	plb2var _doplasma.c2b
-	nextb _doplasma.i
+	incb _doplasma.i
+	pbvar _doplasma.i
+FPUSH	SET 1
+	pbyte #40
+FPULL	SET 1
+FPUSH	SET 0
+	cmpbeq
+	until 2
 	incb _c2A
 	incb _c2A
 	decb _c2B
 	decb _c2B
 FPULL	SET 0
 FPUSH	SET 1
-	pbyte #0
+	pwvar _doplasma.screen
 FPULL	SET 1
 FPUSH	SET 0
-	plb2var _doplasma.y
+	plw2var _doplasma.cursor
+	opt_pbyte_plbtovar  #0,  _doplasma.y
+_RP_3:
+	opt_pbyte_plbtovar  #0,  _doplasma.x
+_RP_4:
 FPULL	SET 0
-	pbyte #24
-	for
-FPUSH	SET 1
-	pbyte #0
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _doplasma.x
-FPULL	SET 0
-	pbyte #39
-	for
 	pbvar _doplasma.x
 	pbarray_fast _doplasma.xbuf
 	pbvar _doplasma.y
@@ -2752,18 +2835,30 @@ FPULL	SET 1
 FPUSH	SET 0
 	addb
 FPULL	SET 0
-	pwvar _doplasma.screen
-	pbvar _doplasma.x
-	btow
-	addw
+FPUSH	SET 1
+	pwvar _doplasma.cursor
+FPULL	SET 1
+FPUSH	SET 0
 	pokeb
-	nextb _doplasma.x
-	pwvar _doplasma.screen
+	incb _doplasma.x
+	incw _doplasma.cursor
+FPULL	SET 0
+	pbvar _doplasma.x
+FPUSH	SET 1
 	pbyte #40
-	btow
-	addw
-	plw2var _doplasma.screen
-	nextb _doplasma.y
+FPULL	SET 1
+FPUSH	SET 0
+	cmpbeq
+	until 4
+	incb _doplasma.y
+FPULL	SET 0
+	pbvar _doplasma.y
+FPUSH	SET 1
+	pbyte #25
+FPULL	SET 1
+FPUSH	SET 0
+	cmpbeq
+	until 3
 	rts
 _Pdoplasma_end:
 	jmp _Pmakecharset_end
@@ -2773,6 +2868,7 @@ _Pmakecharset:
 	lda #13
 	jsr KERNAL_PRINTCHR
 	paddr _S2
+FPULL	SET 0
 	pbyte #10
 	btow
 FPUSH	SET 1
@@ -2787,40 +2883,20 @@ FPULL	SET 0
 	pword #1024
 	addw
 	textat
-FPUSH	SET 1
-	pbyte #0
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _makecharset.c
+	opt_pbyte_plbtovar  #0,  _makecharset.c
 _Lmakecharset.loop:
-FPULL	SET 0
 	pbvar _makecharset.c
 FPUSH	SET 1
 	pbarray_fast _sntable
 FPULL	SET 1
 FPUSH	SET 0
 	plb2var _makecharset.s
-FPULL	SET 0
-FPUSH	SET 1
-	pbyte #0
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _makecharset.i
+	opt_pbyte_plbtovar  #0,  _makecharset.i
 FPULL	SET 0
 	pbyte #7
 	for
-FPUSH	SET 1
-	pbyte #0
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _makecharset.b
-FPULL	SET 0
-FPUSH	SET 1
-	pbyte #0
-FPULL	SET 1
-FPUSH	SET 0
-	plb2var _makecharset.ii
-FPULL	SET 0
+	opt_pbyte_plbtovar  #0,  _makecharset.b
+	opt_pbyte_plbtovar  #0,  _makecharset.ii
 	pbyte #7
 	for
 	rndb
@@ -2964,20 +3040,21 @@ data_end:
 	;--------------
 	SEG.U variables
 	ORG data_end+1
-_c1A	DS.B 1
-_c1B	DS.B 1
-_c2A	DS.B 1
-_c2B	DS.B 1
+_c1A	EQU $2
+_c1B	EQU $3
+_c2A	EQU $4
+_c2B	EQU $5
 _doplasma.screen	DS.B 2
 _doplasma.xbuf	DS.B 40
 _doplasma.ybuf	DS.B 25
-_doplasma.c1a	DS.B 1
-_doplasma.c1b	DS.B 1
-_doplasma.i	DS.B 1
-_doplasma.c2a	DS.B 1
-_doplasma.c2b	DS.B 1
-_doplasma.y	DS.B 1
-_doplasma.x	DS.B 1
+_doplasma.i	EQU $6
+_doplasma.x	EQU $7
+_doplasma.y	EQU $8
+_doplasma.c1a	EQU $9
+_doplasma.c1b	EQU $A
+_doplasma.c2a	EQU $B
+_doplasma.c2b	EQU $C
+_doplasma.cursor	DS.B 2
 _makecharset.address	DS.B 2
 _makecharset.c	DS.B 1
 _makecharset.s	DS.B 1

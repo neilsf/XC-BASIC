@@ -353,6 +353,11 @@ class Dim_stmt:Stmt
 	void process()
 	{
 		ParseTree v = this.node.children[0].children[0];
+        bool is_fast = false;
+        if(this.node.matches[$-1] == "fast" || this.node.matches[$-1] == "FAST") {
+            is_fast = true;
+        }
+
 		string varname = join(v.children[0].matches);
         string sigil = join(v.children[1].matches);
 		char vartype = this.program.resolve_sigil(sigil);
@@ -408,7 +413,7 @@ class Dim_stmt:Stmt
 		}
 
 		Variable var = Variable(0, varname, vartype, dimensions);
-		this.program.addVariable(var);
+		this.program.addVariable(var, is_fast);
 	}
 }
 
@@ -572,7 +577,7 @@ class Call_stmt:Stmt
                     // an array
                     int length = var.dimensions[0] * var.dimensions[1] * this.program.varlen[var.type];
                     for(int offset = 0; offset < length; offset++) {
-                        this.program.program_segment ~= "\tpbvar " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
+                        this.program.program_segment ~= "\tpbyte " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
                     }
                 }
             }

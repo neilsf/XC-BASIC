@@ -1,22 +1,7 @@
 module optimizer;
 
-import std.string, std.array, std.uni;
+import std.string, std.array, std.uni, std.regex, std.stdio;
 import opt;
-
-class Optimizer
-{
-    string outcode;
-
-    this(string incode)
-    {
-        string code;
-        Replace_sequences op1 = new Replace_sequences(incode);
-        op1.run();
-        Remove_stack_ops op2 = new Remove_stack_ops(op1.outcode);
-        op2.run();
-        this.outcode = op2.outcode;
-    }
-}
 
 template Optimization_pass_ctor()
 {
@@ -34,6 +19,26 @@ abstract class Optimization_pass
     abstract void run();
 }
 
+class Optimizer: Optimization_pass
+{
+    string incode;
+    string outcode;
+
+    mixin Optimization_pass_ctor;
+
+    override void run()
+    {
+        string code;
+        auto op1 = new Replace_sequences(incode);
+        op1.run();
+        auto op2 = new Remove_stack_ops(op1.outcode);
+        op2.run();
+        this.outcode = op2.outcode;
+    }
+}
+
+
+
 /**
  * Replaces sequences of pseudo-ops with
  * equivalent but faster ones
@@ -43,18 +48,49 @@ class Replace_sequences: Optimization_pass
 {
     mixin Optimization_pass_ctor;
 
-    const string[] sequences = [
-        "pbyte_pbyte_addb",
-        "pbyte_pbyte_subb",
-        "pword_pword_addw",
-        "pword_pword_subw"
-    ];
+    string[string] sequences;
+
+    private void fetch_sequences()
+    {
+        string[] lines = splitLines(opt.code);
+        bool fetch = false;
+        string macname;
+        foreach(line; lines) {
+            if(line == "\t; [OPT_MACRO]") {
+                fetch = true;
+                continue;
+            }
+
+            if(line == "\t; [/OPT_MACRO]") {
+                fetch = false;
+                continue;
+            }
+
+            if(!fetch) {
+                continue;
+            }
+
+            auto expr = regex(r"\tMAC\s([a-z_]+)");
+            auto match = matchFirst(line, expr);
+            if(match) {
+                macname = match[1];
+                continue;
+            }
+
+            expr = regex(r"\t;\s\>\s([a-z0-9_\+]+)");
+            match = matchFirst(line, expr);
+            if(match) {
+                this.sequences[match[1]] = macname;
+                continue;
+            }
+        }
+    }
 
     private bool match_sequences(string candidate)
     {
         ulong len = candidate.length;
-        foreach(item; this.sequences) {
-            if(len <= item.length && item[0..len-1] == candidate) {
+        foreach(item; this.sequences.byKey()) {
+            if(len <= item.length && item[0..len] == candidate) {
                 return true;
             }
         }
@@ -63,7 +99,7 @@ class Replace_sequences: Optimization_pass
 
     private bool full_match(string candidate)
     {
-        foreach(item; this.sequences) {
+        foreach(item; this.sequences.byKey()) {
             if(item == candidate) {
                 return true;
             }
@@ -73,18 +109,24 @@ class Replace_sequences: Optimization_pass
 
     override void run()
     {
+        this.fetch_sequences();
+
         bool opt_enabled = false;
         string[] lines = splitLines(this.incode);
         string accumulated_sequence = "";
         string[] accumulated_code;
+        string[] accumulated_args;
+
         for(int i=0; i<lines.length; i++) {
             string line = lines[i];
             if(line == "\t; !!opt_start!!") {
                 opt_enabled = true;
+                this.outcode ~= line ~ "\n";
                 continue;
             }
             else if(line == "\t; !!opt_end!!") {
                 opt_enabled = false;
+                this.outcode ~= line ~ "\n";
                 continue;
             }
 
@@ -93,7 +135,7 @@ class Replace_sequences: Optimization_pass
                 continue;
             }
 
-            auto expr = regex(r"\t([a-z]+)(\s.+)?");
+            auto expr = regex(r"\t([a-z0-9_]+)(\s.+)?");
             auto match = matchFirst(line, expr);
             if(match) {
                 accumulated_code ~= line;
@@ -101,32 +143,36 @@ class Replace_sequences: Optimization_pass
                 string arg = "";
                 if(match.length > 2) {
                     arg = match[2];
+                    if(arg != "") accumulated_args ~= arg;
                 }
 
                 if(accumulated_sequence == "") {
                     accumulated_sequence = opcode;
                 }
                 else {
-                    accumulated_sequence ~= opcode;
+                    accumulated_sequence ~= "+" ~ opcode;
                 }
 
                 if(this.match_sequences(accumulated_sequence)) {
                     if(this.full_match(accumulated_sequence)) {
-                        this.outcode ~= "\t" ~ accumulated_sequence ~ "\n";
+                        this.outcode ~= "\t" ~ this.sequences[accumulated_sequence] ~ " " ~ join(accumulated_args, ", ") ~ "\n";
                         accumulated_sequence = "";
                         accumulated_code = [];
+                        accumulated_args = [];
                     }
                 }
                 else {
-                    this.outcode ~= join(accumulated_code[], "\n") ~ "\n";
+                    this.outcode ~= join(accumulated_code, "\n") ~ "\n";
                     accumulated_sequence = "";
                     accumulated_code = [];
+                    accumulated_args = [];
                 }
             }
             else {
                 this.outcode ~= line ~ "\n";
                 accumulated_sequence = "";
                 accumulated_code = [];
+                accumulated_args = [];
             }
         }
     }
@@ -142,7 +188,7 @@ class Remove_stack_ops: Optimization_pass
     mixin Optimization_pass_ctor;
 
     const string[] pushers = [
-        "pzero",  "pone", "pbyte", "pword",
+        "pzero",  "pone", "pbyte", "pbvar", "pword",
         "pwvar", "pbarray", "pbarray_fast", "pwarray", "cmpblt",
         "cmpblte", "cmpbgte", "cmpbeq", "cmpbneq",
         "cmpbgt", "cmpweq", "cmpwneq", "cmpwlt",

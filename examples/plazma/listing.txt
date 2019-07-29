@@ -1,8 +1,8 @@
 ------- FILE plazma.asm LEVEL 1 PASS 3
-      1 U10ea					      PROCESSOR	6502
-      2 U10ea ????
-      3 U10ea ????				      INCDIR	"/home/neils/Workspace/XC-BASIC/examples/plazma/."
-      4  1094 ????				      SEG	UPSTART
+      1 U105f					      PROCESSOR	6502
+      2 U105f ????
+      3 U105f ????				      INCDIR	"/home/neils/Workspace/XC-BASIC/examples/plazma/."
+      4  1012 ????				      SEG	UPSTART
       5  0801					      ORG	$0801
       6  0801		       0b 08		      DC.W	next_line
       7  0803		       e2 07		      DC.W	2018
@@ -23,187 +23,305 @@
      19  080d				   library_start
      20  080d
      21  080d					      PROCESSOR	6502
-   2111  0985					      LIST	ON
-   2112  0985		       e7 16	   KERNAL_PRINTCHR EQU	$e716
-   2113  0985		       ff e4	   KERNAL_GETIN EQU	$ffe4
-   2114  0985
-   2420  0ade					      LIST	ON
-   2421  0ade					      PROCESSOR	6502
-   2422  0ade
-   2423  0ade							; Fills memory area
-   2424  0ade							;
-   2425  0ade							; derived from Practical Memory Move Routines
-   2426  0ade							; by Bruce Clark
-   2427  0ade							;
-   2428  0ade							; R0: destination address
-   2429  0ade							; A: fill byte
-   2430  0ade							; R2: number of bytes to copy
-   2431  0ade
-   2432  0ade				   mem_memset SUBROUTINE
-   2433  0ade		       00 fb	   .dst       EQU	R0
-   2434  0ade		       00 fd	   .siz       EQU	R2
-   2435  0ade		       a0 00		      ldy	#0
-   2436  0ae0		       a6 fe		      ldx	.siz+1
-   2437  0ae2		       f0 0a		      beq	.md2
-   2438  0ae4				   .md1
-   2439  0ae4		       91 fb		      sta	(.dst),Y
-   2440  0ae6		       c8		      iny
-   2441  0ae7		       d0 fb		      bne	.md1
-   2442  0ae9		       e6 fc		      inc	.dst+1
-   2443  0aeb		       ca		      dex
-   2444  0aec		       d0 f6		      bne	.md1
-   2445  0aee		       a6 fd	   .md2       ldx	.siz
-   2446  0af0		       f0 06		      beq	.md4
-   2447  0af2				   .md3
-   2448  0af2		       91 fb		      sta	(.dst),Y
-   2449  0af4		       c8		      iny
-   2450  0af5		       ca		      dex
-   2451  0af6		       d0 fa		      bne	.md3
-   2452  0af8		       60	   .md4       rts
-   2453  0af9
-   2454  0af9					      MAC	memset
-   2455  0af9					      IF	!FPULL
-   2456  0af9					      pla
-   2457  0af9					      sta	R1
-   2458  0af9					      pla
-   2459  0af9					      sta	R0
-   2460  0af9					      ELSE
-   2461  0af9					      sta	R0
-   2462  0af9					      sty	R1
-   2463  0af9					      ENDIF
-   2464  0af9					      pla
-   2465  0af9					      sta	R3
-   2466  0af9					      pla
-   2467  0af9					      sta	R2
-   2468  0af9					      pla
-   2469  0af9					      jsr	mem_memset
-   2470  0af9					      ENDM
-   2471  0af9
-   2472  0af9							; Copies memory area downwards
-   2473  0af9							; from Practical Memory Move Routines
-   2474  0af9							; by Bruce Clark
-   2475  0af9							;
-   2476  0af9							; R0: source address
-   2477  0af9							; R2: destination address
-   2478  0af9							; R4: number of bytes to copy
-   2479  0af9							;
-   2480  0af9							; overlapping safe downwards only
-   2481  0af9
-   2482  0af9				   mem_memcpy SUBROUTINE
-   2483  0af9		       00 fb	   .src       EQU	R0
-   2484  0af9		       00 fd	   .dst       EQU	R2
-   2485  0af9		       00 3f	   .siz       EQU	R4
-   2486  0af9		       a0 00		      ldy	#0
-   2487  0afb		       a6 40		      ldx	.siz+1
-   2488  0afd		       f0 0e		      beq	.md2
-   2489  0aff		       b1 fb	   .md1       lda	(.src),Y
-   2490  0b01		       91 fd		      sta	(.dst),Y
-   2491  0b03		       c8		      iny
-   2492  0b04		       d0 f9		      bne	.md1
-   2493  0b06		       e6 fc		      inc	.src+1
-   2494  0b08		       e6 fe		      inc	.dst+1
-   2495  0b0a		       ca		      dex
-   2496  0b0b		       d0 f2		      bne	.md1
-   2497  0b0d		       a6 3f	   .md2       ldx	.siz
-   2498  0b0f		       f0 08		      beq	.md4
-   2499  0b11		       b1 fb	   .md3       lda	(.src),Y
-   2500  0b13		       91 fd		      sta	(.dst),Y
-   2501  0b15		       c8		      iny
-   2502  0b16		       ca		      dex
-   2503  0b17		       d0 f8		      bne	.md3
-   2504  0b19		       60	   .md4       rts
-   2505  0b1a
-   2506  0b1a					      MAC	memcpy
-   2507  0b1a					      IF	!FPULL
-   2508  0b1a					      pla
-   2509  0b1a					      sta	R1
-   2510  0b1a					      pla
-   2511  0b1a					      sta	R0
-   2512  0b1a					      ELSE
-   2513  0b1a					      sta	R0
-   2514  0b1a					      sty	R1
-   2515  0b1a					      ENDIF
-   2516  0b1a					      pla
-   2517  0b1a					      sta	R3
-   2518  0b1a					      pla
-   2519  0b1a					      sta	R2
-   2520  0b1a					      pla
-   2521  0b1a					      sta	R5
-   2522  0b1a					      pla
-   2523  0b1a					      sta	R4
-   2524  0b1a					      jsr	mem_memcpy
-   2525  0b1a					      ENDM
-   2526  0b1a
-   2527  0b1a							; Copies memory area upwards
-   2528  0b1a							;
-   2529  0b1a							; from Practical Memory Move Routines
-   2530  0b1a							; by Bruce Clark
-   2531  0b1a							;
-   2532  0b1a							; FROM = source start address
-   2533  0b1a							; TO = destination start address
-   2534  0b1a							; SIZE = number of bytes to move
-   2535  0b1a
-   2536  0b1a				   mem_memshift SUBROUTINE
-   2537  0b1a		       00 fb	   .FROM      EQU	R0
-   2538  0b1a		       00 fd	   .TO	      EQU	R2
-   2539  0b1a		       00 3f	   .SIZE      EQU	R4
-   2540  0b1a
-   2541  0b1a		       a6 40		      ldx	.SIZE+1
-   2542  0b1c		       18		      clc		; start at the final pages of FROM and TO
-   2543  0b1d		       8a		      txa
-   2544  0b1e		       65 fc		      adc	.FROM+1
-   2545  0b20		       85 fc		      sta	.FROM+1
-   2546  0b22		       18		      clc
-   2547  0b23		       8a		      txa
-   2548  0b24		       65 fe		      adc	.TO+1
-   2549  0b26		       85 fe		      sta	.TO+1
-   2550  0b28		       e8		      inx
-   2551  0b29		       a4 3f		      ldy	.SIZE
-   2552  0b2b		       f0 0e		      beq	.mu3
-   2553  0b2d		       88		      dey
-   2554  0b2e		       f0 07		      beq	.mu2
-   2555  0b30				   .mu1
-   2556  0b30		       b1 fb		      lda	(.FROM),y
-   2557  0b32		       91 fd		      sta	(.TO),y
-   2558  0b34		       88		      dey
-   2559  0b35		       d0 f9		      bne	.mu1
-   2560  0b37				   .mu2
-   2561  0b37		       b1 fb		      lda	(.FROM),y
-   2562  0b39		       91 fd		      sta	(.TO),Y
-   2563  0b3b				   .mu3
-   2564  0b3b		       88		      dey
-   2565  0b3c		       c6 fc		      dec	.FROM+1
-   2566  0b3e		       c6 fe		      dec	.TO+1
-   2567  0b40		       ca		      dex
-   2568  0b41		       d0 ed		      bne	.mu1
-   2569  0b43		       60		      rts
-   2570  0b44
-   2571  0b44					      MAC	memshift
-   2572  0b44					      IF	!FPULL
-   2573  0b44					      pla
-   2574  0b44					      sta	R1
-   2575  0b44					      pla
-   2576  0b44					      sta	R0
-   2577  0b44					      ELSE
-   2578  0b44					      sta	R0
-   2579  0b44					      sty	R1
-   2580  0b44					      ENDIF
-   2581  0b44					      pla
-   2582  0b44					      sta	R3
-   2583  0b44					      pla
-   2584  0b44					      sta	R2
-   2585  0b44					      pla
-   2586  0b44					      sta	R5
-   2587  0b44					      pla
-   2588  0b44					      sta	R4
-   2589  0b44					      jsr	mem_memshift
-   2590  0b44					      ENDM
-   2591  0b44
+   2130  0985					      LIST	ON
+   2131  0985					      PROCESSOR	6502
+   2132  0985
+   2133  0985							; [OPT_MACRO]
+   2134  0985					      MAC	opt_pbyte_plbtovar
+   2135  0985							; > pbyte+plb2var
+   2136  0985							; > pbvar+plb2var
+   2137  0985							; [/OPT_MACRO]
+   2138  0985					      lda	{1}
+   2139  0985					      sta	{2}
+   2140  0985					      ENDM
+   2141  0985
+   2142  0985
+   2143  0985							; [OPT_MACRO]
+   2144  0985					      MAC	opt_pbyte_pbyte_add
+   2145  0985							; > pbyte+pbyte+addb
+   2146  0985							; > pbyte+pbvar+addb
+   2147  0985							; > pbvar+pbyte+addb
+   2148  0985							; > pbvar+pbvar+addb
+   2149  0985							; [/OPT_MACRO]
+   2150  0985					      lda	{1}
+   2151  0985					      clc
+   2152  0985					      adc	{2}
+   2153  0985					      IF	!FPUSH
+   2154  0985					      pha
+   2155  0985					      ENDIF
+   2156  0985					      ENDM
+   2157  0985
+   2158  0985							; [OPT_MACRO]
+   2159  0985							; pbarray_fast+pbyte+addb
+   2160  0985							; pbarray_fast+pbvar+addb
+   2161  0985							; [/OPT_MACRO]
+   2162  0985					      MAC	opt_pbarray_fast_pbyte_addb
+   2163  0985					      IF	!FPULL
+   2164  0985					      pla
+   2165  0985					      ENDIF
+   2166  0985					      tax
+   2167  0985					      lda.wx	{1}
+   2168  0985					      clc
+   2169  0985					      adc	{2}
+   2170  0985					      IF	!FPUSH
+   2171  0985					      pha
+   2172  0985					      ENDIF
+   2173  0985					      ENDM
+   2174  0985
+   2175  0985							; [OPT_MACRO]
+   2176  0985							; pbyte+pbarray_fast+addb
+   2177  0985							; pbvar+pbarray_fast+addb
+   2178  0985							; [/OPT_MACRO]
+   2179  0985					      MAC	opt_pbyte_pbarray_fast_subb
+   2180  0985					      IF	!FPULL
+   2181  0985					      pla
+   2182  0985					      ENDIF
+   2183  0985					      tax
+   2184  0985					      lda.wx	{1}
+   2185  0985					      sec
+   2186  0985					      sbc	{2}
+   2187  0985					      IF	!FPUSH
+   2188  0985					      pha
+   2189  0985					      ENDIF
+   2190  0985					      ENDM
+   2191  0985
+   2192  0985					      MAC	opt_pbyte_pbyte_cmpblt
+   2193  0985					      lda	{1}
+   2194  0985					      cmp	{2}
+   2195  0985					      bcs	.false
+   2196  0985					      pone
+   2197  0985					      IF	!FPUSH
+   2198  0985					      jmp	*+6
+   2199  0985					      ELSE
+   2200  0985					      jmp	*+5
+   2201  0985					      ENDIF
+   2202  0985				   .false
+   2203  0985					      pzero
+   2204  0985					      ENDM
+   2205  0985
+   2206  0985					      MAC	opt_pbyte_pbyte_cmpblte
+   2207  0985					      lda	{1}
+   2208  0985					      cmp	{2}
+   2209  0985					      bcs	.false
+   2210  0985					      pone
+   2211  0985					      IF	!FPUSH
+   2212  0985					      jmp	*+6
+   2213  0985					      ELSE
+   2214  0985					      jmp	*+5
+   2215  0985					      ENDIF
+   2216  0985				   .false
+   2217  0985					      pzero
+   2218  0985					      ENDM
+   2219  0985
+   2220  0985					      MAC	opt_pword_pword_addw
+   2221  0985					      lda	#<{1}
+   2222  0985					      clc
+   2223  0985					      adc	#<{2}
+   2224  0985					      pha
+   2225  0985					      lda	#>{1}
+   2226  0985					      adc	#>{2}
+   2227  0985					      IF	!FPUSH
+   2228  0985					      pha
+   2229  0985					      ELSE
+   2230  0985					      tay
+   2231  0985					      pla
+   2232  0985					      ENDIF
+   2233  0985					      ENDM
+   2234  0985
+   2235  0985					      MAC	opt_pword_pword_subw
+   2236  0985					      lda	#<{1}
+   2237  0985					      sec
+   2238  0985					      sbc	#<{2}
+   2239  0985					      pha
+   2240  0985					      lda	#>{1}
+   2241  0985					      sbc	#>{2}
+   2242  0985					      IF	!FPUSH
+   2243  0985					      pha
+   2244  0985					      ELSE
+   2245  0985					      tay
+   2246  0985					      pla
+   2247  0985					      ENDIF
+   2248  0985					      ENDM
+   2249  0985		       e7 16	   KERNAL_PRINTCHR EQU	$e716
+   2250  0985		       ff e4	   KERNAL_GETIN EQU	$ffe4
+   2251  0985
+   2557  0ade					      LIST	ON
+   2558  0ade					      PROCESSOR	6502
+   2559  0ade
+   2560  0ade							; Fills memory area
+   2561  0ade							;
+   2562  0ade							; derived from Practical Memory Move Routines
+   2563  0ade							; by Bruce Clark
+   2564  0ade							;
+   2565  0ade							; R0: destination address
+   2566  0ade							; A: fill byte
+   2567  0ade							; R2: number of bytes to copy
+   2568  0ade
+   2569  0ade				   mem_memset SUBROUTINE
+   2570  0ade		       00 fb	   .dst       EQU	R0
+   2571  0ade		       00 fd	   .siz       EQU	R2
+   2572  0ade		       a0 00		      ldy	#0
+   2573  0ae0		       a6 fe		      ldx	.siz+1
+   2574  0ae2		       f0 0a		      beq	.md2
+   2575  0ae4				   .md1
+   2576  0ae4		       91 fb		      sta	(.dst),Y
+   2577  0ae6		       c8		      iny
+   2578  0ae7		       d0 fb		      bne	.md1
+   2579  0ae9		       e6 fc		      inc	.dst+1
+   2580  0aeb		       ca		      dex
+   2581  0aec		       d0 f6		      bne	.md1
+   2582  0aee		       a6 fd	   .md2       ldx	.siz
+   2583  0af0		       f0 06		      beq	.md4
+   2584  0af2				   .md3
+   2585  0af2		       91 fb		      sta	(.dst),Y
+   2586  0af4		       c8		      iny
+   2587  0af5		       ca		      dex
+   2588  0af6		       d0 fa		      bne	.md3
+   2589  0af8		       60	   .md4       rts
+   2590  0af9
+   2591  0af9					      MAC	memset
+   2592  0af9					      IF	!FPULL
+   2593  0af9					      pla
+   2594  0af9					      sta	R1
+   2595  0af9					      pla
+   2596  0af9					      sta	R0
+   2597  0af9					      ELSE
+   2598  0af9					      sta	R0
+   2599  0af9					      sty	R1
+   2600  0af9					      ENDIF
+   2601  0af9					      pla
+   2602  0af9					      sta	R3
+   2603  0af9					      pla
+   2604  0af9					      sta	R2
+   2605  0af9					      pla
+   2606  0af9					      jsr	mem_memset
+   2607  0af9					      ENDM
+   2608  0af9
+   2609  0af9							; Copies memory area downwards
+   2610  0af9							; from Practical Memory Move Routines
+   2611  0af9							; by Bruce Clark
+   2612  0af9							;
+   2613  0af9							; R0: source address
+   2614  0af9							; R2: destination address
+   2615  0af9							; R4: number of bytes to copy
+   2616  0af9							;
+   2617  0af9							; overlapping safe downwards only
+   2618  0af9
+   2619  0af9				   mem_memcpy SUBROUTINE
+   2620  0af9		       00 fb	   .src       EQU	R0
+   2621  0af9		       00 fd	   .dst       EQU	R2
+   2622  0af9		       00 3f	   .siz       EQU	R4
+   2623  0af9		       a0 00		      ldy	#0
+   2624  0afb		       a6 40		      ldx	.siz+1
+   2625  0afd		       f0 0e		      beq	.md2
+   2626  0aff		       b1 fb	   .md1       lda	(.src),Y
+   2627  0b01		       91 fd		      sta	(.dst),Y
+   2628  0b03		       c8		      iny
+   2629  0b04		       d0 f9		      bne	.md1
+   2630  0b06		       e6 fc		      inc	.src+1
+   2631  0b08		       e6 fe		      inc	.dst+1
+   2632  0b0a		       ca		      dex
+   2633  0b0b		       d0 f2		      bne	.md1
+   2634  0b0d		       a6 3f	   .md2       ldx	.siz
+   2635  0b0f		       f0 08		      beq	.md4
+   2636  0b11		       b1 fb	   .md3       lda	(.src),Y
+   2637  0b13		       91 fd		      sta	(.dst),Y
+   2638  0b15		       c8		      iny
+   2639  0b16		       ca		      dex
+   2640  0b17		       d0 f8		      bne	.md3
+   2641  0b19		       60	   .md4       rts
+   2642  0b1a
+   2643  0b1a					      MAC	memcpy
+   2644  0b1a					      IF	!FPULL
+   2645  0b1a					      pla
+   2646  0b1a					      sta	R1
+   2647  0b1a					      pla
+   2648  0b1a					      sta	R0
+   2649  0b1a					      ELSE
+   2650  0b1a					      sta	R0
+   2651  0b1a					      sty	R1
+   2652  0b1a					      ENDIF
+   2653  0b1a					      pla
+   2654  0b1a					      sta	R3
+   2655  0b1a					      pla
+   2656  0b1a					      sta	R2
+   2657  0b1a					      pla
+   2658  0b1a					      sta	R5
+   2659  0b1a					      pla
+   2660  0b1a					      sta	R4
+   2661  0b1a					      jsr	mem_memcpy
+   2662  0b1a					      ENDM
+   2663  0b1a
+   2664  0b1a							; Copies memory area upwards
+   2665  0b1a							;
+   2666  0b1a							; from Practical Memory Move Routines
+   2667  0b1a							; by Bruce Clark
+   2668  0b1a							;
+   2669  0b1a							; FROM = source start address
+   2670  0b1a							; TO = destination start address
+   2671  0b1a							; SIZE = number of bytes to move
+   2672  0b1a
+   2673  0b1a				   mem_memshift SUBROUTINE
+   2674  0b1a		       00 fb	   .FROM      EQU	R0
+   2675  0b1a		       00 fd	   .TO	      EQU	R2
+   2676  0b1a		       00 3f	   .SIZE      EQU	R4
+   2677  0b1a
+   2678  0b1a		       a6 40		      ldx	.SIZE+1
+   2679  0b1c		       18		      clc		; start at the final pages of FROM and TO
+   2680  0b1d		       8a		      txa
+   2681  0b1e		       65 fc		      adc	.FROM+1
+   2682  0b20		       85 fc		      sta	.FROM+1
+   2683  0b22		       18		      clc
+   2684  0b23		       8a		      txa
+   2685  0b24		       65 fe		      adc	.TO+1
+   2686  0b26		       85 fe		      sta	.TO+1
+   2687  0b28		       e8		      inx
+   2688  0b29		       a4 3f		      ldy	.SIZE
+   2689  0b2b		       f0 0e		      beq	.mu3
+   2690  0b2d		       88		      dey
+   2691  0b2e		       f0 07		      beq	.mu2
+   2692  0b30				   .mu1
+   2693  0b30		       b1 fb		      lda	(.FROM),y
+   2694  0b32		       91 fd		      sta	(.TO),y
+   2695  0b34		       88		      dey
+   2696  0b35		       d0 f9		      bne	.mu1
+   2697  0b37				   .mu2
+   2698  0b37		       b1 fb		      lda	(.FROM),y
+   2699  0b39		       91 fd		      sta	(.TO),Y
+   2700  0b3b				   .mu3
+   2701  0b3b		       88		      dey
+   2702  0b3c		       c6 fc		      dec	.FROM+1
+   2703  0b3e		       c6 fe		      dec	.TO+1
+   2704  0b40		       ca		      dex
+   2705  0b41		       d0 ed		      bne	.mu1
+   2706  0b43		       60		      rts
+   2707  0b44
+   2708  0b44					      MAC	memshift
+   2709  0b44					      IF	!FPULL
+   2710  0b44					      pla
+   2711  0b44					      sta	R1
+   2712  0b44					      pla
+   2713  0b44					      sta	R0
+   2714  0b44					      ELSE
+   2715  0b44					      sta	R0
+   2716  0b44					      sty	R1
+   2717  0b44					      ENDIF
+   2718  0b44					      pla
+   2719  0b44					      sta	R3
+   2720  0b44					      pla
+   2721  0b44					      sta	R2
+   2722  0b44					      pla
+   2723  0b44					      sta	R5
+   2724  0b44					      pla
+   2725  0b44					      sta	R4
+   2726  0b44					      jsr	mem_memshift
+   2727  0b44					      ENDM
+   2728  0b44
  Library     : $80d - $b43
-   2592  0b44					      ECHO	"Library     :",library_start,"-", *-1
-   2593  0b44				   prg_start
-   2594  0b44				   FPUSH      SET	0
-   2595  0b44				   FPULL      SET	0
+   2729  0b44					      ECHO	"Library     :",library_start,"-", *-1
+   2730  0b44				   prg_start
+   2731  0b44				   FPUSH      SET	0
+   2732  0b44				   FPULL      SET	0
       0  0b44					      init_program
       1  0b44		       ba		      tsx
       2  0b45		       8e 85 09 	      stx	RESERVED_STACK_POINTER
@@ -216,1519 +334,1376 @@
       1  0b52		       a5 01		      lda	$01
       2  0b54		       29 fe		      and	#%11111110
       3  0b56		       85 01		      sta	$01
-   2597  0b56				   FPUSH      SET	1
-      0  0b58					      pbyte	#0
-      1  0b58		       a9 00		      lda	#0
-      2  0b5a				  -	      IF	!FPUSH
-      3  0b5a				  -	      pha
-      4  0b5a					      ENDIF
-   2599  0b5a				   FPULL      SET	1
-   2600  0b5a				   FPUSH      SET	0
-      0  0b5a					      plb2var	_c1A
-      1  0b5a				  -	      IF	!FPULL
-      2  0b5a				  -	      pla
-      3  0b5a					      ENDIF
-      4  0b5a		       8d 95 10 	      sta	_c1A
-   2602  0b5a				   FPULL      SET	0
-   2603  0b5a				   FPUSH      SET	1
-      0  0b5d					      pbyte	#0
-      1  0b5d		       a9 00		      lda	#0
-      2  0b5f				  -	      IF	!FPUSH
-      3  0b5f				  -	      pha
-      4  0b5f					      ENDIF
-   2605  0b5f				   FPULL      SET	1
-   2606  0b5f				   FPUSH      SET	0
-      0  0b5f					      plb2var	_c1B
-      1  0b5f				  -	      IF	!FPULL
-      2  0b5f				  -	      pla
-      3  0b5f					      ENDIF
-      4  0b5f		       8d 96 10 	      sta	_c1B
-   2608  0b5f				   FPULL      SET	0
-   2609  0b5f				   FPUSH      SET	1
-      0  0b62					      pbyte	#0
-      1  0b62		       a9 00		      lda	#0
-      2  0b64				  -	      IF	!FPUSH
-      3  0b64				  -	      pha
-      4  0b64					      ENDIF
-   2611  0b64				   FPULL      SET	1
-   2612  0b64				   FPUSH      SET	0
-      0  0b64					      plb2var	_c2A
-      1  0b64				  -	      IF	!FPULL
-      2  0b64				  -	      pla
-      3  0b64					      ENDIF
-      4  0b64		       8d 97 10 	      sta	_c2A
-   2614  0b64				   FPULL      SET	0
-   2615  0b64				   FPUSH      SET	1
-      0  0b67					      pbyte	#0
-      1  0b67		       a9 00		      lda	#0
-      2  0b69				  -	      IF	!FPUSH
-      3  0b69				  -	      pha
-      4  0b69					      ENDIF
-   2617  0b69				   FPULL      SET	1
-   2618  0b69				   FPUSH      SET	0
-      0  0b69					      plb2var	_c2B
-      1  0b69				  -	      IF	!FPULL
-      2  0b69				  -	      pla
-      3  0b69					      ENDIF
-      4  0b69		       8d 98 10 	      sta	_c2B
-   2620  0b6c		       4c 34 0d 	      jmp	_Pdoplasma_end
-   2621  0b6f				   _Pdoplasma
-   2622  0b6f				   FPULL      SET	0
-   2623  0b6f				   FPUSH      SET	1
-      0  0b6f					      pbvar	_c1A
-      0  0b6f					      pbyte	_c1A
-      1  0b6f		       ad 95 10 	      lda	_c1A
-      2  0b72				  -	      IF	!FPUSH
-      3  0b72				  -	      pha
-      4  0b72					      ENDIF
-   2625  0b72				   FPULL      SET	1
-   2626  0b72				   FPUSH      SET	0
-      0  0b72					      plb2var	_doplasma.c1a
-      1  0b72				  -	      IF	!FPULL
-      2  0b72				  -	      pla
-      3  0b72					      ENDIF
-      4  0b72		       8d dc 10 	      sta	_doplasma.c1a
-   2628  0b72				   FPULL      SET	0
-   2629  0b72				   FPUSH      SET	1
-      0  0b75					      pbvar	_c1B
-      0  0b75					      pbyte	_c1B
-      1  0b75		       ad 96 10 	      lda	_c1B
-      2  0b78				  -	      IF	!FPUSH
-      3  0b78				  -	      pha
-      4  0b78					      ENDIF
-   2631  0b78				   FPULL      SET	1
-   2632  0b78				   FPUSH      SET	0
-      0  0b78					      plb2var	_doplasma.c1b
-      1  0b78				  -	      IF	!FPULL
-      2  0b78				  -	      pla
-      3  0b78					      ENDIF
-      4  0b78		       8d dd 10 	      sta	_doplasma.c1b
-   2634  0b78				   FPULL      SET	0
-   2635  0b78				   FPUSH      SET	1
-      0  0b7b					      pbyte	#0
-      1  0b7b		       a9 00		      lda	#0
-      2  0b7d				  -	      IF	!FPUSH
-      3  0b7d				  -	      pha
-      4  0b7d					      ENDIF
-   2637  0b7d				   FPULL      SET	1
-   2638  0b7d				   FPUSH      SET	0
-      0  0b7d					      plb2var	_doplasma.i
-      1  0b7d				  -	      IF	!FPULL
-      2  0b7d				  -	      pla
-      3  0b7d					      ENDIF
-      4  0b7d		       8d de 10 	      sta	_doplasma.i
-   2640  0b7d				   FPULL      SET	0
-      0  0b80					      pbyte	#24
-      1  0b80		       a9 18		      lda	#24
+      0  0b58					      opt_pbyte_plbtovar	#0, _c1A
+      1  0b58
+      2  0b58
+      3  0b58
+      4  0b58		       a9 00		      lda	#0
+      5  0b5a		       85 02		      sta	_c1A
+      0  0b5c					      opt_pbyte_plbtovar	#0, _c1B
+      1  0b5c
+      2  0b5c
+      3  0b5c
+      4  0b5c		       a9 00		      lda	#0
+      5  0b5e		       85 03		      sta	_c1B
+      0  0b60					      opt_pbyte_plbtovar	#0, _c2A
+      1  0b60
+      2  0b60
+      3  0b60
+      4  0b60		       a9 00		      lda	#0
+      5  0b62		       85 04		      sta	_c2A
+      0  0b64					      opt_pbyte_plbtovar	#0, _c2B
+      1  0b64
+      2  0b64
+      3  0b64
+      4  0b64		       a9 00		      lda	#0
+      5  0b66		       85 05		      sta	_c2B
+   2738  0b68		       4c b2 0c 	      jmp	_Pdoplasma_end
+   2739  0b6b				   _Pdoplasma
+      0  0b6b					      opt_pbyte_plbtovar	_c1A, _doplasma.c1a
+      1  0b6b
+      2  0b6b
+      3  0b6b
+      4  0b6b		       a5 02		      lda	_c1A
+      5  0b6d		       85 09		      sta	_doplasma.c1a
+      0  0b6f					      opt_pbyte_plbtovar	_c1B, _doplasma.c1b
+      1  0b6f
+      2  0b6f
+      3  0b6f
+      4  0b6f		       a5 03		      lda	_c1B
+      5  0b71		       85 0a		      sta	_doplasma.c1b
+      0  0b73					      opt_pbyte_plbtovar	#0, _doplasma.i
+      1  0b73
+      2  0b73
+      3  0b73
+      4  0b73		       a9 00		      lda	#0
+      5  0b75		       85 06		      sta	_doplasma.i
+   2743  0b77				   _RP_1
+      0  0b77					      pbvar	_doplasma.c1a
+      0  0b77					      pbyte	_doplasma.c1a
+      1  0b77		       a5 09		      lda	_doplasma.c1a
+      2  0b79					      IF	!FPUSH
+      3  0b79		       48		      pha
+      4  0b7a					      ENDIF
+      0  0b7a					      pbarray_fast	_sntable
+      1  0b7a					      IF	!FPULL
+      2  0b7a		       68		      pla
+      3  0b7b					      ENDIF
+      4  0b7b		       aa		      tax
+      5  0b7c		       bd 05 0f 	      lda.wx	_sntable
+      6  0b7f					      IF	!FPUSH
+      7  0b7f		       48		      pha
+      8  0b80					      ENDIF
+      0  0b80					      pbvar	_doplasma.c1b
+      0  0b80					      pbyte	_doplasma.c1b
+      1  0b80		       a5 0a		      lda	_doplasma.c1b
       2  0b82					      IF	!FPUSH
       3  0b82		       48		      pha
       4  0b83					      ENDIF
-      0  0b83					      for
-      1  0b83
-      2  0b83
-      3  0b83				   .addr
-      4  0b83		       a9 83		      lda	#<.addr
-      5  0b85		       48		      pha
-      6  0b86		       a9 0b		      lda	#>.addr
-      7  0b88		       48		      pha
-      0  0b89					      pbvar	_doplasma.c1a
-      0  0b89					      pbyte	_doplasma.c1a
-      1  0b89		       ad dc 10 	      lda	_doplasma.c1a
-      2  0b8c					      IF	!FPUSH
-      3  0b8c		       48		      pha
-      4  0b8d					      ENDIF
-      0  0b8d					      pbarray_fast	_sntable
-      1  0b8d					      IF	!FPULL
-      2  0b8d		       68		      pla
-      3  0b8e					      ENDIF
-      4  0b8e		       aa		      tax
-      5  0b8f		       bd 87 0f 	      lda.wx	_sntable
-      6  0b92					      IF	!FPUSH
-      7  0b92		       48		      pha
-      8  0b93					      ENDIF
-      0  0b93					      pbvar	_doplasma.c1b
-      0  0b93					      pbyte	_doplasma.c1b
-      1  0b93		       ad dd 10 	      lda	_doplasma.c1b
-      2  0b96					      IF	!FPUSH
-      3  0b96		       48		      pha
-      4  0b97					      ENDIF
-   2646  0b97				   FPUSH      SET	1
-      0  0b97					      pbarray_fast	_sntable
-      1  0b97					      IF	!FPULL
-      2  0b97		       68		      pla
-      3  0b98					      ENDIF
-      4  0b98		       aa		      tax
-      5  0b99		       bd 87 0f 	      lda.wx	_sntable
-      6  0b9c				  -	      IF	!FPUSH
-      7  0b9c				  -	      pha
-      8  0b9c					      ENDIF
-   2648  0b9c				   FPULL      SET	1
-   2649  0b9c				   FPUSH      SET	0
-      0  0b9c					      addb
-      1  0b9c				  -	      IF	!FPULL
-      2  0b9c				  -	      pla
-      3  0b9c					      ENDIF
-      4  0b9c		       85 fb		      sta	R0
-      5  0b9e		       68		      pla
-      6  0b9f		       18		      clc
-      7  0ba0		       65 fb		      adc	R0
-      8  0ba2					      IF	!FPUSH
-      9  0ba2		       48		      pha
-     10  0ba3					      ENDIF
-   2651  0ba3				   FPULL      SET	0
-   2652  0ba3				   FPUSH      SET	1
-      0  0ba3					      pbvar	_doplasma.i
-      0  0ba3					      pbyte	_doplasma.i
-      1  0ba3		       ad de 10 	      lda	_doplasma.i
-      2  0ba6				  -	      IF	!FPUSH
-      3  0ba6				  -	      pha
-      4  0ba6					      ENDIF
-   2654  0ba6				   FPULL      SET	1
-   2655  0ba6				   FPUSH      SET	0
-      0  0ba6					      plbarray_fast	_doplasma.ybuf
-      1  0ba6				  -	      IF	!FPULL
-      2  0ba6				  -	      pla
-      3  0ba6					      ENDIF
-      4  0ba6		       aa		      tax
-      5  0ba7		       68		      pla
-      6  0ba8		       9d c3 10 	      sta.wx	_doplasma.ybuf
-      0  0bab					      incb	_doplasma.c1a
-      1  0bab		       ee dc 10 	      inc	_doplasma.c1a
-      0  0bae					      incb	_doplasma.c1a
-      1  0bae		       ee dc 10 	      inc	_doplasma.c1a
-      0  0bb1					      incb	_doplasma.c1a
-      1  0bb1		       ee dc 10 	      inc	_doplasma.c1a
-      0  0bb4					      incb	_doplasma.c1a
-      1  0bb4		       ee dc 10 	      inc	_doplasma.c1a
-   2661  0bb4				   FPULL      SET	0
-      0  0bb7					      pbvar	_doplasma.c1b
-      0  0bb7					      pbyte	_doplasma.c1b
-      1  0bb7		       ad dd 10 	      lda	_doplasma.c1b
-      2  0bba					      IF	!FPUSH
-      3  0bba		       48		      pha
-      4  0bbb					      ENDIF
-   2663  0bbb				   FPUSH      SET	1
-      0  0bbb					      pbyte	#9
-      1  0bbb		       a9 09		      lda	#9
-      2  0bbd				  -	      IF	!FPUSH
-      3  0bbd				  -	      pha
-      4  0bbd					      ENDIF
-   2665  0bbd				   FPULL      SET	1
-      0  0bbd					      addb
-      1  0bbd				  -	      IF	!FPULL
-      2  0bbd				  -	      pla
-      3  0bbd					      ENDIF
-      4  0bbd		       85 fb		      sta	R0
-      5  0bbf		       68		      pla
-      6  0bc0		       18		      clc
-      7  0bc1		       65 fb		      adc	R0
-      8  0bc3				  -	      IF	!FPUSH
-      9  0bc3				  -	      pha
-     10  0bc3					      ENDIF
-   2667  0bc3				   FPUSH      SET	0
-      0  0bc3					      plb2var	_doplasma.c1b
-      1  0bc3				  -	      IF	!FPULL
-      2  0bc3				  -	      pla
-      3  0bc3					      ENDIF
-      4  0bc3		       8d dd 10 	      sta	_doplasma.c1b
-      0  0bc6					      nextb	_doplasma.i
-      1  0bc6
-      2  0bc6		       ee de 10 	      inc	_doplasma.i
-      3  0bc9
-      4  0bc9		       f0 15		      beq	.end
-      5  0bcb				   .skip
-      6  0bcb
-      7  0bcb		       68		      pla
-      8  0bcc		       8d df 0b 	      sta	.selfmod_code+2
-      9  0bcf		       68		      pla
-     10  0bd0		       8d de 0b 	      sta	.selfmod_code+1
-     11  0bd3
-     12  0bd3		       68		      pla
-     13  0bd4		       cd de 10 	      cmp	_doplasma.i
-     14  0bd7		       b0 03		      bcs	.jump_back
-     15  0bd9		       4c e0 0b 	      jmp	.end
-     16  0bdc				   .jump_back
-     17  0bdc
-     18  0bdc		       48		      pha
-     19  0bdd				   .selfmod_code
-     20  0bdd		       4c 00 00 	      jmp	$0000
-     21  0be0				   .end
-      0  0be0					      incb	_c1A
-      1  0be0		       ee 95 10 	      inc	_c1A
-      0  0be3					      incb	_c1A
-      1  0be3		       ee 95 10 	      inc	_c1A
-      0  0be6					      incb	_c1A
-      1  0be6		       ee 95 10 	      inc	_c1A
-      0  0be9					      decb	_c1B
-      1  0be9		       ce 96 10 	      dec	_c1B
-      0  0bec					      decb	_c1B
-      1  0bec		       ce 96 10 	      dec	_c1B
-      0  0bef					      decb	_c1B
-      1  0bef		       ce 96 10 	      dec	_c1B
-      0  0bf2					      decb	_c1B
-      1  0bf2		       ce 96 10 	      dec	_c1B
-      0  0bf5					      decb	_c1B
-      1  0bf5		       ce 96 10 	      dec	_c1B
-   2678  0bf5				   FPULL      SET	0
-   2679  0bf5				   FPUSH      SET	1
-      0  0bf8					      pbvar	_c2A
-      0  0bf8					      pbyte	_c2A
-      1  0bf8		       ad 97 10 	      lda	_c2A
-      2  0bfb				  -	      IF	!FPUSH
-      3  0bfb				  -	      pha
-      4  0bfb					      ENDIF
-   2681  0bfb				   FPULL      SET	1
-   2682  0bfb				   FPUSH      SET	0
-      0  0bfb					      plb2var	_doplasma.c2a
-      1  0bfb				  -	      IF	!FPULL
-      2  0bfb				  -	      pla
-      3  0bfb					      ENDIF
-      4  0bfb		       8d df 10 	      sta	_doplasma.c2a
-   2684  0bfb				   FPULL      SET	0
-   2685  0bfb				   FPUSH      SET	1
-      0  0bfe					      pbvar	_c2B
-      0  0bfe					      pbyte	_c2B
-      1  0bfe		       ad 98 10 	      lda	_c2B
-      2  0c01				  -	      IF	!FPUSH
-      3  0c01				  -	      pha
-      4  0c01					      ENDIF
-   2687  0c01				   FPULL      SET	1
-   2688  0c01				   FPUSH      SET	0
-      0  0c01					      plb2var	_doplasma.c2b
-      1  0c01				  -	      IF	!FPULL
-      2  0c01				  -	      pla
-      3  0c01					      ENDIF
-      4  0c01		       8d e0 10 	      sta	_doplasma.c2b
-   2690  0c01				   FPULL      SET	0
-   2691  0c01				   FPUSH      SET	1
-      0  0c04					      pbyte	#0
-      1  0c04		       a9 00		      lda	#0
-      2  0c06				  -	      IF	!FPUSH
-      3  0c06				  -	      pha
-      4  0c06					      ENDIF
-   2693  0c06				   FPULL      SET	1
-   2694  0c06				   FPUSH      SET	0
-      0  0c06					      plb2var	_doplasma.i
-      1  0c06				  -	      IF	!FPULL
-      2  0c06				  -	      pla
-      3  0c06					      ENDIF
-      4  0c06		       8d de 10 	      sta	_doplasma.i
-   2696  0c06				   FPULL      SET	0
-      0  0c09					      pbyte	#39
-      1  0c09		       a9 27		      lda	#39
-      2  0c0b					      IF	!FPUSH
-      3  0c0b		       48		      pha
-      4  0c0c					      ENDIF
-      0  0c0c					      for
-      1  0c0c
-      2  0c0c
-      3  0c0c				   .addr
-      4  0c0c		       a9 0c		      lda	#<.addr
-      5  0c0e		       48		      pha
-      6  0c0f		       a9 0c		      lda	#>.addr
-      7  0c11		       48		      pha
-      0  0c12					      pbvar	_doplasma.c2a
-      0  0c12					      pbyte	_doplasma.c2a
-      1  0c12		       ad df 10 	      lda	_doplasma.c2a
-      2  0c15					      IF	!FPUSH
-      3  0c15		       48		      pha
-      4  0c16					      ENDIF
-      0  0c16					      pbarray_fast	_sntable
-      1  0c16					      IF	!FPULL
-      2  0c16		       68		      pla
-      3  0c17					      ENDIF
-      4  0c17		       aa		      tax
-      5  0c18		       bd 87 0f 	      lda.wx	_sntable
-      6  0c1b					      IF	!FPUSH
-      7  0c1b		       48		      pha
-      8  0c1c					      ENDIF
-      0  0c1c					      pbvar	_doplasma.c2b
-      0  0c1c					      pbyte	_doplasma.c2b
-      1  0c1c		       ad e0 10 	      lda	_doplasma.c2b
-      2  0c1f					      IF	!FPUSH
-      3  0c1f		       48		      pha
-      4  0c20					      ENDIF
-   2702  0c20				   FPUSH      SET	1
-      0  0c20					      pbarray_fast	_sntable
-      1  0c20					      IF	!FPULL
-      2  0c20		       68		      pla
-      3  0c21					      ENDIF
-      4  0c21		       aa		      tax
-      5  0c22		       bd 87 0f 	      lda.wx	_sntable
-      6  0c25				  -	      IF	!FPUSH
-      7  0c25				  -	      pha
-      8  0c25					      ENDIF
-   2704  0c25				   FPULL      SET	1
-   2705  0c25				   FPUSH      SET	0
-      0  0c25					      addb
-      1  0c25				  -	      IF	!FPULL
-      2  0c25				  -	      pla
-      3  0c25					      ENDIF
-      4  0c25		       85 fb		      sta	R0
-      5  0c27		       68		      pla
-      6  0c28		       18		      clc
-      7  0c29		       65 fb		      adc	R0
-      8  0c2b					      IF	!FPUSH
-      9  0c2b		       48		      pha
-     10  0c2c					      ENDIF
-   2707  0c2c				   FPULL      SET	0
-   2708  0c2c				   FPUSH      SET	1
-      0  0c2c					      pbvar	_doplasma.i
-      0  0c2c					      pbyte	_doplasma.i
-      1  0c2c		       ad de 10 	      lda	_doplasma.i
-      2  0c2f				  -	      IF	!FPUSH
-      3  0c2f				  -	      pha
-      4  0c2f					      ENDIF
-   2710  0c2f				   FPULL      SET	1
-   2711  0c2f				   FPUSH      SET	0
-      0  0c2f					      plbarray_fast	_doplasma.xbuf
-      1  0c2f				  -	      IF	!FPULL
-      2  0c2f				  -	      pla
-      3  0c2f					      ENDIF
-      4  0c2f		       aa		      tax
-      5  0c30		       68		      pla
-      6  0c31		       9d 9b 10 	      sta.wx	_doplasma.xbuf
-      0  0c34					      incb	_doplasma.c2a
-      1  0c34		       ee df 10 	      inc	_doplasma.c2a
-      0  0c37					      incb	_doplasma.c2a
-      1  0c37		       ee df 10 	      inc	_doplasma.c2a
-      0  0c3a					      incb	_doplasma.c2a
-      1  0c3a		       ee df 10 	      inc	_doplasma.c2a
-   2716  0c3a				   FPULL      SET	0
-      0  0c3d					      pbvar	_doplasma.c2b
-      0  0c3d					      pbyte	_doplasma.c2b
-      1  0c3d		       ad e0 10 	      lda	_doplasma.c2b
-      2  0c40					      IF	!FPUSH
-      3  0c40		       48		      pha
-      4  0c41					      ENDIF
-   2718  0c41				   FPUSH      SET	1
-      0  0c41					      pbyte	#7
-      1  0c41		       a9 07		      lda	#7
-      2  0c43				  -	      IF	!FPUSH
-      3  0c43				  -	      pha
-      4  0c43					      ENDIF
-   2720  0c43				   FPULL      SET	1
-      0  0c43					      addb
-      1  0c43				  -	      IF	!FPULL
-      2  0c43				  -	      pla
-      3  0c43					      ENDIF
-      4  0c43		       85 fb		      sta	R0
-      5  0c45		       68		      pla
-      6  0c46		       18		      clc
-      7  0c47		       65 fb		      adc	R0
-      8  0c49				  -	      IF	!FPUSH
-      9  0c49				  -	      pha
-     10  0c49					      ENDIF
-   2722  0c49				   FPUSH      SET	0
-      0  0c49					      plb2var	_doplasma.c2b
-      1  0c49				  -	      IF	!FPULL
-      2  0c49				  -	      pla
-      3  0c49					      ENDIF
-      4  0c49		       8d e0 10 	      sta	_doplasma.c2b
-      0  0c4c					      nextb	_doplasma.i
-      1  0c4c
-      2  0c4c		       ee de 10 	      inc	_doplasma.i
-      3  0c4f
-      4  0c4f		       f0 15		      beq	.end
-      5  0c51				   .skip
-      6  0c51
-      7  0c51		       68		      pla
-      8  0c52		       8d 65 0c 	      sta	.selfmod_code+2
-      9  0c55		       68		      pla
-     10  0c56		       8d 64 0c 	      sta	.selfmod_code+1
-     11  0c59
-     12  0c59		       68		      pla
-     13  0c5a		       cd de 10 	      cmp	_doplasma.i
-     14  0c5d		       b0 03		      bcs	.jump_back
-     15  0c5f		       4c 66 0c 	      jmp	.end
-     16  0c62				   .jump_back
-     17  0c62
-     18  0c62		       48		      pha
-     19  0c63				   .selfmod_code
-     20  0c63		       4c 00 00 	      jmp	$0000
-     21  0c66				   .end
-      0  0c66					      incb	_c2A
-      1  0c66		       ee 97 10 	      inc	_c2A
-      0  0c69					      incb	_c2A
-      1  0c69		       ee 97 10 	      inc	_c2A
-      0  0c6c					      decb	_c2B
-      1  0c6c		       ce 98 10 	      dec	_c2B
-      0  0c6f					      decb	_c2B
-      1  0c6f		       ce 98 10 	      dec	_c2B
-   2729  0c6f				   FPULL      SET	0
-   2730  0c6f				   FPUSH      SET	1
-      0  0c72					      pbyte	#0
-      1  0c72		       a9 00		      lda	#0
-      2  0c74				  -	      IF	!FPUSH
-      3  0c74				  -	      pha
-      4  0c74					      ENDIF
-   2732  0c74				   FPULL      SET	1
-   2733  0c74				   FPUSH      SET	0
-      0  0c74					      plb2var	_doplasma.y
-      1  0c74				  -	      IF	!FPULL
-      2  0c74				  -	      pla
-      3  0c74					      ENDIF
-      4  0c74		       8d e1 10 	      sta	_doplasma.y
-   2735  0c74				   FPULL      SET	0
-      0  0c77					      pbyte	#24
-      1  0c77		       a9 18		      lda	#24
-      2  0c79					      IF	!FPUSH
-      3  0c79		       48		      pha
-      4  0c7a					      ENDIF
-      0  0c7a					      for
-      1  0c7a
-      2  0c7a
-      3  0c7a				   .addr
-      4  0c7a		       a9 7a		      lda	#<.addr
-      5  0c7c		       48		      pha
-      6  0c7d		       a9 0c		      lda	#>.addr
-      7  0c7f		       48		      pha
-   2738  0c7f				   FPUSH      SET	1
-      0  0c80					      pbyte	#0
-      1  0c80		       a9 00		      lda	#0
-      2  0c82				  -	      IF	!FPUSH
-      3  0c82				  -	      pha
-      4  0c82					      ENDIF
-   2740  0c82				   FPULL      SET	1
-   2741  0c82				   FPUSH      SET	0
-      0  0c82					      plb2var	_doplasma.x
-      1  0c82				  -	      IF	!FPULL
-      2  0c82				  -	      pla
-      3  0c82					      ENDIF
-      4  0c82		       8d e2 10 	      sta	_doplasma.x
-   2743  0c82				   FPULL      SET	0
-      0  0c85					      pbyte	#39
-      1  0c85		       a9 27		      lda	#39
+   2747  0b83				   FPUSH      SET	1
+      0  0b83					      pbarray_fast	_sntable
+      1  0b83					      IF	!FPULL
+      2  0b83		       68		      pla
+      3  0b84					      ENDIF
+      4  0b84		       aa		      tax
+      5  0b85		       bd 05 0f 	      lda.wx	_sntable
+      6  0b88				  -	      IF	!FPUSH
+      7  0b88				  -	      pha
+      8  0b88					      ENDIF
+   2749  0b88				   FPULL      SET	1
+   2750  0b88				   FPUSH      SET	0
+      0  0b88					      addb
+      1  0b88				  -	      IF	!FPULL
+      2  0b88				  -	      pla
+      3  0b88					      ENDIF
+      4  0b88		       85 fb		      sta	R0
+      5  0b8a		       68		      pla
+      6  0b8b		       18		      clc
+      7  0b8c		       65 fb		      adc	R0
+      8  0b8e					      IF	!FPUSH
+      9  0b8e		       48		      pha
+     10  0b8f					      ENDIF
+   2752  0b8f				   FPULL      SET	0
+   2753  0b8f				   FPUSH      SET	1
+      0  0b8f					      pbvar	_doplasma.i
+      0  0b8f					      pbyte	_doplasma.i
+      1  0b8f		       a5 06		      lda	_doplasma.i
+      2  0b91				  -	      IF	!FPUSH
+      3  0b91				  -	      pha
+      4  0b91					      ENDIF
+   2755  0b91				   FPULL      SET	1
+   2756  0b91				   FPUSH      SET	0
+      0  0b91					      plbarray_fast	_doplasma.ybuf
+      1  0b91				  -	      IF	!FPULL
+      2  0b91				  -	      pla
+      3  0b91					      ENDIF
+      4  0b91		       aa		      tax
+      5  0b92		       68		      pla
+      6  0b93		       9d 3d 10 	      sta.wx	_doplasma.ybuf
+      0  0b96					      incb	_doplasma.c1a
+      1  0b96		       e6 09		      inc	_doplasma.c1a
+      0  0b98					      incb	_doplasma.c1a
+      1  0b98		       e6 09		      inc	_doplasma.c1a
+      0  0b9a					      incb	_doplasma.c1a
+      1  0b9a		       e6 09		      inc	_doplasma.c1a
+      0  0b9c					      incb	_doplasma.c1a
+      1  0b9c		       e6 09		      inc	_doplasma.c1a
+      0  0b9e					      opt_pbyte_pbyte_add	_doplasma.c1b, #9
+      1  0b9e
+      2  0b9e
+      3  0b9e
+      4  0b9e
+      5  0b9e
+      6  0b9e		       a5 0a		      lda	_doplasma.c1b
+      7  0ba0		       18		      clc
+      8  0ba1		       69 09		      adc	#9
+      9  0ba3					      IF	!FPUSH
+     10  0ba3		       48		      pha
+     11  0ba4					      ENDIF
+   2763  0ba4				   FPULL      SET	0
+      0  0ba4					      plb2var	_doplasma.c1b
+      1  0ba4					      IF	!FPULL
+      2  0ba4		       68		      pla
+      3  0ba5					      ENDIF
+      4  0ba5		       85 0a		      sta	_doplasma.c1b
+      0  0ba7					      incb	_doplasma.i
+      1  0ba7		       e6 06		      inc	_doplasma.i
+      0  0ba9					      pbvar	_doplasma.i
+      0  0ba9					      pbyte	_doplasma.i
+      1  0ba9		       a5 06		      lda	_doplasma.i
+      2  0bab					      IF	!FPUSH
+      3  0bab		       48		      pha
+      4  0bac					      ENDIF
+   2767  0bac				   FPUSH      SET	1
+      0  0bac					      pbyte	#25
+      1  0bac		       a9 19		      lda	#25
+      2  0bae				  -	      IF	!FPUSH
+      3  0bae				  -	      pha
+      4  0bae					      ENDIF
+   2769  0bae				   FPULL      SET	1
+   2770  0bae				   FPUSH      SET	0
+      0  0bae					      cmpbeq
+      1  0bae				  -	      IF	!FPULL
+      2  0bae				  -	      pla
+      3  0bae					      ENDIF
+      4  0bae		       85 fc		      sta	R1
+      5  0bb0		       68		      pla
+      6  0bb1		       c5 fc		      cmp	R1
+      7  0bb3		       f0 06		      beq	.pht
+      0  0bb5					      pzero
+      1  0bb5		       a9 00		      lda	#$00
+      2  0bb7					      IF	!FPUSH
+      3  0bb7		       48		      pha
+      4  0bb8					      ENDIF
+      9  0bb8					      IF	!FPUSH
+     10  0bb8		       4c be 0b 	      jmp	*+6
+     11  0bbb				  -	      ELSE
+     12  0bbb				  -	      jmp	*+5
+     13  0bbb					      ENDIF
+      0  0bbb				   .pht       pone
+      1  0bbb		       a9 01		      lda	#$01
+      2  0bbd					      IF	!FPUSH
+      3  0bbd		       48		      pha
+      4  0bbe					      ENDIF
+      0  0bbe					      until	1
+      1  0bbe		       68		      pla
+      2  0bbf		       d0 03		      bne	*+5
+      3  0bc1		       4c 77 0b 	      jmp	_RP_1
+      0  0bc4					      incb	_c1A
+      1  0bc4		       e6 02		      inc	_c1A
+      0  0bc6					      incb	_c1A
+      1  0bc6		       e6 02		      inc	_c1A
+      0  0bc8					      incb	_c1A
+      1  0bc8		       e6 02		      inc	_c1A
+      0  0bca					      decb	_c1B
+      1  0bca		       c6 03		      dec	_c1B
+      0  0bcc					      decb	_c1B
+      1  0bcc		       c6 03		      dec	_c1B
+      0  0bce					      decb	_c1B
+      1  0bce		       c6 03		      dec	_c1B
+      0  0bd0					      decb	_c1B
+      1  0bd0		       c6 03		      dec	_c1B
+      0  0bd2					      decb	_c1B
+      1  0bd2		       c6 03		      dec	_c1B
+      0  0bd4					      opt_pbyte_plbtovar	_c2A, _doplasma.c2a
+      1  0bd4
+      2  0bd4
+      3  0bd4
+      4  0bd4		       a5 04		      lda	_c2A
+      5  0bd6		       85 0b		      sta	_doplasma.c2a
+      0  0bd8					      opt_pbyte_plbtovar	_c2B, _doplasma.c2b
+      1  0bd8
+      2  0bd8
+      3  0bd8
+      4  0bd8		       a5 05		      lda	_c2B
+      5  0bda		       85 0c		      sta	_doplasma.c2b
+      0  0bdc					      opt_pbyte_plbtovar	#0, _doplasma.i
+      1  0bdc
+      2  0bdc
+      3  0bdc
+      4  0bdc		       a9 00		      lda	#0
+      5  0bde		       85 06		      sta	_doplasma.i
+   2784  0be0				   _RP_2
+   2785  0be0				   FPULL      SET	0
+      0  0be0					      pbvar	_doplasma.c2a
+      0  0be0					      pbyte	_doplasma.c2a
+      1  0be0		       a5 0b		      lda	_doplasma.c2a
+      2  0be2					      IF	!FPUSH
+      3  0be2		       48		      pha
+      4  0be3					      ENDIF
+      0  0be3					      pbarray_fast	_sntable
+      1  0be3					      IF	!FPULL
+      2  0be3		       68		      pla
+      3  0be4					      ENDIF
+      4  0be4		       aa		      tax
+      5  0be5		       bd 05 0f 	      lda.wx	_sntable
+      6  0be8					      IF	!FPUSH
+      7  0be8		       48		      pha
+      8  0be9					      ENDIF
+      0  0be9					      pbvar	_doplasma.c2b
+      0  0be9					      pbyte	_doplasma.c2b
+      1  0be9		       a5 0c		      lda	_doplasma.c2b
+      2  0beb					      IF	!FPUSH
+      3  0beb		       48		      pha
+      4  0bec					      ENDIF
+   2789  0bec				   FPUSH      SET	1
+      0  0bec					      pbarray_fast	_sntable
+      1  0bec					      IF	!FPULL
+      2  0bec		       68		      pla
+      3  0bed					      ENDIF
+      4  0bed		       aa		      tax
+      5  0bee		       bd 05 0f 	      lda.wx	_sntable
+      6  0bf1				  -	      IF	!FPUSH
+      7  0bf1				  -	      pha
+      8  0bf1					      ENDIF
+   2791  0bf1				   FPULL      SET	1
+   2792  0bf1				   FPUSH      SET	0
+      0  0bf1					      addb
+      1  0bf1				  -	      IF	!FPULL
+      2  0bf1				  -	      pla
+      3  0bf1					      ENDIF
+      4  0bf1		       85 fb		      sta	R0
+      5  0bf3		       68		      pla
+      6  0bf4		       18		      clc
+      7  0bf5		       65 fb		      adc	R0
+      8  0bf7					      IF	!FPUSH
+      9  0bf7		       48		      pha
+     10  0bf8					      ENDIF
+   2794  0bf8				   FPULL      SET	0
+   2795  0bf8				   FPUSH      SET	1
+      0  0bf8					      pbvar	_doplasma.i
+      0  0bf8					      pbyte	_doplasma.i
+      1  0bf8		       a5 06		      lda	_doplasma.i
+      2  0bfa				  -	      IF	!FPUSH
+      3  0bfa				  -	      pha
+      4  0bfa					      ENDIF
+   2797  0bfa				   FPULL      SET	1
+   2798  0bfa				   FPUSH      SET	0
+      0  0bfa					      plbarray_fast	_doplasma.xbuf
+      1  0bfa				  -	      IF	!FPULL
+      2  0bfa				  -	      pla
+      3  0bfa					      ENDIF
+      4  0bfa		       aa		      tax
+      5  0bfb		       68		      pla
+      6  0bfc		       9d 15 10 	      sta.wx	_doplasma.xbuf
+      0  0bff					      incb	_doplasma.c2a
+      1  0bff		       e6 0b		      inc	_doplasma.c2a
+      0  0c01					      incb	_doplasma.c2a
+      1  0c01		       e6 0b		      inc	_doplasma.c2a
+      0  0c03					      incb	_doplasma.c2a
+      1  0c03		       e6 0b		      inc	_doplasma.c2a
+      0  0c05					      opt_pbyte_pbyte_add	_doplasma.c2b, #7
+      1  0c05
+      2  0c05
+      3  0c05
+      4  0c05
+      5  0c05
+      6  0c05		       a5 0c		      lda	_doplasma.c2b
+      7  0c07		       18		      clc
+      8  0c08		       69 07		      adc	#7
+      9  0c0a					      IF	!FPUSH
+     10  0c0a		       48		      pha
+     11  0c0b					      ENDIF
+   2804  0c0b				   FPULL      SET	0
+      0  0c0b					      plb2var	_doplasma.c2b
+      1  0c0b					      IF	!FPULL
+      2  0c0b		       68		      pla
+      3  0c0c					      ENDIF
+      4  0c0c		       85 0c		      sta	_doplasma.c2b
+      0  0c0e					      incb	_doplasma.i
+      1  0c0e		       e6 06		      inc	_doplasma.i
+      0  0c10					      pbvar	_doplasma.i
+      0  0c10					      pbyte	_doplasma.i
+      1  0c10		       a5 06		      lda	_doplasma.i
+      2  0c12					      IF	!FPUSH
+      3  0c12		       48		      pha
+      4  0c13					      ENDIF
+   2808  0c13				   FPUSH      SET	1
+      0  0c13					      pbyte	#40
+      1  0c13		       a9 28		      lda	#40
+      2  0c15				  -	      IF	!FPUSH
+      3  0c15				  -	      pha
+      4  0c15					      ENDIF
+   2810  0c15				   FPULL      SET	1
+   2811  0c15				   FPUSH      SET	0
+      0  0c15					      cmpbeq
+      1  0c15				  -	      IF	!FPULL
+      2  0c15				  -	      pla
+      3  0c15					      ENDIF
+      4  0c15		       85 fc		      sta	R1
+      5  0c17		       68		      pla
+      6  0c18		       c5 fc		      cmp	R1
+      7  0c1a		       f0 06		      beq	.pht
+      0  0c1c					      pzero
+      1  0c1c		       a9 00		      lda	#$00
+      2  0c1e					      IF	!FPUSH
+      3  0c1e		       48		      pha
+      4  0c1f					      ENDIF
+      9  0c1f					      IF	!FPUSH
+     10  0c1f		       4c 25 0c 	      jmp	*+6
+     11  0c22				  -	      ELSE
+     12  0c22				  -	      jmp	*+5
+     13  0c22					      ENDIF
+      0  0c22				   .pht       pone
+      1  0c22		       a9 01		      lda	#$01
+      2  0c24					      IF	!FPUSH
+      3  0c24		       48		      pha
+      4  0c25					      ENDIF
+      0  0c25					      until	2
+      1  0c25		       68		      pla
+      2  0c26		       d0 03		      bne	*+5
+      3  0c28		       4c e0 0b 	      jmp	_RP_2
+      0  0c2b					      incb	_c2A
+      1  0c2b		       e6 04		      inc	_c2A
+      0  0c2d					      incb	_c2A
+      1  0c2d		       e6 04		      inc	_c2A
+      0  0c2f					      decb	_c2B
+      1  0c2f		       c6 05		      dec	_c2B
+      0  0c31					      decb	_c2B
+      1  0c31		       c6 05		      dec	_c2B
+   2818  0c31				   FPULL      SET	0
+   2819  0c31				   FPUSH      SET	1
+      0  0c33					      pwvar	_doplasma.screen
+      1  0c33				  -	      IF	!FPUSH
+      2  0c33				  -	      lda.w	_doplasma.screen
+      3  0c33				  -	      pha
+      4  0c33				  -	      lda.w	_doplasma.screen+1
+      5  0c33				  -	      pha
+      6  0c33					      ELSE
+      7  0c33		       ad 13 10 	      lda.w	_doplasma.screen
+      8  0c36		       ac 14 10 	      ldy.w	_doplasma.screen+1
+      9  0c39					      ENDIF
+   2821  0c39				   FPULL      SET	1
+   2822  0c39				   FPUSH      SET	0
+      0  0c39					      plw2var	_doplasma.cursor
+      1  0c39				  -	      IF	!FPULL
+      2  0c39				  -	      pla
+      3  0c39				  -	      sta	_doplasma.cursor+1
+      4  0c39				  -	      pla
+      5  0c39				  -	      sta	_doplasma.cursor
+      6  0c39					      ELSE
+      7  0c39		       8d 56 10 	      sta	_doplasma.cursor
+      8  0c3c		       8c 57 10 	      sty	_doplasma.cursor+1
+      9  0c3f					      ENDIF
+      0  0c3f					      opt_pbyte_plbtovar	#0, _doplasma.y
+      1  0c3f
+      2  0c3f
+      3  0c3f
+      4  0c3f		       a9 00		      lda	#0
+      5  0c41		       85 08		      sta	_doplasma.y
+   2825  0c43				   _RP_3
+      0  0c43					      opt_pbyte_plbtovar	#0, _doplasma.x
+      1  0c43
+      2  0c43
+      3  0c43
+      4  0c43		       a9 00		      lda	#0
+      5  0c45		       85 07		      sta	_doplasma.x
+   2827  0c47				   _RP_4
+   2828  0c47				   FPULL      SET	0
+      0  0c47					      pbvar	_doplasma.x
+      0  0c47					      pbyte	_doplasma.x
+      1  0c47		       a5 07		      lda	_doplasma.x
+      2  0c49					      IF	!FPUSH
+      3  0c49		       48		      pha
+      4  0c4a					      ENDIF
+      0  0c4a					      pbarray_fast	_doplasma.xbuf
+      1  0c4a					      IF	!FPULL
+      2  0c4a		       68		      pla
+      3  0c4b					      ENDIF
+      4  0c4b		       aa		      tax
+      5  0c4c		       bd 15 10 	      lda.wx	_doplasma.xbuf
+      6  0c4f					      IF	!FPUSH
+      7  0c4f		       48		      pha
+      8  0c50					      ENDIF
+      0  0c50					      pbvar	_doplasma.y
+      0  0c50					      pbyte	_doplasma.y
+      1  0c50		       a5 08		      lda	_doplasma.y
+      2  0c52					      IF	!FPUSH
+      3  0c52		       48		      pha
+      4  0c53					      ENDIF
+   2832  0c53				   FPUSH      SET	1
+      0  0c53					      pbarray_fast	_doplasma.ybuf
+      1  0c53					      IF	!FPULL
+      2  0c53		       68		      pla
+      3  0c54					      ENDIF
+      4  0c54		       aa		      tax
+      5  0c55		       bd 3d 10 	      lda.wx	_doplasma.ybuf
+      6  0c58				  -	      IF	!FPUSH
+      7  0c58				  -	      pha
+      8  0c58					      ENDIF
+   2834  0c58				   FPULL      SET	1
+   2835  0c58				   FPUSH      SET	0
+      0  0c58					      addb
+      1  0c58				  -	      IF	!FPULL
+      2  0c58				  -	      pla
+      3  0c58					      ENDIF
+      4  0c58		       85 fb		      sta	R0
+      5  0c5a		       68		      pla
+      6  0c5b		       18		      clc
+      7  0c5c		       65 fb		      adc	R0
+      8  0c5e					      IF	!FPUSH
+      9  0c5e		       48		      pha
+     10  0c5f					      ENDIF
+   2837  0c5f				   FPULL      SET	0
+   2838  0c5f				   FPUSH      SET	1
+      0  0c5f					      pwvar	_doplasma.cursor
+      1  0c5f				  -	      IF	!FPUSH
+      2  0c5f				  -	      lda.w	_doplasma.cursor
+      3  0c5f				  -	      pha
+      4  0c5f				  -	      lda.w	_doplasma.cursor+1
+      5  0c5f				  -	      pha
+      6  0c5f					      ELSE
+      7  0c5f		       ad 56 10 	      lda.w	_doplasma.cursor
+      8  0c62		       ac 57 10 	      ldy.w	_doplasma.cursor+1
+      9  0c65					      ENDIF
+   2840  0c65				   FPULL      SET	1
+   2841  0c65				   FPUSH      SET	0
+      0  0c65					      pokeb
+      1  0c65				  -	      IF	!FPULL
+      2  0c65				  -	      pla
+      3  0c65				  -	      sta	.selfmod_code+2
+      4  0c65				  -	      pla
+      5  0c65				  -	      sta	.selfmod_code+1
+      6  0c65					      ELSE
+      7  0c65		       8d 6d 0c 	      sta	.selfmod_code+1
+      8  0c68		       8c 6e 0c 	      sty	.selfmod_code+2
+      9  0c6b					      ENDIF
+     10  0c6b		       68		      pla
+     11  0c6c				   .selfmod_code
+     12  0c6c		       8d 00 00 	      sta.w	$0000
+      0  0c6f					      incb	_doplasma.x
+      1  0c6f		       e6 07		      inc	_doplasma.x
+      0  0c71					      incw	_doplasma.cursor
+      1  0c71		       ee 56 10 	      inc	_doplasma.cursor
+      2  0c74		       d0 03		      bne	.skip
+      3  0c76		       ee 57 10 	      inc	_doplasma.cursor+1
+      4  0c79				   .skip
+   2845  0c79				   FPULL      SET	0
+      0  0c79					      pbvar	_doplasma.x
+      0  0c79					      pbyte	_doplasma.x
+      1  0c79		       a5 07		      lda	_doplasma.x
+      2  0c7b					      IF	!FPUSH
+      3  0c7b		       48		      pha
+      4  0c7c					      ENDIF
+   2847  0c7c				   FPUSH      SET	1
+      0  0c7c					      pbyte	#40
+      1  0c7c		       a9 28		      lda	#40
+      2  0c7e				  -	      IF	!FPUSH
+      3  0c7e				  -	      pha
+      4  0c7e					      ENDIF
+   2849  0c7e				   FPULL      SET	1
+   2850  0c7e				   FPUSH      SET	0
+      0  0c7e					      cmpbeq
+      1  0c7e				  -	      IF	!FPULL
+      2  0c7e				  -	      pla
+      3  0c7e					      ENDIF
+      4  0c7e		       85 fc		      sta	R1
+      5  0c80		       68		      pla
+      6  0c81		       c5 fc		      cmp	R1
+      7  0c83		       f0 06		      beq	.pht
+      0  0c85					      pzero
+      1  0c85		       a9 00		      lda	#$00
       2  0c87					      IF	!FPUSH
       3  0c87		       48		      pha
       4  0c88					      ENDIF
-      0  0c88					      for
-      1  0c88
-      2  0c88
-      3  0c88				   .addr
-      4  0c88		       a9 88		      lda	#<.addr
-      5  0c8a		       48		      pha
-      6  0c8b		       a9 0c		      lda	#>.addr
-      7  0c8d		       48		      pha
-      0  0c8e					      pbvar	_doplasma.x
-      0  0c8e					      pbyte	_doplasma.x
-      1  0c8e		       ad e2 10 	      lda	_doplasma.x
-      2  0c91					      IF	!FPUSH
-      3  0c91		       48		      pha
-      4  0c92					      ENDIF
-      0  0c92					      pbarray_fast	_doplasma.xbuf
-      1  0c92					      IF	!FPULL
-      2  0c92		       68		      pla
-      3  0c93					      ENDIF
-      4  0c93		       aa		      tax
-      5  0c94		       bd 9b 10 	      lda.wx	_doplasma.xbuf
-      6  0c97					      IF	!FPUSH
-      7  0c97		       48		      pha
-      8  0c98					      ENDIF
-      0  0c98					      pbvar	_doplasma.y
-      0  0c98					      pbyte	_doplasma.y
-      1  0c98		       ad e1 10 	      lda	_doplasma.y
-      2  0c9b					      IF	!FPUSH
-      3  0c9b		       48		      pha
-      4  0c9c					      ENDIF
-   2749  0c9c				   FPUSH      SET	1
-      0  0c9c					      pbarray_fast	_doplasma.ybuf
-      1  0c9c					      IF	!FPULL
-      2  0c9c		       68		      pla
-      3  0c9d					      ENDIF
-      4  0c9d		       aa		      tax
-      5  0c9e		       bd c3 10 	      lda.wx	_doplasma.ybuf
-      6  0ca1				  -	      IF	!FPUSH
-      7  0ca1				  -	      pha
-      8  0ca1					      ENDIF
-   2751  0ca1				   FPULL      SET	1
-   2752  0ca1				   FPUSH      SET	0
-      0  0ca1					      addb
-      1  0ca1				  -	      IF	!FPULL
-      2  0ca1				  -	      pla
-      3  0ca1					      ENDIF
-      4  0ca1		       85 fb		      sta	R0
-      5  0ca3		       68		      pla
-      6  0ca4		       18		      clc
-      7  0ca5		       65 fb		      adc	R0
-      8  0ca7					      IF	!FPUSH
-      9  0ca7		       48		      pha
-     10  0ca8					      ENDIF
-   2754  0ca8				   FPULL      SET	0
-      0  0ca8					      pwvar	_doplasma.screen
-      1  0ca8					      IF	!FPUSH
-      2  0ca8		       ad 99 10 	      lda.w	_doplasma.screen
-      3  0cab		       48		      pha
-      4  0cac		       ad 9a 10 	      lda.w	_doplasma.screen+1
-      5  0caf		       48		      pha
-      6  0cb0				  -	      ELSE
-      7  0cb0				  -	      lda.w	_doplasma.screen
-      8  0cb0				  -	      ldy.w	_doplasma.screen+1
-      9  0cb0					      ENDIF
-      0  0cb0					      pbvar	_doplasma.x
-      0  0cb0					      pbyte	_doplasma.x
-      1  0cb0		       ad e2 10 	      lda	_doplasma.x
-      2  0cb3					      IF	!FPUSH
-      3  0cb3		       48		      pha
-      4  0cb4					      ENDIF
-      0  0cb4					      btow
-      1  0cb4		       a9 00		      lda	#$00
-      2  0cb6		       48		      pha
-      0  0cb7					      addw
-      1  0cb7		       ba		      tsx
-      2  0cb8		       bd 02 01 	      lda.wx	stack+2
-      3  0cbb		       18		      clc
-      4  0cbc		       7d 04 01 	      adc.wx	stack+4
-      5  0cbf		       9d 04 01 	      sta.wx	stack+4
-      6  0cc2		       68		      pla
-      7  0cc3		       7d 03 01 	      adc.wx	stack+3
-      8  0cc6		       9d 03 01 	      sta.wx	stack+3
-      9  0cc9		       68		      pla
-      0  0cca					      pokeb
-      1  0cca					      IF	!FPULL
-      2  0cca		       68		      pla
-      3  0ccb		       8d d5 0c 	      sta	.selfmod_code+2
-      4  0cce		       68		      pla
-      5  0ccf		       8d d4 0c 	      sta	.selfmod_code+1
-      6  0cd2				  -	      ELSE
-      7  0cd2				  -	      sta	.selfmod_code+1
-      8  0cd2				  -	      sty	.selfmod_code+2
-      9  0cd2					      ENDIF
-     10  0cd2		       68		      pla
-     11  0cd3				   .selfmod_code
-     12  0cd3		       8d 00 00 	      sta.w	$0000
-      0  0cd6					      nextb	_doplasma.x
-      1  0cd6
-      2  0cd6		       ee e2 10 	      inc	_doplasma.x
-      3  0cd9
-      4  0cd9		       f0 15		      beq	.end
-      5  0cdb				   .skip
-      6  0cdb
-      7  0cdb		       68		      pla
-      8  0cdc		       8d ef 0c 	      sta	.selfmod_code+2
-      9  0cdf		       68		      pla
-     10  0ce0		       8d ee 0c 	      sta	.selfmod_code+1
-     11  0ce3
-     12  0ce3		       68		      pla
-     13  0ce4		       cd e2 10 	      cmp	_doplasma.x
-     14  0ce7		       b0 03		      bcs	.jump_back
-     15  0ce9		       4c f0 0c 	      jmp	.end
-     16  0cec				   .jump_back
-     17  0cec
-     18  0cec		       48		      pha
-     19  0ced				   .selfmod_code
-     20  0ced		       4c 00 00 	      jmp	$0000
-     21  0cf0				   .end
-      0  0cf0					      pwvar	_doplasma.screen
-      1  0cf0					      IF	!FPUSH
-      2  0cf0		       ad 99 10 	      lda.w	_doplasma.screen
-      3  0cf3		       48		      pha
-      4  0cf4		       ad 9a 10 	      lda.w	_doplasma.screen+1
-      5  0cf7		       48		      pha
-      6  0cf8				  -	      ELSE
-      7  0cf8				  -	      lda.w	_doplasma.screen
-      8  0cf8				  -	      ldy.w	_doplasma.screen+1
-      9  0cf8					      ENDIF
-      0  0cf8					      pbyte	#40
-      1  0cf8		       a9 28		      lda	#40
-      2  0cfa					      IF	!FPUSH
-      3  0cfa		       48		      pha
-      4  0cfb					      ENDIF
-      0  0cfb					      btow
-      1  0cfb		       a9 00		      lda	#$00
-      2  0cfd		       48		      pha
-      0  0cfe					      addw
-      1  0cfe		       ba		      tsx
-      2  0cff		       bd 02 01 	      lda.wx	stack+2
-      3  0d02		       18		      clc
-      4  0d03		       7d 04 01 	      adc.wx	stack+4
-      5  0d06		       9d 04 01 	      sta.wx	stack+4
-      6  0d09		       68		      pla
-      7  0d0a		       7d 03 01 	      adc.wx	stack+3
-      8  0d0d		       9d 03 01 	      sta.wx	stack+3
-      9  0d10		       68		      pla
-      0  0d11					      plw2var	_doplasma.screen
-      1  0d11					      IF	!FPULL
-      2  0d11		       68		      pla
-      3  0d12		       8d 9a 10 	      sta	_doplasma.screen+1
-      4  0d15		       68		      pla
-      5  0d16		       8d 99 10 	      sta	_doplasma.screen
-      6  0d19				  -	      ELSE
-      7  0d19				  -	      sta	_doplasma.screen
-      8  0d19				  -	      sty	_doplasma.screen+1
-      9  0d19					      ENDIF
-      0  0d19					      nextb	_doplasma.y
-      1  0d19
-      2  0d19		       ee e1 10 	      inc	_doplasma.y
-      3  0d1c
-      4  0d1c		       f0 15		      beq	.end
-      5  0d1e				   .skip
-      6  0d1e
-      7  0d1e		       68		      pla
-      8  0d1f		       8d 32 0d 	      sta	.selfmod_code+2
-      9  0d22		       68		      pla
-     10  0d23		       8d 31 0d 	      sta	.selfmod_code+1
-     11  0d26
-     12  0d26		       68		      pla
-     13  0d27		       cd e1 10 	      cmp	_doplasma.y
-     14  0d2a		       b0 03		      bcs	.jump_back
-     15  0d2c		       4c 33 0d 	      jmp	.end
-     16  0d2f				   .jump_back
-     17  0d2f
-     18  0d2f		       48		      pha
-     19  0d30				   .selfmod_code
-     20  0d30		       4c 00 00 	      jmp	$0000
+      9  0c88					      IF	!FPUSH
+     10  0c88		       4c 8e 0c 	      jmp	*+6
+     11  0c8b				  -	      ELSE
+     12  0c8b				  -	      jmp	*+5
+     13  0c8b					      ENDIF
+      0  0c8b				   .pht       pone
+      1  0c8b		       a9 01		      lda	#$01
+      2  0c8d					      IF	!FPUSH
+      3  0c8d		       48		      pha
+      4  0c8e					      ENDIF
+      0  0c8e					      until	4
+      1  0c8e		       68		      pla
+      2  0c8f		       d0 03		      bne	*+5
+      3  0c91		       4c 47 0c 	      jmp	_RP_4
+      0  0c94					      incb	_doplasma.y
+      1  0c94		       e6 08		      inc	_doplasma.y
+   2854  0c94				   FPULL      SET	0
+      0  0c96					      pbvar	_doplasma.y
+      0  0c96					      pbyte	_doplasma.y
+      1  0c96		       a5 08		      lda	_doplasma.y
+      2  0c98					      IF	!FPUSH
+      3  0c98		       48		      pha
+      4  0c99					      ENDIF
+   2856  0c99				   FPUSH      SET	1
+      0  0c99					      pbyte	#25
+      1  0c99		       a9 19		      lda	#25
+      2  0c9b				  -	      IF	!FPUSH
+      3  0c9b				  -	      pha
+      4  0c9b					      ENDIF
+   2858  0c9b				   FPULL      SET	1
+   2859  0c9b				   FPUSH      SET	0
+      0  0c9b					      cmpbeq
+      1  0c9b				  -	      IF	!FPULL
+      2  0c9b				  -	      pla
+      3  0c9b					      ENDIF
+      4  0c9b		       85 fc		      sta	R1
+      5  0c9d		       68		      pla
+      6  0c9e		       c5 fc		      cmp	R1
+      7  0ca0		       f0 06		      beq	.pht
+      0  0ca2					      pzero
+      1  0ca2		       a9 00		      lda	#$00
+      2  0ca4					      IF	!FPUSH
+      3  0ca4		       48		      pha
+      4  0ca5					      ENDIF
+      9  0ca5					      IF	!FPUSH
+     10  0ca5		       4c ab 0c 	      jmp	*+6
+     11  0ca8				  -	      ELSE
+     12  0ca8				  -	      jmp	*+5
+     13  0ca8					      ENDIF
+      0  0ca8				   .pht       pone
+      1  0ca8		       a9 01		      lda	#$01
+      2  0caa					      IF	!FPUSH
+      3  0caa		       48		      pha
+      4  0cab					      ENDIF
+      0  0cab					      until	3
+      1  0cab		       68		      pla
+      2  0cac		       d0 03		      bne	*+5
+      3  0cae		       4c 43 0c 	      jmp	_RP_3
+   2862  0cb1		       60		      rts
+   2863  0cb2				   _Pdoplasma_end
+   2864  0cb2		       4c 64 0e 	      jmp	_Pmakecharset_end
+   2865  0cb5				   _Pmakecharset
+      0  0cb5					      paddr	_S1
+      0  0cb5					      pword	_S1
+      1  0cb5					      IF	!FPUSH
+      2  0cb5		       a9 05		      lda	#<_S1
+      3  0cb7		       48		      pha
+      4  0cb8		       a9 10		      lda	#>_S1
+      5  0cba		       48		      pha
+      6  0cbb				  -	      ELSE
+      7  0cbb				  -	      lda	#<_S1
+      8  0cbb				  -	      ldy	#>_S1
+      9  0cbb					      ENDIF
+      0  0cbb					      stdlib_putstr
+      1  0cbb		       68		      pla
+      2  0cbc		       a8		      tay
+      3  0cbd		       68		      pla
+      4  0cbe		       20 8c 09 	      jsr	STDLIB_PRINT
+   2868  0cc1		       a9 0d		      lda	#13
+   2869  0cc3		       20 16 e7 	      jsr	KERNAL_PRINTCHR
+      0  0cc6					      paddr	_S2
+      0  0cc6					      pword	_S2
+      1  0cc6					      IF	!FPUSH
+      2  0cc6		       a9 07		      lda	#<_S2
+      3  0cc8		       48		      pha
+      4  0cc9		       a9 10		      lda	#>_S2
+      5  0ccb		       48		      pha
+      6  0ccc				  -	      ELSE
+      7  0ccc				  -	      lda	#<_S2
+      8  0ccc				  -	      ldy	#>_S2
+      9  0ccc					      ENDIF
+   2871  0ccc				   FPULL      SET	0
+      0  0ccc					      pbyte	#10
+      1  0ccc		       a9 0a		      lda	#10
+      2  0cce					      IF	!FPUSH
+      3  0cce		       48		      pha
+      4  0ccf					      ENDIF
+      0  0ccf					      btow
+      1  0ccf		       a9 00		      lda	#$00
+      2  0cd1		       48		      pha
+   2874  0cd1				   FPUSH      SET	1
+      0  0cd2					      pword	#40
+      1  0cd2				  -	      IF	!FPUSH
+      2  0cd2				  -	      lda	#<#40
+      3  0cd2				  -	      pha
+      4  0cd2				  -	      lda	#>#40
+      5  0cd2				  -	      pha
+      6  0cd2					      ELSE
+      7  0cd2		       a9 28		      lda	#<#40
+      8  0cd4		       a0 00		      ldy	#>#40
+      9  0cd6					      ENDIF
+   2876  0cd6				   FPULL      SET	1
+   2877  0cd6				   FPUSH      SET	0
+      0  0cd6					      mulw
+      1  0cd6				  -	      IF	!FPULL
+      2  0cd6				  -	      pla
+      3  0cd6				  -	      sta	R1
+      4  0cd6				  -	      pla
+      5  0cd6				  -	      sta	R0
+      6  0cd6					      ELSE
+      7  0cd6		       85 fb		      sta	R0
+      8  0cd8		       84 fc		      sty	R1
+      9  0cda					      ENDIF
+     10  0cda		       68		      pla
+     11  0cdb		       85 fe		      sta	R3
+     12  0cdd		       68		      pla
+     13  0cde		       85 fd		      sta	R2
+     14  0ce0		       20 0d 08 	      jsr	NUCL_SMUL16
+     15  0ce3					      IF	!FPUSH
+     16  0ce3		       a5 fb		      lda	R0
+     17  0ce5		       48		      pha
+     18  0ce6		       a5 fc		      lda	R1
+     19  0ce8		       48		      pha
+     20  0ce9				  -	      ELSE
+     21  0ce9				  -	      lda	R0
+     22  0ce9				  -	      ldy	R1
+     23  0ce9					      ENDIF
+   2879  0ce9				   FPULL      SET	0
+      0  0ce9					      pbyte	#15
+      1  0ce9		       a9 0f		      lda	#15
+      2  0ceb					      IF	!FPUSH
+      3  0ceb		       48		      pha
+      4  0cec					      ENDIF
+      0  0cec					      btow
+      1  0cec		       a9 00		      lda	#$00
+      2  0cee		       48		      pha
+      0  0cef					      addw
+      1  0cef		       ba		      tsx
+      2  0cf0		       bd 02 01 	      lda.wx	stack+2
+      3  0cf3		       18		      clc
+      4  0cf4		       7d 04 01 	      adc.wx	stack+4
+      5  0cf7		       9d 04 01 	      sta.wx	stack+4
+      6  0cfa		       68		      pla
+      7  0cfb		       7d 03 01 	      adc.wx	stack+3
+      8  0cfe		       9d 03 01 	      sta.wx	stack+3
+      9  0d01		       68		      pla
+      0  0d02					      pword	#1024
+      1  0d02					      IF	!FPUSH
+      2  0d02		       a9 00		      lda	#<#1024
+      3  0d04		       48		      pha
+      4  0d05		       a9 04		      lda	#>#1024
+      5  0d07		       48		      pha
+      6  0d08				  -	      ELSE
+      7  0d08				  -	      lda	#<#1024
+      8  0d08				  -	      ldy	#>#1024
+      9  0d08					      ENDIF
+      0  0d08					      addw
+      1  0d08		       ba		      tsx
+      2  0d09		       bd 02 01 	      lda.wx	stack+2
+      3  0d0c		       18		      clc
+      4  0d0d		       7d 04 01 	      adc.wx	stack+4
+      5  0d10		       9d 04 01 	      sta.wx	stack+4
+      6  0d13		       68		      pla
+      7  0d14		       7d 03 01 	      adc.wx	stack+3
+      8  0d17		       9d 03 01 	      sta.wx	stack+3
+      9  0d1a		       68		      pla
+      0  0d1b					      textat
+      1  0d1b					      IF	!FPULL
+      2  0d1b		       68		      pla
+      3  0d1c		       85 fe		      sta	R3
+      4  0d1e		       68		      pla
+      5  0d1f		       85 fd		      sta	R2
+      6  0d21				  -	      ELSE
+      7  0d21				  -	      sta	R2
+      8  0d21				  -	      sty	R3
+      9  0d21					      ENDIF
+     10  0d21		       68		      pla
+     11  0d22		       85 fc		      sta	R1
+     12  0d24		       68		      pla
+     13  0d25		       85 fb		      sta	R0
+     14  0d27		       a0 00		      ldy	#$00
+     15  0d29				   .loop
+     16  0d29		       b1 fb		      lda	(R0),y
+     17  0d2b		       f0 06		      beq	.end
+     18  0d2d		       91 fd		      sta	(R2),y
+     19  0d2f		       c8		      iny
+     20  0d30		       4c 29 0d 	      jmp	.loop
      21  0d33				   .end
-   2767  0d33		       60		      rts
-   2768  0d34				   _Pdoplasma_end
-   2769  0d34		       4c e6 0e 	      jmp	_Pmakecharset_end
-   2770  0d37				   _Pmakecharset
-      0  0d37					      paddr	_S1
-      0  0d37					      pword	_S1
-      1  0d37					      IF	!FPUSH
-      2  0d37		       a9 87		      lda	#<_S1
-      3  0d39		       48		      pha
-      4  0d3a		       a9 10		      lda	#>_S1
-      5  0d3c		       48		      pha
-      6  0d3d				  -	      ELSE
-      7  0d3d				  -	      lda	#<_S1
-      8  0d3d				  -	      ldy	#>_S1
-      9  0d3d					      ENDIF
-      0  0d3d					      stdlib_putstr
-      1  0d3d		       68		      pla
-      2  0d3e		       a8		      tay
-      3  0d3f		       68		      pla
-      4  0d40		       20 8c 09 	      jsr	STDLIB_PRINT
-   2773  0d43		       a9 0d		      lda	#13
-   2774  0d45		       20 16 e7 	      jsr	KERNAL_PRINTCHR
-      0  0d48					      paddr	_S2
-      0  0d48					      pword	_S2
-      1  0d48					      IF	!FPUSH
-      2  0d48		       a9 89		      lda	#<_S2
-      3  0d4a		       48		      pha
-      4  0d4b		       a9 10		      lda	#>_S2
-      5  0d4d		       48		      pha
-      6  0d4e				  -	      ELSE
-      7  0d4e				  -	      lda	#<_S2
-      8  0d4e				  -	      ldy	#>_S2
-      9  0d4e					      ENDIF
-      0  0d4e					      pbyte	#10
-      1  0d4e		       a9 0a		      lda	#10
-      2  0d50					      IF	!FPUSH
-      3  0d50		       48		      pha
-      4  0d51					      ENDIF
-      0  0d51					      btow
-      1  0d51		       a9 00		      lda	#$00
-      2  0d53		       48		      pha
-   2778  0d53				   FPUSH      SET	1
-      0  0d54					      pword	#40
-      1  0d54				  -	      IF	!FPUSH
-      2  0d54				  -	      lda	#<#40
-      3  0d54				  -	      pha
-      4  0d54				  -	      lda	#>#40
-      5  0d54				  -	      pha
-      6  0d54					      ELSE
-      7  0d54		       a9 28		      lda	#<#40
-      8  0d56		       a0 00		      ldy	#>#40
-      9  0d58					      ENDIF
-   2780  0d58				   FPULL      SET	1
-   2781  0d58				   FPUSH      SET	0
-      0  0d58					      mulw
-      1  0d58				  -	      IF	!FPULL
-      2  0d58				  -	      pla
-      3  0d58				  -	      sta	R1
-      4  0d58				  -	      pla
-      5  0d58				  -	      sta	R0
-      6  0d58					      ELSE
-      7  0d58		       85 fb		      sta	R0
-      8  0d5a		       84 fc		      sty	R1
-      9  0d5c					      ENDIF
-     10  0d5c		       68		      pla
-     11  0d5d		       85 fe		      sta	R3
-     12  0d5f		       68		      pla
-     13  0d60		       85 fd		      sta	R2
-     14  0d62		       20 0d 08 	      jsr	NUCL_SMUL16
-     15  0d65					      IF	!FPUSH
-     16  0d65		       a5 fb		      lda	R0
-     17  0d67		       48		      pha
-     18  0d68		       a5 fc		      lda	R1
-     19  0d6a		       48		      pha
-     20  0d6b				  -	      ELSE
-     21  0d6b				  -	      lda	R0
-     22  0d6b				  -	      ldy	R1
-     23  0d6b					      ENDIF
-   2783  0d6b				   FPULL      SET	0
-      0  0d6b					      pbyte	#15
-      1  0d6b		       a9 0f		      lda	#15
-      2  0d6d					      IF	!FPUSH
-      3  0d6d		       48		      pha
+      0  0d33					      opt_pbyte_plbtovar	#0, _makecharset.c
+      1  0d33
+      2  0d33
+      3  0d33
+      4  0d33		       a9 00		      lda	#0
+      5  0d35		       8d 5a 10 	      sta	_makecharset.c
+   2887  0d38				   _Lmakecharset.loop
+      0  0d38					      pbvar	_makecharset.c
+      0  0d38					      pbyte	_makecharset.c
+      1  0d38		       ad 5a 10 	      lda	_makecharset.c
+      2  0d3b					      IF	!FPUSH
+      3  0d3b		       48		      pha
+      4  0d3c					      ENDIF
+   2889  0d3c				   FPUSH      SET	1
+      0  0d3c					      pbarray_fast	_sntable
+      1  0d3c					      IF	!FPULL
+      2  0d3c		       68		      pla
+      3  0d3d					      ENDIF
+      4  0d3d		       aa		      tax
+      5  0d3e		       bd 05 0f 	      lda.wx	_sntable
+      6  0d41				  -	      IF	!FPUSH
+      7  0d41				  -	      pha
+      8  0d41					      ENDIF
+   2891  0d41				   FPULL      SET	1
+   2892  0d41				   FPUSH      SET	0
+      0  0d41					      plb2var	_makecharset.s
+      1  0d41				  -	      IF	!FPULL
+      2  0d41				  -	      pla
+      3  0d41					      ENDIF
+      4  0d41		       8d 5b 10 	      sta	_makecharset.s
+      0  0d44					      opt_pbyte_plbtovar	#0, _makecharset.i
+      1  0d44
+      2  0d44
+      3  0d44
+      4  0d44		       a9 00		      lda	#0
+      5  0d46		       8d 5c 10 	      sta	_makecharset.i
+   2895  0d46				   FPULL      SET	0
+      0  0d49					      pbyte	#7
+      1  0d49		       a9 07		      lda	#7
+      2  0d4b					      IF	!FPUSH
+      3  0d4b		       48		      pha
+      4  0d4c					      ENDIF
+      0  0d4c					      for
+      1  0d4c
+      2  0d4c
+      3  0d4c				   .addr
+      4  0d4c		       a9 4c		      lda	#<.addr
+      5  0d4e		       48		      pha
+      6  0d4f		       a9 0d		      lda	#>.addr
+      7  0d51		       48		      pha
+      0  0d52					      opt_pbyte_plbtovar	#0, _makecharset.b
+      1  0d52
+      2  0d52
+      3  0d52
+      4  0d52		       a9 00		      lda	#0
+      5  0d54		       8d 5d 10 	      sta	_makecharset.b
+      0  0d57					      opt_pbyte_plbtovar	#0, _makecharset.ii
+      1  0d57
+      2  0d57
+      3  0d57
+      4  0d57		       a9 00		      lda	#0
+      5  0d59		       8d 5e 10 	      sta	_makecharset.ii
+      0  0d5c					      pbyte	#7
+      1  0d5c		       a9 07		      lda	#7
+      2  0d5e					      IF	!FPUSH
+      3  0d5e		       48		      pha
+      4  0d5f					      ENDIF
+      0  0d5f					      for
+      1  0d5f
+      2  0d5f
+      3  0d5f				   .addr
+      4  0d5f		       a9 5f		      lda	#<.addr
+      5  0d61		       48		      pha
+      6  0d62		       a9 0d		      lda	#>.addr
+      7  0d64		       48		      pha
+      0  0d65					      rndb
+      1  0d65		       20 ad 0a 	      jsr	STDLIB_RND
+      2  0d68		       ad dd 0a 	      lda	random+1
+      3  0d6b					      IF	!FPUSH
+      4  0d6b		       48		      pha
+      5  0d6c					      ENDIF
+   2903  0d6c				   FPUSH      SET	1
+      0  0d6c					      pbyte	#255
+      1  0d6c		       a9 ff		      lda	#255
+      2  0d6e				  -	      IF	!FPUSH
+      3  0d6e				  -	      pha
       4  0d6e					      ENDIF
-      0  0d6e					      btow
-      1  0d6e		       a9 00		      lda	#$00
-      2  0d70		       48		      pha
-      0  0d71					      addw
-      1  0d71		       ba		      tsx
-      2  0d72		       bd 02 01 	      lda.wx	stack+2
-      3  0d75		       18		      clc
-      4  0d76		       7d 04 01 	      adc.wx	stack+4
-      5  0d79		       9d 04 01 	      sta.wx	stack+4
-      6  0d7c		       68		      pla
-      7  0d7d		       7d 03 01 	      adc.wx	stack+3
-      8  0d80		       9d 03 01 	      sta.wx	stack+3
-      9  0d83		       68		      pla
-      0  0d84					      pword	#1024
-      1  0d84					      IF	!FPUSH
-      2  0d84		       a9 00		      lda	#<#1024
-      3  0d86		       48		      pha
-      4  0d87		       a9 04		      lda	#>#1024
-      5  0d89		       48		      pha
-      6  0d8a				  -	      ELSE
-      7  0d8a				  -	      lda	#<#1024
-      8  0d8a				  -	      ldy	#>#1024
-      9  0d8a					      ENDIF
-      0  0d8a					      addw
-      1  0d8a		       ba		      tsx
-      2  0d8b		       bd 02 01 	      lda.wx	stack+2
-      3  0d8e		       18		      clc
-      4  0d8f		       7d 04 01 	      adc.wx	stack+4
-      5  0d92		       9d 04 01 	      sta.wx	stack+4
-      6  0d95		       68		      pla
-      7  0d96		       7d 03 01 	      adc.wx	stack+3
-      8  0d99		       9d 03 01 	      sta.wx	stack+3
-      9  0d9c		       68		      pla
-      0  0d9d					      textat
-      1  0d9d					      IF	!FPULL
-      2  0d9d		       68		      pla
-      3  0d9e		       85 fe		      sta	R3
-      4  0da0		       68		      pla
-      5  0da1		       85 fd		      sta	R2
-      6  0da3				  -	      ELSE
-      7  0da3				  -	      sta	R2
-      8  0da3				  -	      sty	R3
-      9  0da3					      ENDIF
-     10  0da3		       68		      pla
-     11  0da4		       85 fc		      sta	R1
-     12  0da6		       68		      pla
-     13  0da7		       85 fb		      sta	R0
-     14  0da9		       a0 00		      ldy	#$00
-     15  0dab				   .loop
-     16  0dab		       b1 fb		      lda	(R0),y
-     17  0dad		       f0 06		      beq	.end
-     18  0daf		       91 fd		      sta	(R2),y
-     19  0db1		       c8		      iny
-     20  0db2		       4c ab 0d 	      jmp	.loop
-     21  0db5				   .end
-   2790  0db5				   FPUSH      SET	1
-      0  0db5					      pbyte	#0
-      1  0db5		       a9 00		      lda	#0
-      2  0db7				  -	      IF	!FPUSH
-      3  0db7				  -	      pha
-      4  0db7					      ENDIF
-   2792  0db7				   FPULL      SET	1
-   2793  0db7				   FPUSH      SET	0
-      0  0db7					      plb2var	_makecharset.c
-      1  0db7				  -	      IF	!FPULL
-      2  0db7				  -	      pla
-      3  0db7					      ENDIF
-      4  0db7		       8d e5 10 	      sta	_makecharset.c
-   2795  0dba				   _Lmakecharset.loop
-   2796  0dba				   FPULL      SET	0
-      0  0dba					      pbvar	_makecharset.c
-      0  0dba					      pbyte	_makecharset.c
-      1  0dba		       ad e5 10 	      lda	_makecharset.c
-      2  0dbd					      IF	!FPUSH
-      3  0dbd		       48		      pha
-      4  0dbe					      ENDIF
-   2798  0dbe				   FPUSH      SET	1
-      0  0dbe					      pbarray_fast	_sntable
-      1  0dbe					      IF	!FPULL
-      2  0dbe		       68		      pla
-      3  0dbf					      ENDIF
-      4  0dbf		       aa		      tax
-      5  0dc0		       bd 87 0f 	      lda.wx	_sntable
-      6  0dc3				  -	      IF	!FPUSH
-      7  0dc3				  -	      pha
-      8  0dc3					      ENDIF
-   2800  0dc3				   FPULL      SET	1
-   2801  0dc3				   FPUSH      SET	0
-      0  0dc3					      plb2var	_makecharset.s
-      1  0dc3				  -	      IF	!FPULL
-      2  0dc3				  -	      pla
-      3  0dc3					      ENDIF
-      4  0dc3		       8d e6 10 	      sta	_makecharset.s
-   2803  0dc3				   FPULL      SET	0
-   2804  0dc3				   FPUSH      SET	1
-      0  0dc6					      pbyte	#0
-      1  0dc6		       a9 00		      lda	#0
-      2  0dc8				  -	      IF	!FPUSH
-      3  0dc8				  -	      pha
-      4  0dc8					      ENDIF
-   2806  0dc8				   FPULL      SET	1
-   2807  0dc8				   FPUSH      SET	0
-      0  0dc8					      plb2var	_makecharset.i
-      1  0dc8				  -	      IF	!FPULL
-      2  0dc8				  -	      pla
-      3  0dc8					      ENDIF
-      4  0dc8		       8d e7 10 	      sta	_makecharset.i
-   2809  0dc8				   FPULL      SET	0
-      0  0dcb					      pbyte	#7
-      1  0dcb		       a9 07		      lda	#7
+   2905  0d6e				   FPULL      SET	1
+   2906  0d6e				   FPUSH      SET	0
+      0  0d6e					      andb
+      1  0d6e				  -	      IF	!FPULL
+      2  0d6e				  -	      pla
+      3  0d6e					      ENDIF
+      4  0d6e		       85 fc		      sta	R1
+      5  0d70		       68		      pla
+      6  0d71		       25 fc		      and	R1
+      7  0d73					      IF	!FPUSH
+      8  0d73		       48		      pha
+      9  0d74					      ENDIF
+   2908  0d74				   FPULL      SET	0
+   2909  0d74				   FPUSH      SET	1
+      0  0d74					      pbvar	_makecharset.s
+      0  0d74					      pbyte	_makecharset.s
+      1  0d74		       ad 5b 10 	      lda	_makecharset.s
+      2  0d77				  -	      IF	!FPUSH
+      3  0d77				  -	      pha
+      4  0d77					      ENDIF
+   2911  0d77				   FPULL      SET	1
+   2912  0d77				   FPUSH      SET	0
+      0  0d77					      cmpbgt
+      1  0d77				  -	      IF	!FPULL
+      2  0d77				  -	      pla
+      3  0d77					      ENDIF
+      4  0d77		       85 fc		      sta	R1
+      5  0d79		       68		      pla
+      6  0d7a		       c5 fc		      cmp	R1
+      7  0d7c		       90 08		      bcc	.phf
+      8  0d7e		       f0 06		      beq	.phf
+      0  0d80					      pone
+      1  0d80		       a9 01		      lda	#$01
+      2  0d82					      IF	!FPUSH
+      3  0d82		       48		      pha
+      4  0d83					      ENDIF
+     10  0d83					      IF	!FPUSH
+     11  0d83		       4c 89 0d 	      jmp	*+6
+     12  0d86				  -	      ELSE
+     13  0d86				  -	      jmp	*+5
+     14  0d86					      ENDIF
+      0  0d86				   .phf       pzero
+      1  0d86		       a9 00		      lda	#$00
+      2  0d88					      IF	!FPUSH
+      3  0d88		       48		      pha
+      4  0d89					      ENDIF
+   2914  0d89		       68		      pla
+   2915  0d8a		       d0 03		      bne	*+5
+   2916  0d8c		       4c a4 0d 	      jmp	_J1
+   2917  0d8c				   FPULL      SET	0
+      0  0d8f					      pbvar	_makecharset.b
+      0  0d8f					      pbyte	_makecharset.b
+      1  0d8f		       ad 5d 10 	      lda	_makecharset.b
+      2  0d92					      IF	!FPUSH
+      3  0d92		       48		      pha
+      4  0d93					      ENDIF
+      0  0d93					      pbvar	_makecharset.ii
+      0  0d93					      pbyte	_makecharset.ii
+      1  0d93		       ad 5e 10 	      lda	_makecharset.ii
+      2  0d96					      IF	!FPUSH
+      3  0d96		       48		      pha
+      4  0d97					      ENDIF
+   2920  0d97				   FPUSH      SET	1
+      0  0d97					      pbarray_fast	_bittab
+      1  0d97					      IF	!FPULL
+      2  0d97		       68		      pla
+      3  0d98					      ENDIF
+      4  0d98		       aa		      tax
+      5  0d99		       bd fd 0e 	      lda.wx	_bittab
+      6  0d9c				  -	      IF	!FPUSH
+      7  0d9c				  -	      pha
+      8  0d9c					      ENDIF
+   2922  0d9c				   FPULL      SET	1
+      0  0d9c					      orb
+      1  0d9c				  -	      IF	!FPULL
+      2  0d9c				  -	      pla
+      3  0d9c					      ENDIF
+      4  0d9c		       85 fc		      sta	R1
+      5  0d9e		       68		      pla
+      6  0d9f		       05 fc		      ora	R1
+      7  0da1				  -	      IF	!FPUSH
+      8  0da1				  -	      pha
+      9  0da1					      ENDIF
+   2924  0da1				   FPUSH      SET	0
+      0  0da1					      plb2var	_makecharset.b
+      1  0da1				  -	      IF	!FPULL
+      2  0da1				  -	      pla
+      3  0da1					      ENDIF
+      4  0da1		       8d 5d 10 	      sta	_makecharset.b
+   2926  0da4				   _J1
+      0  0da4					      nextb	_makecharset.ii
+      1  0da4
+      2  0da4		       ee 5e 10 	      inc	_makecharset.ii
+      3  0da7
+      4  0da7		       f0 15		      beq	.end
+      5  0da9				   .skip
+      6  0da9
+      7  0da9		       68		      pla
+      8  0daa		       8d bd 0d 	      sta	.selfmod_code+2
+      9  0dad		       68		      pla
+     10  0dae		       8d bc 0d 	      sta	.selfmod_code+1
+     11  0db1
+     12  0db1		       68		      pla
+     13  0db2		       cd 5e 10 	      cmp	_makecharset.ii
+     14  0db5		       b0 03		      bcs	.jump_back
+     15  0db7		       4c be 0d 	      jmp	.end
+     16  0dba				   .jump_back
+     17  0dba
+     18  0dba		       48		      pha
+     19  0dbb				   .selfmod_code
+     20  0dbb		       4c 00 00 	      jmp	$0000
+     21  0dbe				   .end
+   2928  0dbe				   FPULL      SET	0
+      0  0dbe					      pbvar	_makecharset.b
+      0  0dbe					      pbyte	_makecharset.b
+      1  0dbe		       ad 5d 10 	      lda	_makecharset.b
+      2  0dc1					      IF	!FPUSH
+      3  0dc1		       48		      pha
+      4  0dc2					      ENDIF
+      0  0dc2					      pwvar	_makecharset.address
+      1  0dc2					      IF	!FPUSH
+      2  0dc2		       ad 58 10 	      lda.w	_makecharset.address
+      3  0dc5		       48		      pha
+      4  0dc6		       ad 59 10 	      lda.w	_makecharset.address+1
+      5  0dc9		       48		      pha
+      6  0dca				  -	      ELSE
+      7  0dca				  -	      lda.w	_makecharset.address
+      8  0dca				  -	      ldy.w	_makecharset.address+1
+      9  0dca					      ENDIF
+      0  0dca					      pbvar	_makecharset.c
+      0  0dca					      pbyte	_makecharset.c
+      1  0dca		       ad 5a 10 	      lda	_makecharset.c
       2  0dcd					      IF	!FPUSH
       3  0dcd		       48		      pha
       4  0dce					      ENDIF
-      0  0dce					      for
-      1  0dce
-      2  0dce
-      3  0dce				   .addr
-      4  0dce		       a9 ce		      lda	#<.addr
-      5  0dd0		       48		      pha
-      6  0dd1		       a9 0d		      lda	#>.addr
-      7  0dd3		       48		      pha
-   2812  0dd3				   FPUSH      SET	1
-      0  0dd4					      pbyte	#0
-      1  0dd4		       a9 00		      lda	#0
-      2  0dd6				  -	      IF	!FPUSH
-      3  0dd6				  -	      pha
-      4  0dd6					      ENDIF
-   2814  0dd6				   FPULL      SET	1
-   2815  0dd6				   FPUSH      SET	0
-      0  0dd6					      plb2var	_makecharset.b
-      1  0dd6				  -	      IF	!FPULL
-      2  0dd6				  -	      pla
-      3  0dd6					      ENDIF
-      4  0dd6		       8d e8 10 	      sta	_makecharset.b
-   2817  0dd6				   FPULL      SET	0
-   2818  0dd6				   FPUSH      SET	1
-      0  0dd9					      pbyte	#0
-      1  0dd9		       a9 00		      lda	#0
-      2  0ddb				  -	      IF	!FPUSH
-      3  0ddb				  -	      pha
-      4  0ddb					      ENDIF
-   2820  0ddb				   FPULL      SET	1
-   2821  0ddb				   FPUSH      SET	0
-      0  0ddb					      plb2var	_makecharset.ii
-      1  0ddb				  -	      IF	!FPULL
-      2  0ddb				  -	      pla
-      3  0ddb					      ENDIF
-      4  0ddb		       8d e9 10 	      sta	_makecharset.ii
-   2823  0ddb				   FPULL      SET	0
-      0  0dde					      pbyte	#7
-      1  0dde		       a9 07		      lda	#7
-      2  0de0					      IF	!FPUSH
-      3  0de0		       48		      pha
-      4  0de1					      ENDIF
-      0  0de1					      for
-      1  0de1
-      2  0de1
-      3  0de1				   .addr
-      4  0de1		       a9 e1		      lda	#<.addr
-      5  0de3		       48		      pha
-      6  0de4		       a9 0d		      lda	#>.addr
-      7  0de6		       48		      pha
-      0  0de7					      rndb
-      1  0de7		       20 ad 0a 	      jsr	STDLIB_RND
-      2  0dea		       ad dd 0a 	      lda	random+1
-      3  0ded					      IF	!FPUSH
-      4  0ded		       48		      pha
-      5  0dee					      ENDIF
-   2827  0dee				   FPUSH      SET	1
-      0  0dee					      pbyte	#255
-      1  0dee		       a9 ff		      lda	#255
-      2  0df0				  -	      IF	!FPUSH
-      3  0df0				  -	      pha
-      4  0df0					      ENDIF
-   2829  0df0				   FPULL      SET	1
-   2830  0df0				   FPUSH      SET	0
-      0  0df0					      andb
-      1  0df0				  -	      IF	!FPULL
-      2  0df0				  -	      pla
-      3  0df0					      ENDIF
-      4  0df0		       85 fc		      sta	R1
-      5  0df2		       68		      pla
-      6  0df3		       25 fc		      and	R1
-      7  0df5					      IF	!FPUSH
-      8  0df5		       48		      pha
-      9  0df6					      ENDIF
-   2832  0df6				   FPULL      SET	0
-   2833  0df6				   FPUSH      SET	1
-      0  0df6					      pbvar	_makecharset.s
-      0  0df6					      pbyte	_makecharset.s
-      1  0df6		       ad e6 10 	      lda	_makecharset.s
-      2  0df9				  -	      IF	!FPUSH
-      3  0df9				  -	      pha
-      4  0df9					      ENDIF
-   2835  0df9				   FPULL      SET	1
-   2836  0df9				   FPUSH      SET	0
-      0  0df9					      cmpbgt
-      1  0df9				  -	      IF	!FPULL
-      2  0df9				  -	      pla
-      3  0df9					      ENDIF
-      4  0df9		       85 fc		      sta	R1
-      5  0dfb		       68		      pla
-      6  0dfc		       c5 fc		      cmp	R1
-      7  0dfe		       90 08		      bcc	.phf
-      8  0e00		       f0 06		      beq	.phf
-      0  0e02					      pone
-      1  0e02		       a9 01		      lda	#$01
-      2  0e04					      IF	!FPUSH
-      3  0e04		       48		      pha
-      4  0e05					      ENDIF
-     10  0e05					      IF	!FPUSH
-     11  0e05		       4c 0b 0e 	      jmp	*+6
-     12  0e08				  -	      ELSE
-     13  0e08				  -	      jmp	*+5
-     14  0e08					      ENDIF
-      0  0e08				   .phf       pzero
-      1  0e08		       a9 00		      lda	#$00
-      2  0e0a					      IF	!FPUSH
-      3  0e0a		       48		      pha
-      4  0e0b					      ENDIF
-   2838  0e0b		       68		      pla
-   2839  0e0c		       d0 03		      bne	*+5
-   2840  0e0e		       4c 26 0e 	      jmp	_J1
-   2841  0e0e				   FPULL      SET	0
-      0  0e11					      pbvar	_makecharset.b
-      0  0e11					      pbyte	_makecharset.b
-      1  0e11		       ad e8 10 	      lda	_makecharset.b
-      2  0e14					      IF	!FPUSH
-      3  0e14		       48		      pha
-      4  0e15					      ENDIF
-      0  0e15					      pbvar	_makecharset.ii
-      0  0e15					      pbyte	_makecharset.ii
-      1  0e15		       ad e9 10 	      lda	_makecharset.ii
-      2  0e18					      IF	!FPUSH
-      3  0e18		       48		      pha
-      4  0e19					      ENDIF
-   2844  0e19				   FPUSH      SET	1
-      0  0e19					      pbarray_fast	_bittab
+      0  0dce					      btow
+      1  0dce		       a9 00		      lda	#$00
+      2  0dd0		       48		      pha
+      0  0dd1					      pbyte	#8
+      1  0dd1		       a9 08		      lda	#8
+      2  0dd3					      IF	!FPUSH
+      3  0dd3		       48		      pha
+      4  0dd4					      ENDIF
+      0  0dd4					      btow
+      1  0dd4		       a9 00		      lda	#$00
+      2  0dd6		       48		      pha
+      0  0dd7					      mulw
+      1  0dd7					      IF	!FPULL
+      2  0dd7		       68		      pla
+      3  0dd8		       85 fc		      sta	R1
+      4  0dda		       68		      pla
+      5  0ddb		       85 fb		      sta	R0
+      6  0ddd				  -	      ELSE
+      7  0ddd				  -	      sta	R0
+      8  0ddd				  -	      sty	R1
+      9  0ddd					      ENDIF
+     10  0ddd		       68		      pla
+     11  0dde		       85 fe		      sta	R3
+     12  0de0		       68		      pla
+     13  0de1		       85 fd		      sta	R2
+     14  0de3		       20 0d 08 	      jsr	NUCL_SMUL16
+     15  0de6					      IF	!FPUSH
+     16  0de6		       a5 fb		      lda	R0
+     17  0de8		       48		      pha
+     18  0de9		       a5 fc		      lda	R1
+     19  0deb		       48		      pha
+     20  0dec				  -	      ELSE
+     21  0dec				  -	      lda	R0
+     22  0dec				  -	      ldy	R1
+     23  0dec					      ENDIF
+      0  0dec					      addw
+      1  0dec		       ba		      tsx
+      2  0ded		       bd 02 01 	      lda.wx	stack+2
+      3  0df0		       18		      clc
+      4  0df1		       7d 04 01 	      adc.wx	stack+4
+      5  0df4		       9d 04 01 	      sta.wx	stack+4
+      6  0df7		       68		      pla
+      7  0df8		       7d 03 01 	      adc.wx	stack+3
+      8  0dfb		       9d 03 01 	      sta.wx	stack+3
+      9  0dfe		       68		      pla
+      0  0dff					      pbvar	_makecharset.i
+      0  0dff					      pbyte	_makecharset.i
+      1  0dff		       ad 5c 10 	      lda	_makecharset.i
+      2  0e02					      IF	!FPUSH
+      3  0e02		       48		      pha
+      4  0e03					      ENDIF
+      0  0e03					      btow
+      1  0e03		       a9 00		      lda	#$00
+      2  0e05		       48		      pha
+      0  0e06					      addw
+      1  0e06		       ba		      tsx
+      2  0e07		       bd 02 01 	      lda.wx	stack+2
+      3  0e0a		       18		      clc
+      4  0e0b		       7d 04 01 	      adc.wx	stack+4
+      5  0e0e		       9d 04 01 	      sta.wx	stack+4
+      6  0e11		       68		      pla
+      7  0e12		       7d 03 01 	      adc.wx	stack+3
+      8  0e15		       9d 03 01 	      sta.wx	stack+3
+      9  0e18		       68		      pla
+      0  0e19					      pokeb
       1  0e19					      IF	!FPULL
       2  0e19		       68		      pla
-      3  0e1a					      ENDIF
-      4  0e1a		       aa		      tax
-      5  0e1b		       bd 7f 0f 	      lda.wx	_bittab
-      6  0e1e				  -	      IF	!FPUSH
-      7  0e1e				  -	      pha
-      8  0e1e					      ENDIF
-   2846  0e1e				   FPULL      SET	1
-      0  0e1e					      orb
-      1  0e1e				  -	      IF	!FPULL
-      2  0e1e				  -	      pla
-      3  0e1e					      ENDIF
-      4  0e1e		       85 fc		      sta	R1
-      5  0e20		       68		      pla
-      6  0e21		       05 fc		      ora	R1
-      7  0e23				  -	      IF	!FPUSH
-      8  0e23				  -	      pha
-      9  0e23					      ENDIF
-   2848  0e23				   FPUSH      SET	0
-      0  0e23					      plb2var	_makecharset.b
-      1  0e23				  -	      IF	!FPULL
-      2  0e23				  -	      pla
-      3  0e23					      ENDIF
-      4  0e23		       8d e8 10 	      sta	_makecharset.b
-   2850  0e26				   _J1
-      0  0e26					      nextb	_makecharset.ii
-      1  0e26
-      2  0e26		       ee e9 10 	      inc	_makecharset.ii
-      3  0e29
-      4  0e29		       f0 15		      beq	.end
-      5  0e2b				   .skip
-      6  0e2b
-      7  0e2b		       68		      pla
-      8  0e2c		       8d 3f 0e 	      sta	.selfmod_code+2
-      9  0e2f		       68		      pla
-     10  0e30		       8d 3e 0e 	      sta	.selfmod_code+1
-     11  0e33
-     12  0e33		       68		      pla
-     13  0e34		       cd e9 10 	      cmp	_makecharset.ii
-     14  0e37		       b0 03		      bcs	.jump_back
-     15  0e39		       4c 40 0e 	      jmp	.end
-     16  0e3c				   .jump_back
-     17  0e3c
-     18  0e3c		       48		      pha
-     19  0e3d				   .selfmod_code
-     20  0e3d		       4c 00 00 	      jmp	$0000
-     21  0e40				   .end
-   2852  0e40				   FPULL      SET	0
-      0  0e40					      pbvar	_makecharset.b
-      0  0e40					      pbyte	_makecharset.b
-      1  0e40		       ad e8 10 	      lda	_makecharset.b
-      2  0e43					      IF	!FPUSH
-      3  0e43		       48		      pha
-      4  0e44					      ENDIF
-      0  0e44					      pwvar	_makecharset.address
-      1  0e44					      IF	!FPUSH
-      2  0e44		       ad e3 10 	      lda.w	_makecharset.address
-      3  0e47		       48		      pha
-      4  0e48		       ad e4 10 	      lda.w	_makecharset.address+1
-      5  0e4b		       48		      pha
-      6  0e4c				  -	      ELSE
-      7  0e4c				  -	      lda.w	_makecharset.address
-      8  0e4c				  -	      ldy.w	_makecharset.address+1
-      9  0e4c					      ENDIF
-      0  0e4c					      pbvar	_makecharset.c
-      0  0e4c					      pbyte	_makecharset.c
-      1  0e4c		       ad e5 10 	      lda	_makecharset.c
-      2  0e4f					      IF	!FPUSH
-      3  0e4f		       48		      pha
-      4  0e50					      ENDIF
-      0  0e50					      btow
-      1  0e50		       a9 00		      lda	#$00
-      2  0e52		       48		      pha
-      0  0e53					      pbyte	#8
-      1  0e53		       a9 08		      lda	#8
-      2  0e55					      IF	!FPUSH
-      3  0e55		       48		      pha
-      4  0e56					      ENDIF
-      0  0e56					      btow
-      1  0e56		       a9 00		      lda	#$00
-      2  0e58		       48		      pha
-      0  0e59					      mulw
-      1  0e59					      IF	!FPULL
-      2  0e59		       68		      pla
-      3  0e5a		       85 fc		      sta	R1
-      4  0e5c		       68		      pla
-      5  0e5d		       85 fb		      sta	R0
-      6  0e5f				  -	      ELSE
-      7  0e5f				  -	      sta	R0
-      8  0e5f				  -	      sty	R1
-      9  0e5f					      ENDIF
-     10  0e5f		       68		      pla
-     11  0e60		       85 fe		      sta	R3
-     12  0e62		       68		      pla
-     13  0e63		       85 fd		      sta	R2
-     14  0e65		       20 0d 08 	      jsr	NUCL_SMUL16
-     15  0e68					      IF	!FPUSH
-     16  0e68		       a5 fb		      lda	R0
-     17  0e6a		       48		      pha
-     18  0e6b		       a5 fc		      lda	R1
-     19  0e6d		       48		      pha
-     20  0e6e				  -	      ELSE
-     21  0e6e				  -	      lda	R0
-     22  0e6e				  -	      ldy	R1
-     23  0e6e					      ENDIF
-      0  0e6e					      addw
-      1  0e6e		       ba		      tsx
-      2  0e6f		       bd 02 01 	      lda.wx	stack+2
-      3  0e72		       18		      clc
-      4  0e73		       7d 04 01 	      adc.wx	stack+4
-      5  0e76		       9d 04 01 	      sta.wx	stack+4
-      6  0e79		       68		      pla
-      7  0e7a		       7d 03 01 	      adc.wx	stack+3
-      8  0e7d		       9d 03 01 	      sta.wx	stack+3
-      9  0e80		       68		      pla
-      0  0e81					      pbvar	_makecharset.i
-      0  0e81					      pbyte	_makecharset.i
-      1  0e81		       ad e7 10 	      lda	_makecharset.i
-      2  0e84					      IF	!FPUSH
-      3  0e84		       48		      pha
-      4  0e85					      ENDIF
-      0  0e85					      btow
-      1  0e85		       a9 00		      lda	#$00
-      2  0e87		       48		      pha
-      0  0e88					      addw
-      1  0e88		       ba		      tsx
-      2  0e89		       bd 02 01 	      lda.wx	stack+2
-      3  0e8c		       18		      clc
-      4  0e8d		       7d 04 01 	      adc.wx	stack+4
-      5  0e90		       9d 04 01 	      sta.wx	stack+4
-      6  0e93		       68		      pla
-      7  0e94		       7d 03 01 	      adc.wx	stack+3
-      8  0e97		       9d 03 01 	      sta.wx	stack+3
-      9  0e9a		       68		      pla
-      0  0e9b					      pokeb
-      1  0e9b					      IF	!FPULL
-      2  0e9b		       68		      pla
-      3  0e9c		       8d a6 0e 	      sta	.selfmod_code+2
-      4  0e9f		       68		      pla
-      5  0ea0		       8d a5 0e 	      sta	.selfmod_code+1
-      6  0ea3				  -	      ELSE
-      7  0ea3				  -	      sta	.selfmod_code+1
-      8  0ea3				  -	      sty	.selfmod_code+2
-      9  0ea3					      ENDIF
-     10  0ea3		       68		      pla
-     11  0ea4				   .selfmod_code
-     12  0ea4		       8d 00 00 	      sta.w	$0000
-      0  0ea7					      nextb	_makecharset.i
-      1  0ea7
-      2  0ea7		       ee e7 10 	      inc	_makecharset.i
-      3  0eaa
-      4  0eaa		       f0 15		      beq	.end
-      5  0eac				   .skip
-      6  0eac
-      7  0eac		       68		      pla
-      8  0ead		       8d c0 0e 	      sta	.selfmod_code+2
-      9  0eb0		       68		      pla
-     10  0eb1		       8d bf 0e 	      sta	.selfmod_code+1
-     11  0eb4
-     12  0eb4		       68		      pla
-     13  0eb5		       cd e7 10 	      cmp	_makecharset.i
-     14  0eb8		       b0 03		      bcs	.jump_back
-     15  0eba		       4c c1 0e 	      jmp	.end
-     16  0ebd				   .jump_back
-     17  0ebd
-     18  0ebd		       48		      pha
-     19  0ebe				   .selfmod_code
-     20  0ebe		       4c 00 00 	      jmp	$0000
-     21  0ec1				   .end
-      0  0ec1					      incb	_makecharset.c
-      1  0ec1		       ee e5 10 	      inc	_makecharset.c
-      0  0ec4					      pbvar	_makecharset.c
-      0  0ec4					      pbyte	_makecharset.c
-      1  0ec4		       ad e5 10 	      lda	_makecharset.c
-      2  0ec7					      IF	!FPUSH
-      3  0ec7		       48		      pha
-      4  0ec8					      ENDIF
-   2868  0ec8				   FPUSH      SET	1
-      0  0ec8					      pbyte	#0
-      1  0ec8		       a9 00		      lda	#0
-      2  0eca				  -	      IF	!FPUSH
-      3  0eca				  -	      pha
-      4  0eca					      ENDIF
-   2870  0eca				   FPULL      SET	1
-   2871  0eca				   FPUSH      SET	0
-      0  0eca					      cmpbgt
-      1  0eca				  -	      IF	!FPULL
-      2  0eca				  -	      pla
-      3  0eca					      ENDIF
-      4  0eca		       85 fc		      sta	R1
-      5  0ecc		       68		      pla
-      6  0ecd		       c5 fc		      cmp	R1
-      7  0ecf		       90 08		      bcc	.phf
-      8  0ed1		       f0 06		      beq	.phf
-      0  0ed3					      pone
-      1  0ed3		       a9 01		      lda	#$01
-      2  0ed5					      IF	!FPUSH
-      3  0ed5		       48		      pha
-      4  0ed6					      ENDIF
-     10  0ed6					      IF	!FPUSH
-     11  0ed6		       4c dc 0e 	      jmp	*+6
-     12  0ed9				  -	      ELSE
-     13  0ed9				  -	      jmp	*+5
-     14  0ed9					      ENDIF
-      0  0ed9				   .phf       pzero
-      1  0ed9		       a9 00		      lda	#$00
-      2  0edb					      IF	!FPUSH
-      3  0edb		       48		      pha
-      4  0edc					      ENDIF
-   2873  0edc		       68		      pla
-   2874  0edd		       d0 03		      bne	*+5
-   2875  0edf		       4c e5 0e 	      jmp	_J2
-   2876  0ee2		       4c ba 0d 	      jmp	_Lmakecharset.loop
-   2877  0ee5				   _J2
-   2878  0ee5		       60		      rts
-   2879  0ee6				   _Pmakecharset_end
-   2880  0ee6							; Inline ASM start
-   2881  0ee6
-   2882  0ee6		       78		      sei
-   2883  0ee7							; Inline ASM end
-   2884  0ee7				   FPULL      SET	0
-      0  0ee7					      pbyte	#6
-      1  0ee7		       a9 06		      lda	#6
-      2  0ee9					      IF	!FPUSH
-      3  0ee9		       48		      pha
-      4  0eea					      ENDIF
-   2886  0eea				   FPUSH      SET	1
-      0  0eea					      pword	#53280
-      1  0eea				  -	      IF	!FPUSH
-      2  0eea				  -	      lda	#<#53280
-      3  0eea				  -	      pha
-      4  0eea				  -	      lda	#>#53280
-      5  0eea				  -	      pha
-      6  0eea					      ELSE
-      7  0eea		       a9 20		      lda	#<#53280
-      8  0eec		       a0 d0		      ldy	#>#53280
-      9  0eee					      ENDIF
-   2888  0eee				   FPULL      SET	1
-   2889  0eee				   FPUSH      SET	0
-      0  0eee					      pokeb
-      1  0eee				  -	      IF	!FPULL
-      2  0eee				  -	      pla
-      3  0eee				  -	      sta	.selfmod_code+2
-      4  0eee				  -	      pla
-      5  0eee				  -	      sta	.selfmod_code+1
-      6  0eee					      ELSE
-      7  0eee		       8d f6 0e 	      sta	.selfmod_code+1
-      8  0ef1		       8c f7 0e 	      sty	.selfmod_code+2
-      9  0ef4					      ENDIF
-     10  0ef4		       68		      pla
-     11  0ef5				   .selfmod_code
-     12  0ef5		       8d 00 00 	      sta.w	$0000
-   2891  0ef5				   FPULL      SET	0
-      0  0ef8					      pbyte	#6
-      1  0ef8		       a9 06		      lda	#6
-      2  0efa					      IF	!FPUSH
-      3  0efa		       48		      pha
-      4  0efb					      ENDIF
-   2893  0efb				   FPUSH      SET	1
-      0  0efb					      pword	#53281
-      1  0efb				  -	      IF	!FPUSH
-      2  0efb				  -	      lda	#<#53281
-      3  0efb				  -	      pha
-      4  0efb				  -	      lda	#>#53281
-      5  0efb				  -	      pha
-      6  0efb					      ELSE
-      7  0efb		       a9 21		      lda	#<#53281
-      8  0efd		       a0 d0		      ldy	#>#53281
-      9  0eff					      ENDIF
-   2895  0eff				   FPULL      SET	1
-   2896  0eff				   FPUSH      SET	0
-      0  0eff					      pokeb
-      1  0eff				  -	      IF	!FPULL
-      2  0eff				  -	      pla
-      3  0eff				  -	      sta	.selfmod_code+2
-      4  0eff				  -	      pla
-      5  0eff				  -	      sta	.selfmod_code+1
-      6  0eff					      ELSE
-      7  0eff		       8d 07 0f 	      sta	.selfmod_code+1
-      8  0f02		       8c 08 0f 	      sty	.selfmod_code+2
-      9  0f05					      ENDIF
-     10  0f05		       68		      pla
-     11  0f06				   .selfmod_code
-     12  0f06		       8d 00 00 	      sta.w	$0000
-   2898  0f06				   FPULL      SET	0
-      0  0f09					      pbyte	#0
-      1  0f09		       a9 00		      lda	#0
-      2  0f0b					      IF	!FPUSH
-      3  0f0b		       48		      pha
-      4  0f0c					      ENDIF
-      0  0f0c					      pword	#1000
-      1  0f0c					      IF	!FPUSH
-      2  0f0c		       a9 e8		      lda	#<#1000
-      3  0f0e		       48		      pha
-      4  0f0f		       a9 03		      lda	#>#1000
-      5  0f11		       48		      pha
-      6  0f12				  -	      ELSE
-      7  0f12				  -	      lda	#<#1000
-      8  0f12				  -	      ldy	#>#1000
-      9  0f12					      ENDIF
-      0  0f12					      pword	#55296
-      1  0f12					      IF	!FPUSH
-      2  0f12		       a9 00		      lda	#<#55296
-      3  0f14		       48		      pha
-      4  0f15		       a9 d8		      lda	#>#55296
-      5  0f17		       48		      pha
-      6  0f18				  -	      ELSE
-      7  0f18				  -	      lda	#<#55296
-      8  0f18				  -	      ldy	#>#55296
-      9  0f18					      ENDIF
-      0  0f18					      memset
-      1  0f18					      IF	!FPULL
-      2  0f18		       68		      pla
-      3  0f19		       85 fc		      sta	R1
-      4  0f1b		       68		      pla
-      5  0f1c		       85 fb		      sta	R0
-      6  0f1e				  -	      ELSE
-      7  0f1e				  -	      sta	R0
-      8  0f1e				  -	      sty	R1
-      9  0f1e					      ENDIF
-     10  0f1e		       68		      pla
-     11  0f1f		       85 fe		      sta	R3
-     12  0f21		       68		      pla
-     13  0f22		       85 fd		      sta	R2
-     14  0f24		       68		      pla
-     15  0f25		       20 de 0a 	      jsr	mem_memset
-   2903  0f25				   FPUSH      SET	1
-      0  0f28					      pword	#8192
-      1  0f28				  -	      IF	!FPUSH
-      2  0f28				  -	      lda	#<#8192
-      3  0f28				  -	      pha
-      4  0f28				  -	      lda	#>#8192
-      5  0f28				  -	      pha
-      6  0f28					      ELSE
-      7  0f28		       a9 00		      lda	#<#8192
-      8  0f2a		       a0 20		      ldy	#>#8192
-      9  0f2c					      ENDIF
-   2905  0f2c				   FPULL      SET	1
-   2906  0f2c				   FPUSH      SET	0
-      0  0f2c					      plw2var	_makecharset.address
-      1  0f2c				  -	      IF	!FPULL
-      2  0f2c				  -	      pla
-      3  0f2c				  -	      sta	_makecharset.address+1
-      4  0f2c				  -	      pla
-      5  0f2c				  -	      sta	_makecharset.address
-      6  0f2c					      ELSE
-      7  0f2c		       8d e3 10 	      sta	_makecharset.address
-      8  0f2f		       8c e4 10 	      sty	_makecharset.address+1
-      9  0f32					      ENDIF
-   2908  0f32		       20 37 0d 	      jsr	_Pmakecharset
-   2909  0f35				   _Lloop
-   2910  0f35				   FPULL      SET	0
-   2911  0f35				   FPUSH      SET	1
-      0  0f35					      pword	#10240
-      1  0f35				  -	      IF	!FPUSH
-      2  0f35				  -	      lda	#<#10240
-      3  0f35				  -	      pha
-      4  0f35				  -	      lda	#>#10240
-      5  0f35				  -	      pha
-      6  0f35					      ELSE
-      7  0f35		       a9 00		      lda	#<#10240
-      8  0f37		       a0 28		      ldy	#>#10240
-      9  0f39					      ENDIF
-   2913  0f39				   FPULL      SET	1
-   2914  0f39				   FPUSH      SET	0
-      0  0f39					      plw2var	_doplasma.screen
-      1  0f39				  -	      IF	!FPULL
-      2  0f39				  -	      pla
-      3  0f39				  -	      sta	_doplasma.screen+1
-      4  0f39				  -	      pla
-      5  0f39				  -	      sta	_doplasma.screen
-      6  0f39					      ELSE
-      7  0f39		       8d 99 10 	      sta	_doplasma.screen
-      8  0f3c		       8c 9a 10 	      sty	_doplasma.screen+1
-      9  0f3f					      ENDIF
-   2916  0f3f		       20 6f 0b 	      jsr	_Pdoplasma
-   2917  0f3f				   FPULL      SET	0
-      0  0f42					      pbyte	#168
-      1  0f42		       a9 a8		      lda	#168
-      2  0f44					      IF	!FPUSH
-      3  0f44		       48		      pha
-      4  0f45					      ENDIF
-   2919  0f45				   FPUSH      SET	1
-      0  0f45					      pword	#53272
-      1  0f45				  -	      IF	!FPUSH
-      2  0f45				  -	      lda	#<#53272
-      3  0f45				  -	      pha
-      4  0f45				  -	      lda	#>#53272
-      5  0f45				  -	      pha
-      6  0f45					      ELSE
-      7  0f45		       a9 18		      lda	#<#53272
-      8  0f47		       a0 d0		      ldy	#>#53272
-      9  0f49					      ENDIF
-   2921  0f49				   FPULL      SET	1
-   2922  0f49				   FPUSH      SET	0
-      0  0f49					      pokeb
-      1  0f49				  -	      IF	!FPULL
-      2  0f49				  -	      pla
-      3  0f49				  -	      sta	.selfmod_code+2
-      4  0f49				  -	      pla
-      5  0f49				  -	      sta	.selfmod_code+1
-      6  0f49					      ELSE
-      7  0f49		       8d 51 0f 	      sta	.selfmod_code+1
-      8  0f4c		       8c 52 0f 	      sty	.selfmod_code+2
-      9  0f4f					      ENDIF
-     10  0f4f		       68		      pla
-     11  0f50				   .selfmod_code
-     12  0f50		       8d 00 00 	      sta.w	$0000
-   2924  0f50				   FPULL      SET	0
-   2925  0f50				   FPUSH      SET	1
-      0  0f53					      pword	#11264
-      1  0f53				  -	      IF	!FPUSH
-      2  0f53				  -	      lda	#<#11264
-      3  0f53				  -	      pha
-      4  0f53				  -	      lda	#>#11264
-      5  0f53				  -	      pha
-      6  0f53					      ELSE
-      7  0f53		       a9 00		      lda	#<#11264
-      8  0f55		       a0 2c		      ldy	#>#11264
-      9  0f57					      ENDIF
-   2927  0f57				   FPULL      SET	1
-   2928  0f57				   FPUSH      SET	0
-      0  0f57					      plw2var	_doplasma.screen
-      1  0f57				  -	      IF	!FPULL
-      2  0f57				  -	      pla
-      3  0f57				  -	      sta	_doplasma.screen+1
-      4  0f57				  -	      pla
-      5  0f57				  -	      sta	_doplasma.screen
-      6  0f57					      ELSE
-      7  0f57		       8d 99 10 	      sta	_doplasma.screen
-      8  0f5a		       8c 9a 10 	      sty	_doplasma.screen+1
-      9  0f5d					      ENDIF
-   2930  0f5d		       20 6f 0b 	      jsr	_Pdoplasma
-   2931  0f5d				   FPULL      SET	0
-      0  0f60					      pbyte	#184
-      1  0f60		       a9 b8		      lda	#184
-      2  0f62					      IF	!FPUSH
-      3  0f62		       48		      pha
-      4  0f63					      ENDIF
-   2933  0f63				   FPUSH      SET	1
-      0  0f63					      pword	#53272
-      1  0f63				  -	      IF	!FPUSH
-      2  0f63				  -	      lda	#<#53272
-      3  0f63				  -	      pha
-      4  0f63				  -	      lda	#>#53272
-      5  0f63				  -	      pha
-      6  0f63					      ELSE
-      7  0f63		       a9 18		      lda	#<#53272
-      8  0f65		       a0 d0		      ldy	#>#53272
-      9  0f67					      ENDIF
-   2935  0f67				   FPULL      SET	1
-   2936  0f67				   FPUSH      SET	0
-      0  0f67					      pokeb
-      1  0f67				  -	      IF	!FPULL
-      2  0f67				  -	      pla
-      3  0f67				  -	      sta	.selfmod_code+2
-      4  0f67				  -	      pla
-      5  0f67				  -	      sta	.selfmod_code+1
-      6  0f67					      ELSE
-      7  0f67		       8d 6f 0f 	      sta	.selfmod_code+1
-      8  0f6a		       8c 70 0f 	      sty	.selfmod_code+2
-      9  0f6d					      ENDIF
-     10  0f6d		       68		      pla
-     11  0f6e				   .selfmod_code
-     12  0f6e		       8d 00 00 	      sta.w	$0000
-   2938  0f71		       4c 35 0f 	      jmp	_Lloop
-   2939  0f74				   prg_end
-      0  0f74					      halt
-      0  0f74					      basicin
-      1  0f74		       a5 01		      lda	$01
-      2  0f76		       09 01		      ora	#%00000001
-      3  0f78		       85 01		      sta	$01
-      2  0f7a		       ae 85 09 	      ldx	RESERVED_STACK_POINTER
-      3  0f7d		       9a		      txs
-      4  0f7e		       60		      rts
- Code        : $b44 - $f7e
-   2941  0f7e					      ECHO	"Code	      :",prg_start,"-", *-1
-   2942  0f7f				   data_start
-   2943  0f7f		       01 02 04 08*_bittab    DC.B	#1, #2, #4, #8, #16, #32, #64, #128
-   2944  0f87		       7f 82 85 88*_sntable   DC.B	#127, #130, #133, #136, #139, #143, #146, #149, #152, #155, #158, #161, #164, #167, #170, #173
-   2945  0f97		       b0 b3 b6 b8*	      DC.B	#176, #179, #182, #184, #187, #190, #193, #195, #198, #200, #203, #205, #208, #210, #213, #215
-   2946  0fa7		       d9 db dd e0*	      DC.B	#217, #219, #221, #224, #226, #228, #229, #231, #233, #235, #236, #238, #239, #241, #242, #244
-   2947  0fb7		       f5 f6 f7 f8*	      DC.B	#245, #246, #247, #248, #249, #250, #251, #251, #252, #253, #253, #254, #254, #254, #254, #254
-   2948  0fc7		       ff fe fe fe*	      DC.B	#255, #254, #254, #254, #254, #254, #253, #253, #252, #251, #251, #250, #249, #248, #247, #246
-   2949  0fd7		       f5 f4 f2 f1*	      DC.B	#245, #244, #242, #241, #239, #238, #236, #235, #233, #231, #229, #228, #226, #224, #221, #219
-   2950  0fe7		       d9 d7 d5 d2*	      DC.B	#217, #215, #213, #210, #208, #205, #203, #200, #198, #195, #193, #190, #187, #184, #182, #179
-   2951  0ff7		       b0 ad aa a7*	      DC.B	#176, #173, #170, #167, #164, #161, #158, #155, #152, #149, #146, #143, #139, #136, #133, #130
-   2952  1007		       7f 7c 79 76*	      DC.B	#127, #124, #121, #118, #115, #111, #108, #105, #102, #99, #96, #93, #90, #87, #84, #81
-   2953  1017		       4e 4b 48 46*	      DC.B	#78, #75, #72, #70, #67, #64, #61, #59, #56, #54, #51, #49, #46, #44, #41, #39
-   2954  1027		       25 23 21 1e*	      DC.B	#37, #35, #33, #30, #28, #26, #25, #23, #21, #19, #18, #16, #15, #13, #12, #10
-   2955  1037		       09 08 07 06*	      DC.B	#9, #8, #7, #6, #5, #4, #3, #3, #2, #1, #1, #0, #0, #0, #0, #0
-   2956  1047		       00 00 00 00*	      DC.B	#0, #0, #0, #0, #0, #0, #1, #1, #2, #3, #3, #4, #5, #6, #7, #8
-   2957  1057		       09 0a 0c 0d*	      DC.B	#9, #10, #12, #13, #15, #16, #18, #19, #21, #23, #25, #26, #28, #30, #33, #35
-   2958  1067		       25 27 29 2c*	      DC.B	#37, #39, #41, #44, #46, #49, #51, #54, #56, #59, #61, #64, #67, #70, #72, #75
-   2959  1077		       4e 51 54 57*	      DC.B	#78, #81, #84, #87, #90, #93, #96, #99, #102, #105, #108, #111, #115, #118, #121, #124
-   2960  1087		       93 00	   _S1	      HEX	93 00
-   2961  1089		       0c 0f 01 04*_S2	      HEX	0C 0F 01 04 09 0E 07 2E 2E 2E 00
-   2962  1094				   data_end
- Data        : $f7f - $1093
-   2963  1094					      ECHO	"Data	      :",data_start,"-", *-1
-   2964  1094							;--------------
-   2965 U10ea ????				      SEG.U	variables
-   2966 U1095					      ORG	data_end+1
-   2967 U1095		       00	   _c1A       DS.B	1
-   2968 U1096		       00	   _c1B       DS.B	1
-   2969 U1097		       00	   _c2A       DS.B	1
-   2970 U1098		       00	   _c2B       DS.B	1
-   2971 U1099		       00 00	   _doplasma.screen DS.B	2
-   2972 U109b		       00 00 00 00*_doplasma.xbuf DS.B	40
-   2973 U10c3		       00 00 00 00*_doplasma.ybuf DS.B	25
-   2974 U10dc		       00	   _doplasma.c1a DS.B	1
-   2975 U10dd		       00	   _doplasma.c1b DS.B	1
-   2976 U10de		       00	   _doplasma.i DS.B	1
-   2977 U10df		       00	   _doplasma.c2a DS.B	1
-   2978 U10e0		       00	   _doplasma.c2b DS.B	1
-   2979 U10e1		       00	   _doplasma.y DS.B	1
-   2980 U10e2		       00	   _doplasma.x DS.B	1
-   2981 U10e3		       00 00	   _makecharset.address DS.B	2
-   2982 U10e5		       00	   _makecharset.c DS.B	1
-   2983 U10e6		       00	   _makecharset.s DS.B	1
-   2984 U10e7		       00	   _makecharset.i DS.B	1
-   2985 U10e8		       00	   _makecharset.b DS.B	1
-   2986 U10e9		       00	   _makecharset.ii DS.B	1
- Variables*  : $1094 - $10ea
-   2987 U10e9					      ECHO	"Variables*  :",data_end,"-", *
+      3  0e1a		       8d 24 0e 	      sta	.selfmod_code+2
+      4  0e1d		       68		      pla
+      5  0e1e		       8d 23 0e 	      sta	.selfmod_code+1
+      6  0e21				  -	      ELSE
+      7  0e21				  -	      sta	.selfmod_code+1
+      8  0e21				  -	      sty	.selfmod_code+2
+      9  0e21					      ENDIF
+     10  0e21		       68		      pla
+     11  0e22				   .selfmod_code
+     12  0e22		       8d 00 00 	      sta.w	$0000
+      0  0e25					      nextb	_makecharset.i
+      1  0e25
+      2  0e25		       ee 5c 10 	      inc	_makecharset.i
+      3  0e28
+      4  0e28		       f0 15		      beq	.end
+      5  0e2a				   .skip
+      6  0e2a
+      7  0e2a		       68		      pla
+      8  0e2b		       8d 3e 0e 	      sta	.selfmod_code+2
+      9  0e2e		       68		      pla
+     10  0e2f		       8d 3d 0e 	      sta	.selfmod_code+1
+     11  0e32
+     12  0e32		       68		      pla
+     13  0e33		       cd 5c 10 	      cmp	_makecharset.i
+     14  0e36		       b0 03		      bcs	.jump_back
+     15  0e38		       4c 3f 0e 	      jmp	.end
+     16  0e3b				   .jump_back
+     17  0e3b
+     18  0e3b		       48		      pha
+     19  0e3c				   .selfmod_code
+     20  0e3c		       4c 00 00 	      jmp	$0000
+     21  0e3f				   .end
+      0  0e3f					      incb	_makecharset.c
+      1  0e3f		       ee 5a 10 	      inc	_makecharset.c
+      0  0e42					      pbvar	_makecharset.c
+      0  0e42					      pbyte	_makecharset.c
+      1  0e42		       ad 5a 10 	      lda	_makecharset.c
+      2  0e45					      IF	!FPUSH
+      3  0e45		       48		      pha
+      4  0e46					      ENDIF
+   2944  0e46				   FPUSH      SET	1
+      0  0e46					      pbyte	#0
+      1  0e46		       a9 00		      lda	#0
+      2  0e48				  -	      IF	!FPUSH
+      3  0e48				  -	      pha
+      4  0e48					      ENDIF
+   2946  0e48				   FPULL      SET	1
+   2947  0e48				   FPUSH      SET	0
+      0  0e48					      cmpbgt
+      1  0e48				  -	      IF	!FPULL
+      2  0e48				  -	      pla
+      3  0e48					      ENDIF
+      4  0e48		       85 fc		      sta	R1
+      5  0e4a		       68		      pla
+      6  0e4b		       c5 fc		      cmp	R1
+      7  0e4d		       90 08		      bcc	.phf
+      8  0e4f		       f0 06		      beq	.phf
+      0  0e51					      pone
+      1  0e51		       a9 01		      lda	#$01
+      2  0e53					      IF	!FPUSH
+      3  0e53		       48		      pha
+      4  0e54					      ENDIF
+     10  0e54					      IF	!FPUSH
+     11  0e54		       4c 5a 0e 	      jmp	*+6
+     12  0e57				  -	      ELSE
+     13  0e57				  -	      jmp	*+5
+     14  0e57					      ENDIF
+      0  0e57				   .phf       pzero
+      1  0e57		       a9 00		      lda	#$00
+      2  0e59					      IF	!FPUSH
+      3  0e59		       48		      pha
+      4  0e5a					      ENDIF
+   2949  0e5a		       68		      pla
+   2950  0e5b		       d0 03		      bne	*+5
+   2951  0e5d		       4c 63 0e 	      jmp	_J2
+   2952  0e60		       4c 38 0d 	      jmp	_Lmakecharset.loop
+   2953  0e63				   _J2
+   2954  0e63		       60		      rts
+   2955  0e64				   _Pmakecharset_end
+   2956  0e64							; Inline ASM start
+   2957  0e64
+   2958  0e64		       78		      sei
+   2959  0e65							; Inline ASM end
+   2960  0e65				   FPULL      SET	0
+      0  0e65					      pbyte	#6
+      1  0e65		       a9 06		      lda	#6
+      2  0e67					      IF	!FPUSH
+      3  0e67		       48		      pha
+      4  0e68					      ENDIF
+   2962  0e68				   FPUSH      SET	1
+      0  0e68					      pword	#53280
+      1  0e68				  -	      IF	!FPUSH
+      2  0e68				  -	      lda	#<#53280
+      3  0e68				  -	      pha
+      4  0e68				  -	      lda	#>#53280
+      5  0e68				  -	      pha
+      6  0e68					      ELSE
+      7  0e68		       a9 20		      lda	#<#53280
+      8  0e6a		       a0 d0		      ldy	#>#53280
+      9  0e6c					      ENDIF
+   2964  0e6c				   FPULL      SET	1
+   2965  0e6c				   FPUSH      SET	0
+      0  0e6c					      pokeb
+      1  0e6c				  -	      IF	!FPULL
+      2  0e6c				  -	      pla
+      3  0e6c				  -	      sta	.selfmod_code+2
+      4  0e6c				  -	      pla
+      5  0e6c				  -	      sta	.selfmod_code+1
+      6  0e6c					      ELSE
+      7  0e6c		       8d 74 0e 	      sta	.selfmod_code+1
+      8  0e6f		       8c 75 0e 	      sty	.selfmod_code+2
+      9  0e72					      ENDIF
+     10  0e72		       68		      pla
+     11  0e73				   .selfmod_code
+     12  0e73		       8d 00 00 	      sta.w	$0000
+   2967  0e73				   FPULL      SET	0
+      0  0e76					      pbyte	#6
+      1  0e76		       a9 06		      lda	#6
+      2  0e78					      IF	!FPUSH
+      3  0e78		       48		      pha
+      4  0e79					      ENDIF
+   2969  0e79				   FPUSH      SET	1
+      0  0e79					      pword	#53281
+      1  0e79				  -	      IF	!FPUSH
+      2  0e79				  -	      lda	#<#53281
+      3  0e79				  -	      pha
+      4  0e79				  -	      lda	#>#53281
+      5  0e79				  -	      pha
+      6  0e79					      ELSE
+      7  0e79		       a9 21		      lda	#<#53281
+      8  0e7b		       a0 d0		      ldy	#>#53281
+      9  0e7d					      ENDIF
+   2971  0e7d				   FPULL      SET	1
+   2972  0e7d				   FPUSH      SET	0
+      0  0e7d					      pokeb
+      1  0e7d				  -	      IF	!FPULL
+      2  0e7d				  -	      pla
+      3  0e7d				  -	      sta	.selfmod_code+2
+      4  0e7d				  -	      pla
+      5  0e7d				  -	      sta	.selfmod_code+1
+      6  0e7d					      ELSE
+      7  0e7d		       8d 85 0e 	      sta	.selfmod_code+1
+      8  0e80		       8c 86 0e 	      sty	.selfmod_code+2
+      9  0e83					      ENDIF
+     10  0e83		       68		      pla
+     11  0e84				   .selfmod_code
+     12  0e84		       8d 00 00 	      sta.w	$0000
+   2974  0e84				   FPULL      SET	0
+      0  0e87					      pbyte	#0
+      1  0e87		       a9 00		      lda	#0
+      2  0e89					      IF	!FPUSH
+      3  0e89		       48		      pha
+      4  0e8a					      ENDIF
+      0  0e8a					      pword	#1000
+      1  0e8a					      IF	!FPUSH
+      2  0e8a		       a9 e8		      lda	#<#1000
+      3  0e8c		       48		      pha
+      4  0e8d		       a9 03		      lda	#>#1000
+      5  0e8f		       48		      pha
+      6  0e90				  -	      ELSE
+      7  0e90				  -	      lda	#<#1000
+      8  0e90				  -	      ldy	#>#1000
+      9  0e90					      ENDIF
+      0  0e90					      pword	#55296
+      1  0e90					      IF	!FPUSH
+      2  0e90		       a9 00		      lda	#<#55296
+      3  0e92		       48		      pha
+      4  0e93		       a9 d8		      lda	#>#55296
+      5  0e95		       48		      pha
+      6  0e96				  -	      ELSE
+      7  0e96				  -	      lda	#<#55296
+      8  0e96				  -	      ldy	#>#55296
+      9  0e96					      ENDIF
+      0  0e96					      memset
+      1  0e96					      IF	!FPULL
+      2  0e96		       68		      pla
+      3  0e97		       85 fc		      sta	R1
+      4  0e99		       68		      pla
+      5  0e9a		       85 fb		      sta	R0
+      6  0e9c				  -	      ELSE
+      7  0e9c				  -	      sta	R0
+      8  0e9c				  -	      sty	R1
+      9  0e9c					      ENDIF
+     10  0e9c		       68		      pla
+     11  0e9d		       85 fe		      sta	R3
+     12  0e9f		       68		      pla
+     13  0ea0		       85 fd		      sta	R2
+     14  0ea2		       68		      pla
+     15  0ea3		       20 de 0a 	      jsr	mem_memset
+   2979  0ea3				   FPUSH      SET	1
+      0  0ea6					      pword	#8192
+      1  0ea6				  -	      IF	!FPUSH
+      2  0ea6				  -	      lda	#<#8192
+      3  0ea6				  -	      pha
+      4  0ea6				  -	      lda	#>#8192
+      5  0ea6				  -	      pha
+      6  0ea6					      ELSE
+      7  0ea6		       a9 00		      lda	#<#8192
+      8  0ea8		       a0 20		      ldy	#>#8192
+      9  0eaa					      ENDIF
+   2981  0eaa				   FPULL      SET	1
+   2982  0eaa				   FPUSH      SET	0
+      0  0eaa					      plw2var	_makecharset.address
+      1  0eaa				  -	      IF	!FPULL
+      2  0eaa				  -	      pla
+      3  0eaa				  -	      sta	_makecharset.address+1
+      4  0eaa				  -	      pla
+      5  0eaa				  -	      sta	_makecharset.address
+      6  0eaa					      ELSE
+      7  0eaa		       8d 58 10 	      sta	_makecharset.address
+      8  0ead		       8c 59 10 	      sty	_makecharset.address+1
+      9  0eb0					      ENDIF
+   2984  0eb0		       20 b5 0c 	      jsr	_Pmakecharset
+   2985  0eb3				   _Lloop
+   2986  0eb3				   FPULL      SET	0
+   2987  0eb3				   FPUSH      SET	1
+      0  0eb3					      pword	#10240
+      1  0eb3				  -	      IF	!FPUSH
+      2  0eb3				  -	      lda	#<#10240
+      3  0eb3				  -	      pha
+      4  0eb3				  -	      lda	#>#10240
+      5  0eb3				  -	      pha
+      6  0eb3					      ELSE
+      7  0eb3		       a9 00		      lda	#<#10240
+      8  0eb5		       a0 28		      ldy	#>#10240
+      9  0eb7					      ENDIF
+   2989  0eb7				   FPULL      SET	1
+   2990  0eb7				   FPUSH      SET	0
+      0  0eb7					      plw2var	_doplasma.screen
+      1  0eb7				  -	      IF	!FPULL
+      2  0eb7				  -	      pla
+      3  0eb7				  -	      sta	_doplasma.screen+1
+      4  0eb7				  -	      pla
+      5  0eb7				  -	      sta	_doplasma.screen
+      6  0eb7					      ELSE
+      7  0eb7		       8d 13 10 	      sta	_doplasma.screen
+      8  0eba		       8c 14 10 	      sty	_doplasma.screen+1
+      9  0ebd					      ENDIF
+   2992  0ebd		       20 6b 0b 	      jsr	_Pdoplasma
+   2993  0ebd				   FPULL      SET	0
+      0  0ec0					      pbyte	#168
+      1  0ec0		       a9 a8		      lda	#168
+      2  0ec2					      IF	!FPUSH
+      3  0ec2		       48		      pha
+      4  0ec3					      ENDIF
+   2995  0ec3				   FPUSH      SET	1
+      0  0ec3					      pword	#53272
+      1  0ec3				  -	      IF	!FPUSH
+      2  0ec3				  -	      lda	#<#53272
+      3  0ec3				  -	      pha
+      4  0ec3				  -	      lda	#>#53272
+      5  0ec3				  -	      pha
+      6  0ec3					      ELSE
+      7  0ec3		       a9 18		      lda	#<#53272
+      8  0ec5		       a0 d0		      ldy	#>#53272
+      9  0ec7					      ENDIF
+   2997  0ec7				   FPULL      SET	1
+   2998  0ec7				   FPUSH      SET	0
+      0  0ec7					      pokeb
+      1  0ec7				  -	      IF	!FPULL
+      2  0ec7				  -	      pla
+      3  0ec7				  -	      sta	.selfmod_code+2
+      4  0ec7				  -	      pla
+      5  0ec7				  -	      sta	.selfmod_code+1
+      6  0ec7					      ELSE
+      7  0ec7		       8d cf 0e 	      sta	.selfmod_code+1
+      8  0eca		       8c d0 0e 	      sty	.selfmod_code+2
+      9  0ecd					      ENDIF
+     10  0ecd		       68		      pla
+     11  0ece				   .selfmod_code
+     12  0ece		       8d 00 00 	      sta.w	$0000
+   3000  0ece				   FPULL      SET	0
+   3001  0ece				   FPUSH      SET	1
+      0  0ed1					      pword	#11264
+      1  0ed1				  -	      IF	!FPUSH
+      2  0ed1				  -	      lda	#<#11264
+      3  0ed1				  -	      pha
+      4  0ed1				  -	      lda	#>#11264
+      5  0ed1				  -	      pha
+      6  0ed1					      ELSE
+      7  0ed1		       a9 00		      lda	#<#11264
+      8  0ed3		       a0 2c		      ldy	#>#11264
+      9  0ed5					      ENDIF
+   3003  0ed5				   FPULL      SET	1
+   3004  0ed5				   FPUSH      SET	0
+      0  0ed5					      plw2var	_doplasma.screen
+      1  0ed5				  -	      IF	!FPULL
+      2  0ed5				  -	      pla
+      3  0ed5				  -	      sta	_doplasma.screen+1
+      4  0ed5				  -	      pla
+      5  0ed5				  -	      sta	_doplasma.screen
+      6  0ed5					      ELSE
+      7  0ed5		       8d 13 10 	      sta	_doplasma.screen
+      8  0ed8		       8c 14 10 	      sty	_doplasma.screen+1
+      9  0edb					      ENDIF
+   3006  0edb		       20 6b 0b 	      jsr	_Pdoplasma
+   3007  0edb				   FPULL      SET	0
+      0  0ede					      pbyte	#184
+      1  0ede		       a9 b8		      lda	#184
+      2  0ee0					      IF	!FPUSH
+      3  0ee0		       48		      pha
+      4  0ee1					      ENDIF
+   3009  0ee1				   FPUSH      SET	1
+      0  0ee1					      pword	#53272
+      1  0ee1				  -	      IF	!FPUSH
+      2  0ee1				  -	      lda	#<#53272
+      3  0ee1				  -	      pha
+      4  0ee1				  -	      lda	#>#53272
+      5  0ee1				  -	      pha
+      6  0ee1					      ELSE
+      7  0ee1		       a9 18		      lda	#<#53272
+      8  0ee3		       a0 d0		      ldy	#>#53272
+      9  0ee5					      ENDIF
+   3011  0ee5				   FPULL      SET	1
+   3012  0ee5				   FPUSH      SET	0
+      0  0ee5					      pokeb
+      1  0ee5				  -	      IF	!FPULL
+      2  0ee5				  -	      pla
+      3  0ee5				  -	      sta	.selfmod_code+2
+      4  0ee5				  -	      pla
+      5  0ee5				  -	      sta	.selfmod_code+1
+      6  0ee5					      ELSE
+      7  0ee5		       8d ed 0e 	      sta	.selfmod_code+1
+      8  0ee8		       8c ee 0e 	      sty	.selfmod_code+2
+      9  0eeb					      ENDIF
+     10  0eeb		       68		      pla
+     11  0eec				   .selfmod_code
+     12  0eec		       8d 00 00 	      sta.w	$0000
+   3014  0eef		       4c b3 0e 	      jmp	_Lloop
+   3015  0ef2				   prg_end
+      0  0ef2					      halt
+      0  0ef2					      basicin
+      1  0ef2		       a5 01		      lda	$01
+      2  0ef4		       09 01		      ora	#%00000001
+      3  0ef6		       85 01		      sta	$01
+      2  0ef8		       ae 85 09 	      ldx	RESERVED_STACK_POINTER
+      3  0efb		       9a		      txs
+      4  0efc		       60		      rts
+ Code        : $b44 - $efc
+   3017  0efc					      ECHO	"Code	      :",prg_start,"-", *-1
+   3018  0efd				   data_start
+   3019  0efd		       01 02 04 08*_bittab    DC.B	#1, #2, #4, #8, #16, #32, #64, #128
+   3020  0f05		       7f 82 85 88*_sntable   DC.B	#127, #130, #133, #136, #139, #143, #146, #149, #152, #155, #158, #161, #164, #167, #170, #173
+   3021  0f15		       b0 b3 b6 b8*	      DC.B	#176, #179, #182, #184, #187, #190, #193, #195, #198, #200, #203, #205, #208, #210, #213, #215
+   3022  0f25		       d9 db dd e0*	      DC.B	#217, #219, #221, #224, #226, #228, #229, #231, #233, #235, #236, #238, #239, #241, #242, #244
+   3023  0f35		       f5 f6 f7 f8*	      DC.B	#245, #246, #247, #248, #249, #250, #251, #251, #252, #253, #253, #254, #254, #254, #254, #254
+   3024  0f45		       ff fe fe fe*	      DC.B	#255, #254, #254, #254, #254, #254, #253, #253, #252, #251, #251, #250, #249, #248, #247, #246
+   3025  0f55		       f5 f4 f2 f1*	      DC.B	#245, #244, #242, #241, #239, #238, #236, #235, #233, #231, #229, #228, #226, #224, #221, #219
+   3026  0f65		       d9 d7 d5 d2*	      DC.B	#217, #215, #213, #210, #208, #205, #203, #200, #198, #195, #193, #190, #187, #184, #182, #179
+   3027  0f75		       b0 ad aa a7*	      DC.B	#176, #173, #170, #167, #164, #161, #158, #155, #152, #149, #146, #143, #139, #136, #133, #130
+   3028  0f85		       7f 7c 79 76*	      DC.B	#127, #124, #121, #118, #115, #111, #108, #105, #102, #99, #96, #93, #90, #87, #84, #81
+   3029  0f95		       4e 4b 48 46*	      DC.B	#78, #75, #72, #70, #67, #64, #61, #59, #56, #54, #51, #49, #46, #44, #41, #39
+   3030  0fa5		       25 23 21 1e*	      DC.B	#37, #35, #33, #30, #28, #26, #25, #23, #21, #19, #18, #16, #15, #13, #12, #10
+   3031  0fb5		       09 08 07 06*	      DC.B	#9, #8, #7, #6, #5, #4, #3, #3, #2, #1, #1, #0, #0, #0, #0, #0
+   3032  0fc5		       00 00 00 00*	      DC.B	#0, #0, #0, #0, #0, #0, #1, #1, #2, #3, #3, #4, #5, #6, #7, #8
+   3033  0fd5		       09 0a 0c 0d*	      DC.B	#9, #10, #12, #13, #15, #16, #18, #19, #21, #23, #25, #26, #28, #30, #33, #35
+   3034  0fe5		       25 27 29 2c*	      DC.B	#37, #39, #41, #44, #46, #49, #51, #54, #56, #59, #61, #64, #67, #70, #72, #75
+   3035  0ff5		       4e 51 54 57*	      DC.B	#78, #81, #84, #87, #90, #93, #96, #99, #102, #105, #108, #111, #115, #118, #121, #124
+   3036  1005		       93 00	   _S1	      HEX	93 00
+   3037  1007		       0c 0f 01 04*_S2	      HEX	0C 0F 01 04 09 0E 07 2E 2E 2E 00
+   3038  1012				   data_end
+ Data        : $efd - $1011
+   3039  1012					      ECHO	"Data	      :",data_start,"-", *-1
+   3040  1012							;--------------
+   3041 U105f ????				      SEG.U	variables
+   3042 U1013					      ORG	data_end+1
+   3043 U1013		       00 02	   _c1A       EQU	$2
+   3044 U1013		       00 03	   _c1B       EQU	$3
+   3045 U1013		       00 04	   _c2A       EQU	$4
+   3046 U1013		       00 05	   _c2B       EQU	$5
+   3047 U1013		       00 00	   _doplasma.screen DS.B	2
+   3048 U1015		       00 00 00 00*_doplasma.xbuf DS.B	40
+   3049 U103d		       00 00 00 00*_doplasma.ybuf DS.B	25
+   3050 U103d		       00 06	   _doplasma.i EQU	$6
+   3051 U103d		       00 07	   _doplasma.x EQU	$7
+   3052 U103d		       00 08	   _doplasma.y EQU	$8
+   3053 U103d		       00 09	   _doplasma.c1a EQU	$9
+   3054 U103d		       00 0a	   _doplasma.c1b EQU	$A
+   3055 U103d		       00 0b	   _doplasma.c2a EQU	$B
+   3056 U103d		       00 0c	   _doplasma.c2b EQU	$C
+   3057 U1056		       00 00	   _doplasma.cursor DS.B	2
+   3058 U1058		       00 00	   _makecharset.address DS.B	2
+   3059 U105a		       00	   _makecharset.c DS.B	1
+   3060 U105b		       00	   _makecharset.s DS.B	1
+   3061 U105c		       00	   _makecharset.i DS.B	1
+   3062 U105d		       00	   _makecharset.b DS.B	1
+   3063 U105e		       00	   _makecharset.ii DS.B	1
+ Variables*  : $1012 - $105f
+   3064 U105e					      ECHO	"Variables*  :",data_end,"-", *
  ===================
-   2988 U10e9					      ECHO	"==================="
+   3065 U105e					      ECHO	"==================="
  *: uninitialized segment
-   2989 U10e9					      ECHO	"*: uninitialized segment"
-   2990 U10ea
+   3066 U105e					      ECHO	"*: uninitialized segment"
+   3067 U105f

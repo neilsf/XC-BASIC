@@ -5,6 +5,11 @@ const BORDER = $d020
 const BACKGR = $d021
 const COLOR = $d800
 
+dim c1A! fast
+dim c1B! fast
+dim c2A! fast
+dim c2B! fast
+
 c1A! = 0
 c1B! = 0
 c2A! = 0
@@ -14,34 +19,52 @@ proc doplasma(screen)
   dim xbuf![40]
   dim ybuf![25]
 
+  dim i! fast
+  dim x! fast
+  dim y! fast
+  dim c1a! fast
+  dim c1b! fast
+  dim c2a! fast
+  dim c2b! fast
+
   c1a! = \c1A! : c1b! = \c1B!
 
-  for i! = 0 to 24
+  i! = 0
+  repeat
     ybuf![i!] = \sntable![c1a!] + \sntable![c1b!]
     inc c1a! : inc c1a! : inc c1a! : inc c1a!
     c1b! = c1b! + 9
-  next i!
+    inc i!
+  until i! = 25
 
   inc \c1A! : inc \c1A! : inc \c1A!
   dec \c1B! : dec \c1B! : dec \c1B! : dec \c1B! : dec \c1B!
 
   c2a! = \c2A! : c2b! = \c2B!
 
-  for i! = 0 to 39
+  i! = 0
+  repeat
     xbuf![i!] = \sntable![c2a!] + \sntable![c2b!]
     inc c2a! : inc c2a! : inc c2a!
     c2b! = c2b! + 7
-  next i!
+    inc i!
+  until i! = 40
 
   inc \c2A! : inc \c2A!
   dec \c2B! : dec \c2B!
 
-  for y! = 0 to 24
-    for x! = 0 to 39
-        poke screen + x!, xbuf![x!] + ybuf![y!]
-    next x!
-    screen = screen + 40
-  next y!
+  cursor = screen
+  y! =0
+  repeat
+    x! = 0
+    repeat
+        poke cursor, xbuf![x!] + ybuf![y!]
+	inc x!
+	inc cursor
+    until x! = 40
+    inc y!
+  until y! = 25
+
 endproc
 
 proc makecharset(address)

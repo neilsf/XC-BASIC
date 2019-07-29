@@ -1,6 +1,22 @@
 	PROCESSOR 6502
 	
-	MAC opt_pbyte_pbyte_addb
+	; [OPT_MACRO]
+	MAC opt_pbyte_plbtovar
+	; > pbyte+plb2var
+	; > pbvar+plb2var
+	; [/OPT_MACRO]
+	lda {1}
+	sta {2}
+	ENDM
+	
+	
+	; [OPT_MACRO]
+	MAC opt_pbyte_pbyte_add
+	; > pbyte+pbyte+addb
+	; > pbyte+pbvar+addb
+	; > pbvar+pbyte+addb
+	; > pbvar+pbvar+addb
+	; [/OPT_MACRO]
 	lda {1}
 	clc
 	adc {2}
@@ -9,15 +25,10 @@
 	ENDIF
 	ENDM
 	
-	MAC opt_pbyte_pbyte_subb
-	lda {1}
-	sec
-	sbc {2}
-	IF !FPUSH
-	pha
-	ENDIF
-	ENDM
-	
+	; [OPT_MACRO]
+	; pbarray_fast+pbyte+addb
+	; pbarray_fast+pbvar+addb
+	; [/OPT_MACRO]
 	MAC opt_pbarray_fast_pbyte_addb
 	IF !FPULL
 	pla
@@ -31,7 +42,11 @@
 	ENDIF
 	ENDM
 	
-	MAC opt_pbarray_fast_pbyte_subb
+	; [OPT_MACRO]
+	; pbyte+pbarray_fast+addb
+	; pbvar+pbarray_fast+addb
+	; [/OPT_MACRO]
+	MAC opt_pbyte_pbarray_fast_subb
 	IF !FPULL
 	pla
 	ENDIF
