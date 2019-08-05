@@ -654,7 +654,7 @@ class If_stmt:Stmt
 {
 	mixin StmtConstructor;
 
-	public static ushort counter = 1;
+	public static int counter = 65536;
 
 	void process()
 	{
@@ -675,15 +675,7 @@ class If_stmt:Stmt
 		}
 
 		string ret;
-		ret ~= "\tpla\n"
-			 ~ "\tbne *+5\n";
-
-		if(else_present) {
-			ret ~= "\tjmp _E" ~ to!string(counter)  ~ "\n";
-		}
-		else {
-			ret ~= "\tjmp _J" ~ to!string(counter)  ~ "\n";
-		}
+		ret ~= "\tcond_stmt _EI_" ~ to!string(counter) ~ ", _EL_" ~ to!string(counter) ~ "\n";
 
 		this.program.program_segment~=ret;
 
@@ -695,8 +687,8 @@ class If_stmt:Stmt
 
 		// else branch
 		if(else_present) {
-			this.program.program_segment ~= "\tjmp _J" ~ to!string(counter)  ~ "\n";
-			this.program.program_segment ~= "_E" ~to!string(counter)~ ":\n";
+			this.program.program_segment ~= "\tjmp _EI_" ~ to!string(counter)  ~ "\n";
+			this.program.program_segment ~= "_EL_" ~to!string(counter)~ ":\n";
 
             // can be multiple statements
             foreach(ref e_child; else_st.children) {
@@ -705,7 +697,7 @@ class If_stmt:Stmt
             }
 		}
 
-		this.program.program_segment ~= "_J" ~to!string(counter)~ ":\n";
+		this.program.program_segment ~= "_EI_" ~to!string(counter)~ ":\n";
 		counter++;
 	}
 }
@@ -725,7 +717,7 @@ class If_standalone_stmt:Stmt
         Condition cond = new Condition(statement.children[0], this.program);
         cond.eval();
         this.program.program_segment ~= cond.asmcode;
-        this.program.program_segment ~= "\tifstmt "~to!string(counter) ~ "\n";
+        this.program.program_segment ~= "\tcond_stmt _EI_" ~ to!string(counter) ~ ", _EL_" ~ to!string(counter) ~ "\n";
     }
 }
 
@@ -772,7 +764,7 @@ class While_stmt:Stmt
         cond.eval();
         ret ~= cond.asmcode;
 
-        ret ~= "\twhile " ~ strcounter ~ "\n";
+        ret ~= "\tcond_stmt _EW_" ~ strcounter ~ ", _void_\n";
         this.program.program_segment ~= ret;
     }
 }
@@ -819,7 +811,7 @@ class Until_stmt:Stmt
         cond.eval();
         ret ~= cond.asmcode;
 
-        ret ~= "\tuntil " ~ strcounter ~ "\n";
+        ret ~= "\tcond_stmt _RP_" ~ strcounter ~ ", _void_ \n";
         this.program.program_segment ~= ret;
     }
 }
@@ -1217,7 +1209,12 @@ class Proc_stmt:Stmt
 		if(this.node.children[0].children.length > 1) {
 			ParseTree varlist = this.node.children[0].children[1];
 			foreach(ref var; varlist.children) {
-				Variable argument = Variable(0, join(var.children[0].matches), this.program.resolve_sigil(join(var.children[1].matches)));
+				Variable argument =
+                    Variable(
+                        0,
+                        join(var.children[0].matches),
+                        this.program.resolve_sigil(join(var.children[1].matches))
+                    );
 				this.program.addVariable(argument);
 				proc.addArgument(argument);
 			}

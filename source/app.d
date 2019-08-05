@@ -12,12 +12,19 @@ int line_count = 0;
  * Application entry point
  */
 
+bool noopt = false;
+
 void main(string[] args)
 {
     if(args.length < 2) {
         stderr.writeln("Error: input file not specified");
         exit(1);
     }
+
+     auto helpInformation = getopt(
+        args,
+        "noopt", &noopt,
+     );
 
     string filename = args[1];
 
@@ -38,9 +45,15 @@ void main(string[] args)
     program.source_path = absolutePath(dirName(filename));
     program.processAst(ast);
     string code = program.getAsmCode();
-    auto optimizer = new Optimizer(code);
-    optimizer.run();
-    writeln(optimizer.outcode);
+    if(noopt) {
+        writeln(code);
+    }
+    else {
+        auto optimizer = new Optimizer(code);
+        optimizer.run();
+        writeln(optimizer.outcode);
+    }
+
 }
 
 /**

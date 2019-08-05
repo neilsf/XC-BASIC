@@ -1,6 +1,7 @@
 module optimizer;
 
 import std.string, std.array, std.uni, std.regex, std.stdio;
+import std.algorithm.mutation;
 import opt;
 
 template Optimization_pass_ctor()
@@ -29,7 +30,7 @@ class Optimizer: Optimization_pass
     override void run()
     {
         string code;
-        auto op1 = new Replace_sequences(incode);
+        auto op1 = new Replace_sequences(this.incode);
         op1.run();
         auto op2 = new Remove_stack_ops(op1.outcode);
         op2.run();
@@ -49,6 +50,11 @@ class Replace_sequences: Optimization_pass
     mixin Optimization_pass_ctor;
 
     string[string] sequences;
+
+    struct op_code {
+        string op;
+        string arg;
+    }
 
     private void fetch_sequences()
     {
@@ -107,16 +113,43 @@ class Replace_sequences: Optimization_pass
         return false;
     }
 
-    override void run()
+    private string stringify_sequence(op_code[] sequence)
     {
-        this.fetch_sequences();
+        string retval = "";
+        for(int i = 0; i < sequence.length; i++) {
+            if(i > 0) {
+                retval ~= "+";
+            }
+            retval ~= sequence[i].op;
+        }
+        return retval;
+    }
 
+    private string stringify_args(op_code[] sequence)
+    {
+        string retval = "";
+        bool first = true;
+        for(int i = 0; i < sequence.length; i++) {
+            if(sequence[i].arg != "") {
+                if(!first) {
+                    retval ~= ", ";
+                }
+                retval ~= sequence[i].arg;
+                first = false;
+            }
+        }
+        return retval;
+    }
+
+    private bool replace_seqs()
+    {
         bool opt_enabled = false;
+        bool replacements_made = false;
         string[] lines = splitLines(this.incode);
-        string accumulated_sequence = "";
+        op_code[] accumulated_sequence;
         string[] accumulated_code;
-        string[] accumulated_args;
 
+        this.outcode = "";
         for(int i=0; i<lines.length; i++) {
             string line = lines[i];
             if(line == "\t; !!opt_start!!") {
@@ -126,6 +159,9 @@ class Replace_sequences: Optimization_pass
             }
             else if(line == "\t; !!opt_end!!") {
                 opt_enabled = false;
+                this.outcode ~= join(accumulated_code, "\n") ~ "\n" ~ line ~ "\n";
+                accumulated_sequence = [];
+                accumulated_code = [];
                 this.outcode ~= line ~ "\n";
                 continue;
             }
@@ -143,38 +179,51 @@ class Replace_sequences: Optimization_pass
                 string arg = "";
                 if(match.length > 2) {
                     arg = match[2];
-                    if(arg != "") accumulated_args ~= arg;
                 }
 
-                if(accumulated_sequence == "") {
-                    accumulated_sequence = opcode;
-                }
-                else {
-                    accumulated_sequence ~= "+" ~ opcode;
-                }
+                op_code op = {opcode, arg};
+                accumulated_sequence ~= op;
+                string seqstring = this.stringify_sequence(accumulated_sequence);
 
-                if(this.match_sequences(accumulated_sequence)) {
-                    if(this.full_match(accumulated_sequence)) {
-                        this.outcode ~= "\t" ~ this.sequences[accumulated_sequence] ~ " " ~ join(accumulated_args, ", ") ~ "\n";
-                        accumulated_sequence = "";
+                if(this.match_sequences(seqstring)) {
+                    //stderr.writeln("match: " ~ seqstring);
+                    if(this.full_match(seqstring)) {
+                        //stderr.writeln("full match: " ~ seqstring);
+                        this.outcode ~= "\t" ~ this.sequences[seqstring] ~ " " ~ this.stringify_args(accumulated_sequence) ~ "\n";
+                        accumulated_sequence = [];
                         accumulated_code = [];
-                        accumulated_args = [];
+                        replacements_made = true;
                     }
                 }
                 else {
-                    this.outcode ~= join(accumulated_code, "\n") ~ "\n";
-                    accumulated_sequence = "";
-                    accumulated_code = [];
-                    accumulated_args = [];
+                    //stderr.writeln("no match: " ~ seqstring);
+                    this.outcode ~= accumulated_code[0] ~ "\n";
+                    accumulated_sequence = accumulated_sequence.remove(0);
+                    accumulated_code = accumulated_code.remove(0);
                 }
             }
             else {
-                this.outcode ~= line ~ "\n";
-                accumulated_sequence = "";
+                this.outcode ~= join(accumulated_code, "\n") ~ "\n" ~ line ~ "\n";
+                accumulated_sequence = [];
                 accumulated_code = [];
-                accumulated_args = [];
             }
         }
+
+        return replacements_made;
+    }
+
+    override void run()
+    {
+        this.fetch_sequences();
+        bool success;
+        this.replace_seqs();
+        do {
+            success = this.replace_seqs();
+            if(success) {
+                this.incode = this.outcode;
+            }
+        }
+        while(success);
     }
 }
 
@@ -195,7 +244,12 @@ class Remove_stack_ops: Optimization_pass
         "cmpwgte", "cmpwgt", "cmpwlte", "addb",
         "orb", "andb", "xorb", "mulb", "mulw",
         "divb", "peekb", "peekw", "deek", "inkeyb",
-        "inkeyw", "rndb", "rndw", "sqrw"
+        "inkeyw", "rndb", "rndw", "sqrw",
+        "opt_pbyte_pbyte_add", "opt_pword_pwvar_add", "opt_pwvar_pword_add",
+        "opt_pwvar_pwvar_add", "opt_pbyte_pbyte_sub", "opt_pword_pwvar_sub",
+        "opt_pwvar_pword_sub", "opt_pwvar_pwvar_sub", "opt_pbyte_pbarray_fast",
+        "pbyte_pbyte_cmpbeq", "pbyte_pbyte_cmpbneq", "pbyte_pbyte_cmpblt", "pbyte_pbyte_cmpblte",
+        "pbyte_pbyte_cmpbgt", "pbyte_pbyte_cmpbgte"
     ];
 
     const string[] pullers = [
@@ -206,7 +260,9 @@ class Remove_stack_ops: Optimization_pass
         "xorb", "mulb", "mulw", "divb", "pokeb",
         "pokew", "doke", "peekb", "peekw", "deek",
         "sys", "usr", "stdlib_printw", "textat", "wat",
-        "bat", "ongoto", "ongosub", "sqrw", "wait", "watch"
+        "bat", "ongoto", "ongosub", "sqrw", "wait", "watch",
+        "pokeb_const_addr", "poke_const_addr",
+        "cond_stmt"
     ];
 
     override void run()

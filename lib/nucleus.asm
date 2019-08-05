@@ -125,13 +125,13 @@ PLOT		EQU $fff0
 	; Push one word variable on the stack
 	MAC pwvar
 	IF !FPUSH
-	lda.w {1}
+	lda {1}
 	pha
-	lda.w {1}+1
+	lda {1}+1
 	pha
 	ELSE
-	lda.w {1}
-	ldy.w {1}+1
+	lda {1}
+	ldy {1}+1
 	ENDIF
 	ENDM
 	
@@ -183,7 +183,7 @@ PLOT		EQU $fff0
 	pla
 	ENDIF
 	tax
-	lda.wx {1}
+	lda {1},x
 	IF !FPUSH
 	pha
 	ENDIF
@@ -326,7 +326,7 @@ PLOT		EQU $fff0
 	ENDIF
 	tax
 	pla
-	sta.wx {1}
+	sta {1},x
 	ENDM
 	
 	;Pull one word variable (indexed)
@@ -2073,26 +2073,48 @@ NUCL_SQRW	SUBROUTINE
 	cmp R0
 	bne .selfmod_code
 	ENDM
-		
-	MAC while
-	pla
-	bne *+5
-	jmp _EW_{1}
-	ENDM
-	
-	MAC until
-	pla
-	bne *+5
-	jmp _RP_{1}
-	ENDM
 	
 	MAC ifstmt
+	IF !FPULL
 	pla
+	ENDIF
 	bne *+5
 	IFCONST _EL_{1}
 	jmp _EL_{1}
 	ELSE
 	jmp _EI_{1}
+	ENDIF
+	ENDM
+		
+	MAC while
+	IF !FPULL
+	pla
+	ENDIF
+	bne *+5
+	jmp _EW_{1}
+	ENDM
+	
+	MAC until
+	IF !FPULL
+	pla
+	ENDIF
+	bne *+5
+	jmp _RP_{1}
+	ENDM
+	
+	; This universal macro
+	; can be used for if, while, until
+	; usage:
+	; cond_stmt <false_label> [, <else_label>]
+	MAC cond_stmt
+	IF !FPULL
+	pla
+	ENDIF
+	bne *+5
+	IFCONST {2}
+	jmp {2}
+	ELSE
+	jmp {1}
 	ENDIF
 	ENDM
 	

@@ -283,21 +283,21 @@ class Program
 		asm_code ~= "\tENDIF\n";
 		asm_code ~= "\tHEX 00\n";
 		asm_code ~= "next_line:\n\tHEX 00 00\n";
-		asm_code ~= "\t;--------------------\n";
+		asm_code ~= "\t;------------    --------\n";
         asm_code ~= "\tECHO \"Memory information:\"\n";
         asm_code ~= "\tECHO \"===================\"\n";
         asm_code ~= "\tECHO \"BASIC loader: $801 -\", *-1\n";
         asm_code ~= "library_start:\n";
-		asm_code ~= nucleus.code;
-        asm_code ~= opt.code;
-		asm_code ~= basicstdlib.code;
+		asm_code ~= nucleus.code ~ "\n";
+        asm_code ~= opt.code ~ "\n";
+		asm_code ~= basicstdlib.code ~ "\n";
 
         if(this.use_stringlib) {
-            asm_code ~= stringlib.code;
+            asm_code ~= stringlib.code ~ "\n";
         }
 
         if(this.use_memlib) {
-            asm_code ~= memlib.code;
+            asm_code ~= memlib.code ~ "\n";
         }
         asm_code ~= "\tECHO \"Library     :\",library_start,\"-\", *-1\n";
 		asm_code ~= this.getCodeSegment();

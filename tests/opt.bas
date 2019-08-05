@@ -1,2 +1,3 @@
 a! = 7
-print a! + 6
+addr = 53280
+poke addr, a!
