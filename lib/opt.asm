@@ -1,6 +1,10 @@
 	
 	LIST OFF
 	
+	; --------------------------------
+	; Optimized sequences for ADDITION
+	; --------------------------------
+	
 	; [OPT_MACRO]
 	MAC opt_pbyte_pbyte_add
 	; > pbyte+pbyte+addb
@@ -83,6 +87,10 @@
 	txa
 	ENDIF
 	ENDM
+	
+	; ------------------------------------
+	; Optimized sequences for SUBSTRACTION
+	; ------------------------------------
 	
 	; [OPT_MACRO]
 	MAC opt_pbyte_pbyte_sub
@@ -167,6 +175,64 @@
 	ENDIF
 	ENDM
 	
+	; ----------------------------------
+	; Optimized sequences for LOGICAL OR
+	; ----------------------------------
+	
+	; [OPT_MACRO]
+	MAC opt_pbyte_pbyte_or
+	; > pbyte+pbyte+orb
+	; > pbyte+pbvar+orb
+	; > pbvar+pbyte+orb
+	; > pbvar+pbvar+orb
+	; [/OPT_MACRO]
+	lda {1}
+	ora {2}
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
+	
+	; -----------------------------------
+	; Optimized sequences for LOGICAL AND
+	; -----------------------------------
+	
+	; [OPT_MACRO]
+	MAC opt_pbyte_pbyte_and
+	; > pbyte+pbyte+andb
+	; > pbyte+pbvar+andb
+	; > pbvar+pbyte+andb
+	; > pbvar+pbvar+andb
+	; [/OPT_MACRO]
+	lda {1}
+	and {2}
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
+	
+	; -----------------------------------
+	; Optimized sequences for LOGICAL XOR
+	; -----------------------------------
+	
+	; [OPT_MACRO]
+	MAC opt_pbyte_pbyte_xor
+	; > pbyte+pbyte+xorb
+	; > pbyte+pbvar+xorb
+	; > pbvar+pbyte+xorb
+	; > pbvar+pbvar+xorb
+	; [/OPT_MACRO]
+	lda {1}
+	eor {2}
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
+	
+	; ------------------------------------
+	; Optimized sequences for ARRAY ACCESS
+	; ------------------------------------
+	
 	; [OPT_MACRO]
 	MAC opt_pbyte_pbarray_fast
 	; > pbyte+pbarray_fast
@@ -188,6 +254,10 @@
 	ldx {2}
 	sta {3},x
 	ENDM
+	
+	; ----------------------------
+	; Optimized sequences for POKE
+	; ----------------------------
 	
 	; [OPT_MACRO]
 	MAC pokeb_const_addr
@@ -213,6 +283,42 @@
 	ENDIF
 	sta .ad
 	ENDM
+	
+	; ----------------------------
+	; Optimized sequences for PEEK
+	; ----------------------------
+	
+	; [OPT_MACRO]
+	MAC peekb_const_addr
+	; > pword+peekb
+	; > paddr+peekb
+	; [/OPT_MACRO]
+.ad EQU {1}
+	lda .ad
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
+	
+	; [OPT_MACRO]
+	MAC peekw_const_addr
+	; > pword+peekw
+	; > paddr+peekw
+	; [/OPT_MACRO]
+.ad EQU {1}
+	lda .ad
+	IF !FPUSH
+	pha
+	lda #$00
+	pha
+	ELSE
+	ldy #$00
+	ENDIF
+	ENDM
+	
+	; ----------------------------------
+	; Optimized sequences for COMPARISON
+	; ----------------------------------
 
 	; [OPT_MACRO]
 	MAC pbyte_pbyte_cmpbeq

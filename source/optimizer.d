@@ -249,7 +249,8 @@ class Remove_stack_ops: Optimization_pass
         "opt_pwvar_pwvar_add", "opt_pbyte_pbyte_sub", "opt_pword_pwvar_sub",
         "opt_pwvar_pword_sub", "opt_pwvar_pwvar_sub", "opt_pbyte_pbarray_fast",
         "pbyte_pbyte_cmpbeq", "pbyte_pbyte_cmpbneq", "pbyte_pbyte_cmpblt", "pbyte_pbyte_cmpblte",
-        "pbyte_pbyte_cmpbgt", "pbyte_pbyte_cmpbgte"
+        "pbyte_pbyte_cmpbgt", "pbyte_pbyte_cmpbgte", "peekw_const_addr", "peekb_const_addr",
+        "opt_pbyte_pbyte_or", "opt_pbyte_pbyte_and", "opt_pbyte_pbyte_xor"
     ];
 
     const string[] pullers = [

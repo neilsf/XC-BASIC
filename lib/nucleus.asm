@@ -906,7 +906,7 @@ PLOT		EQU $fff0
 
     ; Perform XOR on top 2 bytes of stack
     MAC xorb
-     IF !FPULL
+    IF !FPULL
     pla
     ENDIF
     sta R1

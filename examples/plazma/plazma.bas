@@ -1,3 +1,17 @@
+rem *
+rem * PLASMA Effect
+rem *
+rem * This program demonstrates the optimizing
+rem * capabilities of XC=BASIC - a BASIC cross compiler for the C64.
+rem *
+rem * (w)2001 by groepaz/hitmen
+rem *
+rem * Porting history:
+rem *
+rem * -> Ported to CC65 by Ullrich von Bassewitz
+rem * -> Ported to KickC by Jesper Gravgaard
+rem * -> Ported to XC=BASIC by Csaba Fekete
+
 const SCREEN1 = $2800
 const SCREEN2 = $2c00
 const CHARSET = $2000
@@ -32,13 +46,13 @@ proc doplasma(screen)
   i! = 0
   repeat
     ybuf![i!] = \sntable![c1a!] + \sntable![c1b!]
-    inc c1a! : inc c1a! : inc c1a! : inc c1a!
+    c1a! = c1a! + 4
     c1b! = c1b! + 9
     inc i!
   until i! = 25
 
-  inc \c1A! : inc \c1A! : inc \c1A!
-  dec \c1B! : dec \c1B! : dec \c1B! : dec \c1B! : dec \c1B!
+  \c1A! = \c1A! + 3
+  \c1B! = \c1B! - 5
 
   c2a! = \c2A! : c2b! = \c2B!
 
@@ -76,7 +90,7 @@ proc makecharset(address)
     for i! = 0 to 7
       b! = 0
       for ii! = 0 to 7
-        if rnd!() & 255 > s! then b! = b! | \bittab![ii!]
+        if rnd!() > s! then b! = b! | \bittab![ii!]
       next ii!
       poke address + c! * 8 + i!, b!
     next i!
