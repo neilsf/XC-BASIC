@@ -353,6 +353,11 @@ class Dim_stmt:Stmt
 	void process()
 	{
 		ParseTree v = this.node.children[0].children[0];
+        bool is_fast = false;
+        if(this.node.matches[$-1] == "fast" || this.node.matches[$-1] == "FAST") {
+            is_fast = true;
+        }
+
 		string varname = join(v.children[0].matches);
         string sigil = join(v.children[1].matches);
 		char vartype = this.program.resolve_sigil(sigil);
@@ -408,7 +413,7 @@ class Dim_stmt:Stmt
 		}
 
 		Variable var = Variable(0, varname, vartype, dimensions);
-		this.program.addVariable(var);
+		this.program.addVariable(var, is_fast);
 	}
 }
 
@@ -572,7 +577,7 @@ class Call_stmt:Stmt
                     // an array
                     int length = var.dimensions[0] * var.dimensions[1] * this.program.varlen[var.type];
                     for(int offset = 0; offset < length; offset++) {
-                        this.program.program_segment ~= "\tpbvar " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
+                        this.program.program_segment ~= "\tpbyte " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
                     }
                 }
             }
@@ -649,7 +654,7 @@ class If_stmt:Stmt
 {
 	mixin StmtConstructor;
 
-	public static ushort counter = 1;
+	public static int counter = 65536;
 
 	void process()
 	{
@@ -670,15 +675,7 @@ class If_stmt:Stmt
 		}
 
 		string ret;
-		ret ~= "\tpla\n"
-			 ~ "\tbne *+5\n";
-
-		if(else_present) {
-			ret ~= "\tjmp _E" ~ to!string(counter)  ~ "\n";
-		}
-		else {
-			ret ~= "\tjmp _J" ~ to!string(counter)  ~ "\n";
-		}
+		ret ~= "\tcond_stmt _EI_" ~ to!string(counter) ~ ", _EL_" ~ to!string(counter) ~ "\n";
 
 		this.program.program_segment~=ret;
 
@@ -690,8 +687,8 @@ class If_stmt:Stmt
 
 		// else branch
 		if(else_present) {
-			this.program.program_segment ~= "\tjmp _J" ~ to!string(counter)  ~ "\n";
-			this.program.program_segment ~= "_E" ~to!string(counter)~ ":\n";
+			this.program.program_segment ~= "\tjmp _EI_" ~ to!string(counter)  ~ "\n";
+			this.program.program_segment ~= "_EL_" ~to!string(counter)~ ":\n";
 
             // can be multiple statements
             foreach(ref e_child; else_st.children) {
@@ -700,7 +697,7 @@ class If_stmt:Stmt
             }
 		}
 
-		this.program.program_segment ~= "_J" ~to!string(counter)~ ":\n";
+		this.program.program_segment ~= "_EI_" ~to!string(counter)~ ":\n";
 		counter++;
 	}
 }
@@ -720,7 +717,7 @@ class If_standalone_stmt:Stmt
         Condition cond = new Condition(statement.children[0], this.program);
         cond.eval();
         this.program.program_segment ~= cond.asmcode;
-        this.program.program_segment ~= "\tifstmt "~to!string(counter) ~ "\n";
+        this.program.program_segment ~= "\tcond_stmt _EI_" ~ to!string(counter) ~ ", _EL_" ~ to!string(counter) ~ "\n";
     }
 }
 
@@ -767,7 +764,7 @@ class While_stmt:Stmt
         cond.eval();
         ret ~= cond.asmcode;
 
-        ret ~= "\twhile " ~ strcounter ~ "\n";
+        ret ~= "\tcond_stmt _EW_" ~ strcounter ~ ", _void_\n";
         this.program.program_segment ~= ret;
     }
 }
@@ -814,7 +811,7 @@ class Until_stmt:Stmt
         cond.eval();
         ret ~= cond.asmcode;
 
-        ret ~= "\tuntil " ~ strcounter ~ "\n";
+        ret ~= "\tcond_stmt _RP_" ~ strcounter ~ ", _void_ \n";
         this.program.program_segment ~= ret;
     }
 }
@@ -1212,7 +1209,12 @@ class Proc_stmt:Stmt
 		if(this.node.children[0].children.length > 1) {
 			ParseTree varlist = this.node.children[0].children[1];
 			foreach(ref var; varlist.children) {
-				Variable argument = Variable(0, join(var.children[0].matches), this.program.resolve_sigil(join(var.children[1].matches)));
+				Variable argument =
+                    Variable(
+                        0,
+                        join(var.children[0].matches),
+                        this.program.resolve_sigil(join(var.children[1].matches))
+                    );
 				this.program.addVariable(argument);
 				proc.addArgument(argument);
 			}

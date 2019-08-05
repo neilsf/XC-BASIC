@@ -15,9 +15,26 @@ class Term
     char expected_type;
 
     this(ParseTree node, Program program)
-    { 
+    {
         this.node = node;
         this.program = program;
+    }
+
+    bool is_const()
+    {
+        Factor tmpFact;
+        bool is_const = true;
+        foreach(ref child; this.node.children) {
+            if(child.name == "XCBASIC.Factor") {
+                tmpFact = new Factor(child, this.program);
+                if(!tmpFact.is_const()) {
+                    is_const = false;
+                    break;
+                }
+            }
+        }
+
+        return is_const;
     }
 
     char detect_type()
@@ -50,7 +67,7 @@ class Term
 
     void eval()
     {
-        char i = 0; 
+        char i = 0;
     	Factor f1 = new Factor(this.node.children[i], this.program);
         f1.expected_type = this.expected_type;
         f1.eval();
@@ -75,10 +92,10 @@ class Term
             }
         }
     }
-   
+
     void _type_error()
     {
-        
+
     }
 
     override string toString()

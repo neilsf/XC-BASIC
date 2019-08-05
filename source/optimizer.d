@@ -1,11 +1,240 @@
 module optimizer;
 
-import std.string, std.array, std.uni;
+import std.string, std.array, std.uni, std.regex, std.stdio;
+import std.algorithm.mutation;
+import opt;
 
-class Optimizer
+template Optimization_pass_ctor()
+{
+    this(string incode)
+    {
+        this.incode = incode;
+    }
+}
+
+abstract class Optimization_pass
+{
+    public string incode;
+    public string outcode;
+
+    abstract void run();
+}
+
+class Optimizer: Optimization_pass
 {
     string incode;
     string outcode;
+
+    mixin Optimization_pass_ctor;
+
+    override void run()
+    {
+        string code;
+        auto op1 = new Replace_sequences(this.incode);
+        op1.run();
+        auto op2 = new Remove_stack_ops(op1.outcode);
+        op2.run();
+        this.outcode = op2.outcode;
+    }
+}
+
+
+
+/**
+ * Replaces sequences of pseudo-ops with
+ * equivalent but faster ones
+ */
+
+class Replace_sequences: Optimization_pass
+{
+    mixin Optimization_pass_ctor;
+
+    string[string] sequences;
+
+    struct op_code {
+        string op;
+        string arg;
+    }
+
+    private void fetch_sequences()
+    {
+        string[] lines = splitLines(opt.code);
+        bool fetch = false;
+        string macname;
+        foreach(line; lines) {
+            if(line == "\t; [OPT_MACRO]") {
+                fetch = true;
+                continue;
+            }
+
+            if(line == "\t; [/OPT_MACRO]") {
+                fetch = false;
+                continue;
+            }
+
+            if(!fetch) {
+                continue;
+            }
+
+            auto expr = regex(r"\tMAC\s([a-z_]+)");
+            auto match = matchFirst(line, expr);
+            if(match) {
+                macname = match[1];
+                continue;
+            }
+
+            expr = regex(r"\t;\s\>\s([a-z0-9_\+]+)");
+            match = matchFirst(line, expr);
+            if(match) {
+                this.sequences[match[1]] = macname;
+                continue;
+            }
+        }
+    }
+
+    private bool match_sequences(string candidate)
+    {
+        ulong len = candidate.length;
+        foreach(item; this.sequences.byKey()) {
+            if(len <= item.length && item[0..len] == candidate) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private bool full_match(string candidate)
+    {
+        foreach(item; this.sequences.byKey()) {
+            if(item == candidate) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private string stringify_sequence(op_code[] sequence)
+    {
+        string retval = "";
+        for(int i = 0; i < sequence.length; i++) {
+            if(i > 0) {
+                retval ~= "+";
+            }
+            retval ~= sequence[i].op;
+        }
+        return retval;
+    }
+
+    private string stringify_args(op_code[] sequence)
+    {
+        string retval = "";
+        bool first = true;
+        for(int i = 0; i < sequence.length; i++) {
+            if(sequence[i].arg != "") {
+                if(!first) {
+                    retval ~= ", ";
+                }
+                retval ~= sequence[i].arg;
+                first = false;
+            }
+        }
+        return retval;
+    }
+
+    private bool replace_seqs()
+    {
+        bool opt_enabled = false;
+        bool replacements_made = false;
+        string[] lines = splitLines(this.incode);
+        op_code[] accumulated_sequence;
+        string[] accumulated_code;
+
+        this.outcode = "";
+        for(int i=0; i<lines.length; i++) {
+            string line = lines[i];
+            if(line == "\t; !!opt_start!!") {
+                opt_enabled = true;
+                this.outcode ~= line ~ "\n";
+                continue;
+            }
+            else if(line == "\t; !!opt_end!!") {
+                opt_enabled = false;
+                this.outcode ~= join(accumulated_code, "\n") ~ "\n" ~ line ~ "\n";
+                accumulated_sequence = [];
+                accumulated_code = [];
+                this.outcode ~= line ~ "\n";
+                continue;
+            }
+
+            if(!opt_enabled) {
+                this.outcode ~= line ~ "\n";
+                continue;
+            }
+
+            auto expr = regex(r"\t([a-z0-9_]+)(\s.+)?");
+            auto match = matchFirst(line, expr);
+            if(match) {
+                accumulated_code ~= line;
+                string opcode = match[1];
+                string arg = "";
+                if(match.length > 2) {
+                    arg = match[2];
+                }
+
+                op_code op = {opcode, arg};
+                accumulated_sequence ~= op;
+                string seqstring = this.stringify_sequence(accumulated_sequence);
+
+                if(this.match_sequences(seqstring)) {
+                    //stderr.writeln("match: " ~ seqstring);
+                    if(this.full_match(seqstring)) {
+                        //stderr.writeln("full match: " ~ seqstring);
+                        this.outcode ~= "\t" ~ this.sequences[seqstring] ~ " " ~ this.stringify_args(accumulated_sequence) ~ "\n";
+                        accumulated_sequence = [];
+                        accumulated_code = [];
+                        replacements_made = true;
+                    }
+                }
+                else {
+                    //stderr.writeln("no match: " ~ seqstring);
+                    this.outcode ~= accumulated_code[0] ~ "\n";
+                    accumulated_sequence = accumulated_sequence.remove(0);
+                    accumulated_code = accumulated_code.remove(0);
+                }
+            }
+            else {
+                this.outcode ~= join(accumulated_code, "\n") ~ "\n" ~ line ~ "\n";
+                accumulated_sequence = [];
+                accumulated_code = [];
+            }
+        }
+
+        return replacements_made;
+    }
+
+    override void run()
+    {
+        this.fetch_sequences();
+        bool success;
+        this.replace_seqs();
+        do {
+            success = this.replace_seqs();
+            if(success) {
+                this.incode = this.outcode;
+            }
+        }
+        while(success);
+    }
+}
+
+/**
+ * Removes unnecessary push and pull operations
+ * where possible
+ */
+
+class Remove_stack_ops: Optimization_pass
+{
+    mixin Optimization_pass_ctor;
 
     const string[] pushers = [
         "pzero",  "pone", "pbyte", "pbvar", "pword",
@@ -15,7 +244,13 @@ class Optimizer
         "cmpwgte", "cmpwgt", "cmpwlte", "addb",
         "orb", "andb", "xorb", "mulb", "mulw",
         "divb", "peekb", "peekw", "deek", "inkeyb",
-        "inkeyw", "rndb", "rndw", "sqrw"
+        "inkeyw", "rndb", "rndw", "sqrw",
+        "opt_pbyte_pbyte_add", "opt_pword_pwvar_add", "opt_pwvar_pword_add",
+        "opt_pwvar_pwvar_add", "opt_pbyte_pbyte_sub", "opt_pword_pwvar_sub",
+        "opt_pwvar_pword_sub", "opt_pwvar_pwvar_sub", "opt_pbyte_pbarray_fast",
+        "pbyte_pbyte_cmpbeq", "pbyte_pbyte_cmpbneq", "pbyte_pbyte_cmpblt", "pbyte_pbyte_cmpblte",
+        "pbyte_pbyte_cmpbgt", "pbyte_pbyte_cmpbgte", "peekw_const_addr", "peekb_const_addr",
+        "opt_pbyte_pbyte_or", "opt_pbyte_pbyte_and", "opt_pbyte_pbyte_xor"
     ];
 
     const string[] pullers = [
@@ -26,15 +261,12 @@ class Optimizer
         "xorb", "mulb", "mulw", "divb", "pokeb",
         "pokew", "doke", "peekb", "peekw", "deek",
         "sys", "usr", "stdlib_printw", "textat", "wat",
-        "bat", "ongoto", "ongosub", "sqrw", "wait", "watch"
+        "bat", "ongoto", "ongosub", "sqrw", "wait", "watch",
+        "pokeb_const_addr", "poke_const_addr",
+        "cond_stmt"
     ];
 
-    this(string incode)
-    {
-        this.incode = incode;
-    }
-
-    void run()
+    override void run()
     {
         this.outcode = "";
         string[] lines = splitLines(this.incode);
