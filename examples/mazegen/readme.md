@@ -14,16 +14,22 @@ You can find him on Twitter here: https://twitter.com/hamrath
 Here are a few results from different BASIC V2 compilers:
 
 ```
-BASIC V2:           ~40sec
-BASIC BOSS:         ~13.25sec
-MOspeed:            ~12sec
-Original XC-BASIC:  ~5.5sec
-Optimized XC-BASIC: ~4.5sec
+BASIC V2:                ~40sec
+BASIC BOSS:              ~13.25sec
+MOspeed:                 ~12sec
+Original XC-BASIC:       ~5.5sec
+Optimized XC-BASIC:      ~4.5sec
+Optimized XC-BASIC v2.1: ~2.6sec
 ``` 
 
 The difference between original and optimized XC-BASIC
 are roughly 7 lines of code. The original code was an early
 draft I won't release because of shame. ;)
+
+Optimized XC-BASIC v2.1 uses new features introduced in XC-BASIC v2.0. It
+uses inline assembler, byte vars where needed and has some cleanup. It also
+uses the new FAST variable feature, which was introduced in v2.1-beta2. 
+Speed improvment is marginal though.
 
 BASIC BOSS is a 2-pass BASIC compiler from 1988.  
 
