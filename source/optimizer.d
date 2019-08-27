@@ -94,7 +94,7 @@ class Replace_sequences: Optimization_pass
 
     private bool match_sequences(string candidate)
     {
-        uint len = uint(candidate.length);
+        uint len = cast(uint)candidate.length;
         foreach(item; this.sequences.byKey()) {
             if(len <= item.length && item[0..len] == candidate) {
                 return true;
