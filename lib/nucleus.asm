@@ -2074,6 +2074,17 @@ NUCL_SQRW	SUBROUTINE
 	bne .selfmod_code
 	ENDM
 	
+	; WATCH command with
+	; constant address
+	MAC watchc
+	IF !FPULL
+	pla
+	ENDIF
+.again
+	cmp {1}
+	bne .again
+	ENDM
+	
 	MAC ifstmt
 	IF !FPULL
 	pla
@@ -2116,6 +2127,30 @@ NUCL_SQRW	SUBROUTINE
 	ELSE
 	jmp {1}
 	ENDIF
+	ENDM
+	
+	; LSHIFT!() function
+	; with constant argument
+	MAC lshiftbc
+	IF !FPULL
+	pla
+	ENDIF
+	REPEAT {1}
+	asl
+	REPEND
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
+
+	; LSHIFT() function
+	; with constant argument
+	MAC lshiftwc
+	tsx
+	REPEAT {1}
+	asl.wx stack+2
+	rol.wx stack+1
+	REPEND
 	ENDM
 	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00

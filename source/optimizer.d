@@ -261,7 +261,7 @@ class Remove_stack_ops: Optimization_pass
         "xorb", "mulb", "mulw", "divb", "pokeb",
         "pokew", "doke", "peekb", "peekw", "deek",
         "sys", "usr", "stdlib_printw", "textat", "wat",
-        "bat", "ongoto", "ongosub", "sqrw", "wait", "watch",
+        "bat", "ongoto", "ongosub", "sqrw", "wait", "watch", "watchc",
         "pokeb_const_addr", "poke_const_addr",
         "cond_stmt"
     ];

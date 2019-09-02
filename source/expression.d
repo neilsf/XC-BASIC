@@ -9,6 +9,7 @@ import std.string;
 import core.stdc.stdlib;
 import stringliteral;
 import simplexp;
+import factor;
 
 class Expression
 {
@@ -23,9 +24,26 @@ class Expression
         this.program = program;
     }
 
+    /**
+     * An expression is considered to be constant
+     * if it has only one member and that member is
+     * a numeric literal or a constant
+     */
+
     bool is_const()
     {
-        return false;
+        if(this.node.children.length > 1) {
+            return false;
+        }
+
+        Simplexp tmpSimp = new Simplexp(this.node.children[0], this.program);
+        return tmpSimp.is_const();
+    }
+
+    real get_constval()
+    {
+        Factor tmpFact = new Factor(this.node.children[0].children[0].children[0], this.program);
+        return tmpFact.get_constval();
     }
 
     /**

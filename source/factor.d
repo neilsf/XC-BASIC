@@ -58,6 +58,36 @@ class Factor
         }
     }
 
+    real get_constval()
+    {
+        string ftype = this.node.children[0].name;
+        switch(ftype) {
+            case "XCBASIC.Number":
+                ParseTree v = this.node.children[0];
+                Number num = new Number(v, this.program);
+                return num.type == 'f' ? num.floatval : cast(real)num.intval;
+
+            case "XCBASIC.Var":
+                ParseTree v = this.node.children[0];
+                string varname = join(v.children[0].matches);
+                string sigil = v.children[1].matches[0];
+                if(!this.program.is_variable(varname, sigil)) {
+                    this.program.error("Undefined variable: " ~ varname);
+                }
+                Variable var = this.program.findVariable(varname, sigil);
+                return var.type == 'f' ? var.constValFloat : cast(real)var.constValInt;
+
+            case "XCBASIC.Parenthesis":
+            case "XCBASIC.Expression":
+                ParseTree ex = this.node.children[0];
+                auto expr = new Expression(ex, this.program);
+                return expr.get_constval();
+
+            default:
+                return 0.0;
+        }
+    }
+
     char detect_type()
     {
         string ftype = this.node.children[0].name;

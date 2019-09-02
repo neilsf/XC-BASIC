@@ -22,19 +22,12 @@ class Term
 
     bool is_const()
     {
-        Factor tmpFact;
-        bool is_const = true;
-        foreach(ref child; this.node.children) {
-            if(child.name == "XCBASIC.Factor") {
-                tmpFact = new Factor(child, this.program);
-                if(!tmpFact.is_const()) {
-                    is_const = false;
-                    break;
-                }
-            }
+        if(this.node.children.length > 1) {
+            return false;
         }
 
-        return is_const;
+        Factor tmpFact = new Factor(this.node.children[0], this.program);
+        return tmpFact.is_const();
     }
 
     char detect_type()

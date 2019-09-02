@@ -83,6 +83,16 @@ Fun FunFactory(ParseTree node, Program program) {
             fun = new ValFun(node, program);
         break;
 
+        case "lshift":
+            fun = new ShiftFun(node, program);
+            fun.direction = "l";
+        break;
+
+        case "rshift":
+            fun = new ShiftFun(node, program);
+            fun.direction = "r";
+        break;
+
         default:
         assert(0);
     }
@@ -133,6 +143,8 @@ abstract class Fun:FunInterface
     protected Expression[8] arglist;
     protected string fncode;
     public char type;
+    // Currently only used in Shiftfun
+    public string direction = "";
 
     this(ParseTree node, Program program)
     {
@@ -543,5 +555,45 @@ class SgnFun:Fun
         }
 
         this.fncode ~= "\tsgn" ~ to!string(this.type) ~ "\n";
+    }
+}
+
+class ShiftFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+    protected ubyte opt_arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['w', 'f'];
+    }
+
+    void process()
+    {
+        if(this.type != this.arglist[0].detect_type()) {
+            this.program.error("The lshift() function's argument type and return type must match");
+        }
+
+        bool is_const;
+        ubyte cval;
+
+        if(this.arglist.length > 1) {
+            if(this.arglist[1].detect_type != 'b') {
+                this.program.error("Argument #2 of lshift() must be a byte");
+            }
+
+            is_const = this.arglist[1].is_const;
+            if(is_const) {
+                cval = cast(ubyte)this.arglist[1].get_constval();
+            }
+        }
+        else {
+            is_const = true;
+            cval = 1;
+        }
+
+        this.fncode ~= "\t" ~ this.direction ~  "shift" ~ to!string(this.type) ~ (is_const ? "c" : "") ~ "\n";
     }
 }

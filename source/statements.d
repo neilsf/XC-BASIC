@@ -1585,6 +1585,7 @@ class Watch_stmt: Stmt
     {
         auto args = this.node.children[0].children;
         auto address = new Expression(args[0], this.program);
+        bool const_addr = address.is_const();
         address.eval();
         if(address.type == 'f') {
             this.program.error("Argument #1 of WATCH must not be a float");
@@ -1603,8 +1604,14 @@ class Watch_stmt: Stmt
         }
 
         this.program.program_segment ~= to!string(mask);
-        this.program.program_segment ~= to!string(address);
-        this.program.program_segment ~= "\twatch\n";
+        if(!const_addr) {
+            this.program.program_segment ~= to!string(address);
+            this.program.program_segment ~= "\twatch\n";
+        }
+        else {
+            this.program.program_segment ~= "\twatchc "~ to!string(address.get_constval()) ~"\n";
+        }
+
     }
 }
 
