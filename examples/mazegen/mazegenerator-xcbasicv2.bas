@@ -48,6 +48,7 @@ start:
     poke $d020,0
     poke $d021,0
     print "{CLR}"
+    textat 11,10,"press key to start..."
     wait 198,1
     call randomize(0,10)
     a = sc + random_number! * 80
