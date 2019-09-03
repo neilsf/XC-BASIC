@@ -250,7 +250,8 @@ class Remove_stack_ops: Optimization_pass
         "opt_pwvar_pword_sub", "opt_pwvar_pwvar_sub", "opt_pbyte_pbarray_fast",
         "pbyte_pbyte_cmpbeq", "pbyte_pbyte_cmpbneq", "pbyte_pbyte_cmpblt", "pbyte_pbyte_cmpblte",
         "pbyte_pbyte_cmpbgt", "pbyte_pbyte_cmpbgte", "peekw_const_addr", "peekb_const_addr",
-        "opt_pbyte_pbyte_or", "opt_pbyte_pbyte_and", "opt_pbyte_pbyte_xor"
+        "opt_pbyte_pbyte_or", "opt_pbyte_pbyte_and", "opt_pbyte_pbyte_xor",
+        "lshiftb", "rshiftb", "rshiftbc", "lshiftbc"
     ];
 
     const string[] pullers = [
@@ -263,7 +264,8 @@ class Remove_stack_ops: Optimization_pass
         "sys", "usr", "stdlib_printw", "textat", "wat",
         "bat", "ongoto", "ongosub", "sqrw", "wait", "watch", "watchc",
         "pokeb_const_addr", "poke_const_addr",
-        "cond_stmt"
+        "cond_stmt", "lshiftb", "rshiftb", "lshiftw", "rshiftw",
+        "lshiftbc", "rshiftbc"
     ];
 
     override void run()

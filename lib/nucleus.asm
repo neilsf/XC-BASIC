@@ -2016,8 +2016,12 @@ NUCL_SQRW	SUBROUTINE
 	IF !FPULL
 	pla
 	ENDIF
-	clc
+	tay
+	pla
+.loop
 	asl
+	dey
+	bne .loop
 	IF !FPUSH
 	pha
 	ENDIF
@@ -2027,10 +2031,89 @@ NUCL_SQRW	SUBROUTINE
 	IF !FPULL
 	pla
 	ENDIF
+	tay
+	pla
+.loop
 	lsr
+	dey
+	bne .loop
 	IF !FPUSH
 	pha
 	ENDIF
+	ENDM
+	
+	MAC lshiftw
+	IF !FPULL
+	pla
+	ENDIF
+	tay
+	tsx
+.loop
+	asl.wx stack+2
+	rol.wx stack+1
+	dey
+	bne .loop
+	ENDM
+	
+	MAC rshiftw
+	IF !FPULL
+	pla
+	ENDIF
+	tay
+	tsx
+.loop
+	lsr.wx stack+2
+	ror.wx stack+1
+	dey
+	bne .loop
+	ENDM
+	
+	; LSHIFT!() function
+	; with constant argument
+	MAC lshiftbc
+	IF !FPULL
+	pla
+	ENDIF
+	REPEAT {1}
+	asl
+	REPEND
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
+
+	; LSHIFT() function
+	; with constant argument
+	MAC lshiftwc
+	tsx
+	REPEAT {1}
+	asl.wx stack+2
+	rol.wx stack+1
+	REPEND
+	ENDM
+	
+	; RSHIFT!() function
+	; with constant argument
+	MAC rshiftbc
+	IF !FPULL
+	pla
+	ENDIF
+	REPEAT {1}
+	lsr
+	REPEND
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
+
+	; RSHIFT() function
+	; with constant argument
+	MAC rshiftwc
+	tsx
+	REPEAT {1}
+	lsr.wx stack+2
+	ror.wx stack+1
+	REPEND
 	ENDM
 	
 	MAC wait
@@ -2127,30 +2210,6 @@ NUCL_SQRW	SUBROUTINE
 	ELSE
 	jmp {1}
 	ENDIF
-	ENDM
-	
-	; LSHIFT!() function
-	; with constant argument
-	MAC lshiftbc
-	IF !FPULL
-	pla
-	ENDIF
-	REPEAT {1}
-	asl
-	REPEND
-	IF !FPUSH
-	pha
-	ENDIF
-	ENDM
-
-	; LSHIFT() function
-	; with constant argument
-	MAC lshiftwc
-	tsx
-	REPEAT {1}
-	asl.wx stack+2
-	rol.wx stack+1
-	REPEND
 	ENDM
 	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00

@@ -113,11 +113,23 @@ template FunConstructor()
                 }
             }
 
+            // mandatory arguments
+            ubyte i=0;
 
-            for(ubyte i=0; i<this.arg_count; i++) {
+            while(i < this.arg_count) {
                 auto e = exprlist.children[i];
                 this.arglist[i] = new Expression(e, this.program);
                 this.arglist[i].eval();
+                i++;
+            }
+
+            // optional arguments
+
+            while(i < exprlist.children.length) {
+                auto e = exprlist.children[i];
+                this.arglist[i] = new Expression(e, this.program);
+                this.arglist[i].eval();
+                i++;
             }
         }
         else {
@@ -567,26 +579,28 @@ class ShiftFun:Fun
 
     override protected char[] getPossibleTypes()
     {
-        return ['w', 'f'];
+        return ['b', 'w'];
     }
 
     void process()
     {
         if(this.type != this.arglist[0].detect_type()) {
-            this.program.error("The lshift() function's argument type and return type must match");
+            this.program.error(this.direction ~ "shift(): argument and return types must match");
         }
 
         bool is_const;
         ubyte cval;
 
-        if(this.arglist.length > 1) {
-            if(this.arglist[1].detect_type != 'b') {
+        if(this.arglist[1] !is null) {
+
+            if(this.arglist[1].detect_type() != 'b') {
                 this.program.error("Argument #2 of lshift() must be a byte");
             }
 
             is_const = this.arglist[1].is_const;
             if(is_const) {
                 cval = cast(ubyte)this.arglist[1].get_constval();
+                this.arglist[1] = null;
             }
         }
         else {
@@ -594,6 +608,6 @@ class ShiftFun:Fun
             cval = 1;
         }
 
-        this.fncode ~= "\t" ~ this.direction ~  "shift" ~ to!string(this.type) ~ (is_const ? "c" : "") ~ "\n";
+        this.fncode ~= "\t" ~ this.direction ~  "shift" ~ to!string(this.type) ~ (is_const ? ("c " ~ to!string(cval)) : "") ~ "\n";
     }
 }
