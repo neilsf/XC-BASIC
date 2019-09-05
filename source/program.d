@@ -506,7 +506,7 @@ class Program
             if(has_statement) {
                 if(statements.children[0].children[0].name == "XCBASIC.Proc_stmt") {
                     this.in_procedure = true;
-                    this.current_proc_name = join(statements.children[0].children[0].matches);
+                    this.current_proc_name = join(statements.children[0].children[0].children[0].matches);
                 }
                 else if(statements.children[0].children[0].name == "XCBASIC.Endproc_stmt") {
                     this.in_procedure = false;
