@@ -158,20 +158,33 @@ class Factor
                 string lbl = "";
 
                 if(this.program.labelExists(varname)) {
-                    lbl =this.program.getLabelForCurrentScope(varname);
+                    // a label
+                    lbl = this.program.getLabelForCurrentScope(varname);
+                    this.asmcode ~= "\tpaddr " ~ lbl ~ "\n";
                 }
                 else if(this.program.is_variable(varname, sigil)) {
+                    // a variable
                     Variable var = this.program.findVariable(varname, sigil);
                     if(var.isConst) {
                         this.program.error("A constant has no address");
                     }
                     lbl = var.getLabel();
+                    if(v.children.length == 2) {
+                        // single variable
+                        this.asmcode ~= "\tpaddr " ~ lbl ~ "\n";
+                    }
+                    else {
+                        // array
+                        auto subscript = v.children[2];
+                        XCBArray arr = new XCBArray(this.program, var, subscript);
+                        asmcode ~= arr.get_address();
+                    }
                 }
                 else {
                     this.program.error("Undefined variable or label: " ~ varname);
                 }
 
-                this.asmcode ~= "\tpaddr " ~ lbl ~ "\n";
+
 
             break;
 

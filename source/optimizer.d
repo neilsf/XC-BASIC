@@ -265,7 +265,7 @@ class Remove_stack_ops: Optimization_pass
         "bat", "ongoto", "ongosub", "sqrw", "wait", "watch", "watchc",
         "pokeb_const_addr", "poke_const_addr",
         "cond_stmt", "lshiftb", "rshiftb", "lshiftw", "rshiftw",
-        "lshiftbc", "rshiftbc"
+        "lshiftbc", "rshiftbc", "incbarrb", "incwarr", "decbarrb", "decwarr"
     ];
 
     override void run()

@@ -16,6 +16,7 @@ class XCBArray
         this.program = program;
         this.var = var;
         this.subscript = subscript;
+        this.validate_subscript();
     }
 
     /**
@@ -24,7 +25,6 @@ class XCBArray
 
     string lookup()
     {
-        this.validate_subscript();
         return this.is_fast() ? this.fast_lookup() : this.slow_lookup();
     }
 
@@ -51,7 +51,6 @@ class XCBArray
 
     string store()
     {
-        this.validate_subscript();
         return this.is_fast() ? this.fast_store() : this.slow_store();
     }
 
@@ -69,6 +68,38 @@ class XCBArray
     {
         string asmcode = this.vector_code();
         asmcode ~= "\tpl" ~ to!string(var.type) ~"array "~ var.getLabel() ~ "\n";
+        return asmcode;
+    }
+
+    /**
+     * Generates assembly code for getting the address of an array member
+     */
+
+    string get_address()
+    {
+        string asmcode = this.vector_code();
+        asmcode ~= "\tpaddr " ~ var.getLabel() ~ "\n";
+        asmcode ~= "\taddw\n";
+        return asmcode;
+    }
+
+    /**
+     * Generates assembly code for increasing or decreasing an array member
+     */
+
+    string incordec(string op = "inc")
+    {
+        string asmcode;
+        if(this.is_fast()) {
+            Expression ex = new Expression(this.subscript.children[0], this.program);
+            ex.eval();
+            asmcode ~= to!string(ex);
+            asmcode ~= "\t" ~ op ~ "barrb " ~ var.getLabel() ~ "\n";
+            return asmcode;
+        }
+
+        asmcode ~= this.vector_code();
+        asmcode ~= "\t" ~ op ~ to!string(var.type) ~ "arr " ~ var.getLabel() ~ "\n";
         return asmcode;
     }
 
@@ -105,7 +136,12 @@ class XCBArray
             i++;
         }
         // if not a byte, must multiply with the variable length!
-        if(var.type != 'b') {
+        if(var.type == 'w' || var.type == 's') {
+            // if it's an integer, just shift one bit to the left
+            asmcode ~= "\tdblw\n";
+        }
+        else if(var.type == 'f') {
+            // else multiply by 5
             asmcode ~= "\tpword #" ~ to!string(this.program.varlen[var.type]) ~ "\n"
                      ~ "\tmulw\n" ;
         }
@@ -114,7 +150,7 @@ class XCBArray
     }
 
     /**
-     * Tells whether the lookup/store operation can use fast version
+     * Tells whether the operation can use fast version
      */
 
     private bool is_fast()

@@ -1605,11 +1605,123 @@ NUCL_DIVU16 SUBROUTINE
 	MAC incb
 	inc {1}
 	ENDM
-
+		
 	MAC decb
 	dec {1}
 	ENDM
-
+	
+	MAC incbarrb
+	IF !FPULL
+	pla
+	ENDIF
+	tax
+	inc.wx {1}
+	ENDM
+	
+	MAC decbarrb
+	IF !FPULL
+	pla
+	ENDIF
+	tax
+	dec.wx {1}
+	ENDM
+	
+	MAC incbarr
+	IF !FPULL
+	pla
+	sta .selfmod_code + 2
+	pla
+	sta .selfmod_code + 1
+	ELSE
+	sta .selfmod_code + 1
+	sty .selfmod_code + 2
+	ENDIF
+.selfmod_code:
+	inc $0000
+	ENDM
+	
+	MAC decbarr
+	IF !FPULL
+	pla
+	sta .selfmod_code + 2
+	pla
+	sta .selfmod_code + 1
+	ELSE
+	sta .selfmod_code + 1
+	sty .selfmod_code + 2
+	ENDIF
+.selfmod_code:
+	inc $0000
+	ENDM
+	
+	; These two are very much not effective :-(
+	
+	MAC incwarr
+	IF !FPULL
+	pla
+	sta R1
+	pla
+	sta R0
+	ELSE
+	sta R0
+	sty R1
+	ENDIF
+	
+	lda #>{1}
+	sta R3
+	lda #<{1}
+	clc
+	adc R0
+	sta R2
+	lda R1
+	adc R3
+	sta R3
+	
+	ldy #$00
+	lda (R2),y
+	clc
+	adc #$01
+	sta (R2),y
+	iny
+	lda (R2),y
+	adc #$00
+	sta (R2),y 
+	
+	ENDM
+	
+	MAC decwarr
+	IF !FPULL
+	pla
+	sta R1
+	pla
+	sta R0
+	ELSE
+	sta R0
+	sty R1
+	ENDIF
+	
+	lda #>{1}
+	sta R3
+	lda #<{1}
+	clc
+	adc R0
+	sta R2
+	lda R1
+	adc R3
+	sta R3
+	
+	ldy #$00
+	lda (R2),y
+	sec
+	sbc #$01
+	sta (R2),y
+	iny
+	lda (R2),y
+	sbc #$00
+	sta (R2),y 
+	
+	ENDM
+		
 	MAC incw
 	inc {1}
 	bne .skip
@@ -2040,6 +2152,13 @@ NUCL_SQRW	SUBROUTINE
 	IF !FPUSH
 	pha
 	ENDIF
+	ENDM
+	
+	; Doubles word on stack
+	MAC dblw
+	tsx
+	asl.wx stack+2
+	rol.wx stack+1
 	ENDM
 	
 	MAC lshiftw

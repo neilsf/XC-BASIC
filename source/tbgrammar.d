@@ -83,7 +83,7 @@ XCBASIC:
     BW_OP < ("&" / "|" / "^")
 
     Varname <- !Reserved "\\" ? [a-zA-Z_] [a-zA-Z_0-9]*
-    Address < "@" Varname Vartype
+    Address < "@" Varname Vartype Subscript?
     Id <- [a-zA-Z_] [a-zA-Z_0-9]*
     Vartype <- ("%" / "#" / "!" / "$" / eps)
     Subscript <- "[" Expression (:WS? "," :WS? Expression)? "]"

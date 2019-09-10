@@ -1153,7 +1153,19 @@ class Inc_stmt:Stmt
 			this.program.error(varname ~ " is a constant");
 		}
 
-		this.program.program_segment ~= "\tinc"~to!string(var.type)~" "~var.getLabel()~"\n";
+        string asmcode;
+
+        if(v.children.length > 2) {
+            // an array
+            auto subscript = v.children[2];
+            XCBArray arr = new XCBArray(this.program, var, subscript);
+            asmcode = arr.incordec("inc");
+        }
+        else {
+            asmcode = "\tinc"~to!string(var.type)~" "~var.getLabel()~"\n";
+        }
+
+		this.program.program_segment ~= asmcode;
 	}
 }
 
@@ -1179,7 +1191,21 @@ class Dec_stmt:Stmt
 		if(var.isConst) {
 			this.program.error(varname ~ " is a constant");
 		}
-		this.program.program_segment ~= "\tdec"~to!string(var.type)~" "~var.getLabel()~"\n";
+
+        string asmcode;
+
+        if(v.children.length > 2) {
+            // an array
+            auto subscript = v.children[2];
+            XCBArray arr = new XCBArray(this.program, var, subscript);
+            asmcode = arr.incordec("dec");
+        }
+        else {
+            asmcode = "\tdec"~to!string(var.type)~" "~var.getLabel()~"\n";
+        }
+
+        this.program.program_segment ~= asmcode;
+
 	}
 }
 
