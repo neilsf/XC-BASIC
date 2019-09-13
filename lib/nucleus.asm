@@ -2181,8 +2181,8 @@ NUCL_SQRW	SUBROUTINE
 	tay
 	tsx
 .loop
-	lsr.wx stack+2
-	ror.wx stack+1
+	lsr.wx stack+1
+	ror.wx stack+2
 	dey
 	bne .loop
 	ENDM
@@ -2230,8 +2230,8 @@ NUCL_SQRW	SUBROUTINE
 	MAC rshiftwc
 	tsx
 	REPEAT {1}
-	lsr.wx stack+2
-	ror.wx stack+1
+	lsr.wx stack+1
+	ror.wx stack+2
 	REPEND
 	ENDM
 	
