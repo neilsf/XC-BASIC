@@ -1051,7 +1051,7 @@ class Data_stmt:Stmt
 
                 counter++;
                 if(counter == 16 && i < list.children.length-1) {
-                    this.program.data_segment ~= "\n";
+                    seg ~= "\n";
                     if(vartype == 'b' || vartype == 'f') {
                         seg ~= "\tDC.B ";
                     }
