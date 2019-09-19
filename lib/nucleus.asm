@@ -226,6 +226,10 @@ PLOT		EQU $fff0
 	ENDIF
 	ENDM
 	
+	MAC psarray
+	pwarray {1}
+	ENDM
+	
 	;Push one float variable (indexed) on the stack
 	;Expects array index being on top of stack
 	MAC pfarray
@@ -354,6 +358,10 @@ PLOT		EQU $fff0
 	dey
 	pla
 	sta (R0),y
+	ENDM
+	
+	MAC plsarray
+	plwarray {1}
 	ENDM
 	
 	; Pull one float variable (indexed)

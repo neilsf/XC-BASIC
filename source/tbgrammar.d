@@ -67,7 +67,7 @@ XCBASIC:
     Condition < Relation :WS? (Logop :WS? Relation)?
     ExprList < Expression :WS? ("," :WS? Expression)*
     VarList < Var (:WS? "," :WS? Var)*
-    Datalist < Number (:WS? "," :WS? Number :WS?)*
+    Datalist < (Number / String) (:WS? "," :WS? (Number / String) :WS?)*
 
     Expression < Simplexp (:WS? BW_OP :WS? Simplexp :WS?)*
     Simplexp < Term (:WS? E_OP :WS? Term :WS?)*

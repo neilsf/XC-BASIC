@@ -992,14 +992,14 @@ class Data_stmt:Stmt
 			this.program.error(varname ~ " is a constant");
 		}
 
-
         if(list.name == "XCBASIC.Datalist") {
-            this.program.data_segment ~= var.getLabel();
+            string seg = "";
+            seg ~= var.getLabel();
             if(vartype == 'b' || vartype == 'f') {
-                this.program.data_segment ~= "\tDC.B ";
+                seg ~= "\tDC.B ";
             }
             else {
-                this.program.data_segment ~= "\tDC.W ";
+                seg ~= "\tDC.W ";
             }
 
             string value;
@@ -1007,48 +1007,62 @@ class Data_stmt:Stmt
             ubyte counter = 0;
             for(int i=0; i< list.children.length; i++) {
                 ParseTree v = list.children[i];
-                Number num = new Number(v, this.program);
-
                 if (counter > 0) {
-                    this.program.data_segment ~= ", ";
+                    seg ~= ", ";
                 }
+                final switch(v.name) {
+                    case "XCBASIC.Number":
 
-                if(vartype == 'f' && num.type !='f' || num.type == 'f' && vartype != 'f') {
-                    this.program.error("Type mismatch");
-                }
+                        Number num = new Number(v, this.program);
 
-                if(vartype == 'b' && num.type == 'w') {
-                    this.program.error("Number out of range");
-                }
+                        if(vartype == 's' || (vartype == 'f' && num.type !='f') || (num.type == 'f' && vartype != 'f')) {
+                            this.program.error("Type mismatch");
+                        }
 
-                if(vartype == 'b' || vartype == 'w') {
-                    value = to!string(num.intval);
-                    this.program.data_segment ~= "#" ~value;
-                }
-                else {
-                    floatbytes = excess.float_to_hex(num.floatval);
-                    this.program.data_segment ~=
-                        "#$" ~ to!string(floatbytes[0], 16) ~
-                        ", #$" ~ to!string(floatbytes[1], 16) ~
-                        ", #$" ~ to!string(floatbytes[2], 16) ~
-                        ", #$" ~ to!string(floatbytes[3], 16) ~
-                        ", #$" ~ to!string(floatbytes[4], 16);
+                        if(vartype == 'b' && num.type == 'w') {
+                            this.program.error("Number out of range");
+                        }
+
+                        if(vartype == 'b' || vartype == 'w') {
+                            value = to!string(num.intval);
+                            seg ~= "#" ~value;
+                        }
+                        else {
+                            floatbytes = excess.float_to_hex(num.floatval);
+                            seg ~=
+                                "#$" ~ to!string(floatbytes[0], 16) ~
+                                ", #$" ~ to!string(floatbytes[1], 16) ~
+                                ", #$" ~ to!string(floatbytes[2], 16) ~
+                                ", #$" ~ to!string(floatbytes[3], 16) ~
+                                ", #$" ~ to!string(floatbytes[4], 16);
+                        }
+                    break;
+
+                    case "XCBASIC.String":
+                        if(vartype != 's') {
+                            this.program.error("Type mismatch");
+                        }
+                        string str = join(v.matches[1..$-1]);
+                        Stringliteral sl = new Stringliteral(str, this.program);
+                        sl.register();
+                        seg ~= "_S" ~ to!string(Stringliteral.id);
+                    break;
                 }
 
                 counter++;
                 if(counter == 16 && i < list.children.length-1) {
                     this.program.data_segment ~= "\n";
                     if(vartype == 'b' || vartype == 'f') {
-                        this.program.data_segment ~= "\tDC.B ";
+                        seg ~= "\tDC.B ";
                     }
                     else {
-                        this.program.data_segment ~= "\tDC.W ";
+                        seg ~= "\tDC.W ";
                     }
                     counter = 0;
                 }
             }
 
-            this.program.data_segment ~="\n";
+            this.program.data_segment ~= seg ~ "\n";
         }
         else {
             if(vartype != 'b') {
