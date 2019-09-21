@@ -205,6 +205,9 @@ class PeekFun:Fun
 
     void process()
     {
+        if(this.arglist[0].type == 'b') {
+            this.arglist[0].convert('w');
+        }
         this.fncode ~= "\tpeek"~to!string(this.type)~"\n";
     }
 }
