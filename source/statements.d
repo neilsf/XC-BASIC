@@ -203,6 +203,14 @@ Stmt StmtFactory(ParseTree node, Program program) {
             stmt = new Endif_stmt(node, program);
         break;
 
+        case "XCBASIC.Disableirq_stmt":
+            stmt = new Disableirq_stmt(node, program);
+        break;
+
+        case "XCBASIC.Enableirq_stmt":
+            stmt = new Enableirq_stmt(node, program);
+        break;
+
 		default:
             program.error("Unknown statement "~node.name);
 		    assert(0);
@@ -1774,5 +1782,25 @@ class Memshift_stmt: Memmove_stmt
     override protected string getMenmonic()
     {
         return "memshift";
+    }
+}
+
+class Disableirq_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        this.program.program_segment ~= "\tsei\n";
+    }
+}
+
+class Enableirq_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        this.program.program_segment ~= "\tcli\n";
     }
 }
