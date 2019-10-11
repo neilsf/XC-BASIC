@@ -54,6 +54,8 @@ ufo_pos = 370
 ufo_hit! = 0
 framecount_ufo = 0
 
+dim bottom_row_cached!
+
 goto main
 
 rem -----------------------------------
@@ -270,7 +272,7 @@ rem -- detect the bottom of enemy map
 rem -----------------------------------
 
 proc update_enemy_map_bottom
-  row! = 4
+  row! = \bottom_row_cached!
   repeat
     row_empty! = 1
     col! = 11
@@ -285,6 +287,7 @@ proc update_enemy_map_bottom
     dec row!
   until row! = 0
   exit:
+    \bottom_row_cached! = row!
     \bottom_row! = 5 + \enemy_posy! + lshift!(row!)
     \enemy_map_length = cast(lshift!(row!)) * 40 + 25
 endproc
@@ -615,6 +618,7 @@ level:
   ufo_on! = 0
   ufo_hit! = 0
   framecount_ufo = 500
+  \bottom_row_cached! = 4
 
   poke \SPRITE6_SHAPE, 246
   poke \SPRITE6_X, 0
