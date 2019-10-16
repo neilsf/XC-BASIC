@@ -21,6 +21,29 @@ const SPRITE6_Y = $d00d
 
 const SPRITE6_COLOR = $d02d
 
+const SID_FREQ1 = $d400
+const SID_FREQ2 = $d407
+const SID_FREQ3 = $d40e
+
+const SID_PULSE1 = $d402
+const SID_PULSE2 = $d409
+const SID_PULSE3 = $d410
+
+const SID_CNTRL1 = $d404
+const SID_CNTRL2 = $d40b
+const SID_CNTRL3 = $d412
+
+const SID_AD1 = $d405
+const SID_SR1 = $d406
+
+const SID_AD2 = $d40c
+const SID_SR2 = $d40d
+
+const SID_AD3 = $d413
+const SID_SR3 = $d414
+
+const SID_VOLUME = $d418
+
 dim enemy_map![60]
 dim enemy_bullet_on![3]
 dim enemy_bullet_posx[3]
@@ -55,6 +78,9 @@ ufo_hit! = 0
 framecount_ufo = 0
 
 dim bottom_row_cached!
+dim sound_phase!
+
+data notes[] = 902, 955, 1012, 1072
 
 goto main
 
@@ -237,9 +263,16 @@ rem -- move enemy map
 rem -----------------------------------
 
 proc move_enemies
+  
+  poke \SID_CNTRL2, 33
+  doke \SID_FREQ2, \notes[\sound_phase!]
+  dec \sound_phase!
+  if \sound_phase! = 255 then \sound_phase! = 3
+
   if \last_killed_enemy = 0 then goto skip_cleanup
   cleanup:
     doke \last_killed_enemy, $2020
+    poke \SID_CNTRL3, 128
     \last_killed_enemy = 0
   skip_cleanup:
     on \enemy_dir! goto move_left, move_right
@@ -328,6 +361,7 @@ proc detect_collisions(result_ptr)
           poke hit_position, 32
         endif
         \bullet_on! = 0
+        poke \SID_CNTRL1, 0
         poke \SPR_CNTRL, peek!(\SPR_CNTRL) & %11111101  
         return
       endif
@@ -357,6 +391,8 @@ proc detect_collisions(result_ptr)
         endif
       endif
       \bullet_on! = 0
+      poke \SID_CNTRL1, 0
+      poke \SID_CNTRL3, 129
       dec \enemies_alive!
       \speed! = rshift!(\enemies_alive!, 2) + 5
       poke \SPR_CNTRL, peek!(\SPR_CNTRL) & %11111101
@@ -397,6 +433,7 @@ proc detect_collisions(result_ptr)
     rem ufo hit
     if spr_coll_state! & %01000000 = 64 then
       \bullet_on! = 0
+      poke \SID_CNTRL1, 0
       poke \SPR_CNTRL, peek!(\SPR_CNTRL) & %11111101
       \ufo_hit! = 1
       \score = \score + 300
@@ -416,10 +453,13 @@ bullet:
   if \bullet_posy! < 66 then
     \bullet_on! = 0
     poke \SPR_CNTRL, peek!(\SPR_CNTRL) & %11111101
+    poke \SID_CNTRL1, 0
     goto no_bullet
   endif
   \bullet_posy! = \bullet_posy! - 4
   poke 53251, \bullet_posy!
+  doke \SID_FREQ1, lshift(cast(\bullet_posy!), 4);
+  poke \SID_PULSE1, \bullet_posy!
 no_bullet:
   joy! = peek!($dc00)
   if joy! & %00000100 = 0 then
@@ -453,6 +493,11 @@ fire:
     poke $d010, peek!($d010) & %11111101
   endif
   poke \SPR_CNTRL, peek!(\SPR_CNTRL) | %00000010
+
+  rem make sound
+  doke \SID_FREQ1, 3760
+  poke \SID_PULSE1, 235
+  poke \SID_CNTRL1, 65
   return
 endproc
 
@@ -576,6 +621,51 @@ proc lazy_routines
   call update_enemy_map_bottom
 endproc
 
+proc reset_game
+  \framecount! = 0
+  \framecount_shooting! = 0
+  \event! = 0
+  
+  \ship_pos = 176
+  poke 53248, \ship_pos
+  if \ship_pos > 255 then
+    poke $d010, peek!($d010) | %00000001
+  else
+    poke $d010, peek!($d010) & %11111110
+  endif
+  if \ufo_pos > 255 then
+    poke $d010, peek!($d010) | %01000000
+  else
+    poke $d010, peek!($d010) & %10111111
+  endif
+  for i! = 0 to 15
+    poke \SPR_CNTRL, i! & %00000001
+    for j! = 0 to 25
+      watch \RASTER_POS, 0
+    next j!
+  next i!
+
+  \enemy_bullet_on![0] = 0
+  \enemy_bullet_on![1] = 0
+  \enemy_bullet_on![2] = 0
+  poke \SPR_CNTRL, %01000001
+  \sound_phase! = 3
+endproc
+
+proc init_sound
+  poke \SID_VOLUME, 15
+  poke \SID_AD1, %00010100
+  poke \SID_SR1, %00100000
+
+  poke \SID_AD3, %00010100
+  poke \SID_SR3, %00010110
+
+  poke \SID_AD2, %00010100
+  poke \SID_SR2, %00010000
+
+  doke \SID_FREQ3, 440
+endproc
+
 rem -----------------------------------
 rem -- main program starts here
 rem -----------------------------------
@@ -583,6 +673,7 @@ rem -----------------------------------
 main:
   call init_charset(0)
   call init_sprites
+  call init_sound
   poke VIC_MEMSETUP, 24
   poke BORDER, 0 : poke BACKGR, 0
   disableirq
@@ -594,7 +685,7 @@ main:
 set:
   score = 0
   lives! = 3
-  game_speed! = 15
+  game_speed! = 151
 
 level:
   call load_level
@@ -624,26 +715,8 @@ level:
   poke \SPRITE6_X, 0
 
 game:
-  framecount! = 0
-  framecount_shooting! = 0
-  event! = 0
+  call reset_game
   
-  ship_pos = 176
-  poke 53248, ship_pos
-  if ship_pos > 255 then
-    poke $d010, peek!($d010) | %00000001
-  else
-    poke $d010, peek!($d010) & %11111110
-  endif
-  for i! = 0 to 15
-    poke \SPR_CNTRL, i! & %00000001
-    for j! = 0 to 25
-      watch RASTER_POS, 0
-    next j!
-  next i!
-
-  poke \SPR_CNTRL, %01000001
-
 loop:  
   call move_ufo
   watch RASTER_POS, 50
@@ -685,6 +758,8 @@ live_lost:
     \enemy_bullet_on![i!] = 0
   next i!
   poke \SPR_CNTRL, 1
+  poke \SID_CNTRL3, 129
+  poke \SID_CNTRL1, 0
   for i! = 250 to 253
     poke \SPRITE0_SHAPE, i!
     for j! = 0 to 25
@@ -693,6 +768,7 @@ live_lost:
   next i!
   dec lives!
   textat 38, 0, lives!
+  poke \SID_CNTRL3, 128
   if lives! = 0 then goto game_over
   textat 4, 2, "ship down! press fire to continue"
   gosub wait_fire
