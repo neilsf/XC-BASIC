@@ -263,7 +263,7 @@ rem -- move enemy map
 rem -----------------------------------
 
 proc move_enemies
-  
+  poke \SID_CNTRL2, 32
   poke \SID_CNTRL2, 33
   doke \SID_FREQ2, \notes[\sound_phase!]
   dec \sound_phase!
@@ -660,7 +660,7 @@ proc init_sound
   poke \SID_AD3, %00010100
   poke \SID_SR3, %00010110
 
-  poke \SID_AD2, %00010100
+  poke \SID_AD2, %01110100
   poke \SID_SR2, %00010000
 
   doke \SID_FREQ3, 440
@@ -685,7 +685,7 @@ main:
 set:
   score = 0
   lives! = 3
-  game_speed! = 151
+  game_speed! = 20
 
 level:
   call load_level
