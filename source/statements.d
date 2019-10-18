@@ -2,7 +2,7 @@ module statements;
 
 import pegged.grammar;
 import program;
-import std.string, std.conv, std.stdio;
+import std.string, std.conv, std.stdio, std.file, std.path;
 import expression;
 import stringliteral;
 import number;
@@ -1288,7 +1288,6 @@ class Endproc_stmt:Stmt
 			this.program.error("Not in procedure context");
 		}
 
-
 		Procedure current_proc = this.program.findProcedure(this.program.current_proc_name);
 
 		this.program.program_segment ~= "\trts\n";
@@ -1521,6 +1520,14 @@ class Incbin_stmt:Stmt
         Incbin_stmt.counter+=1;
         string lblc = to!string(Incbin_stmt.counter);
         string incfile = join(this.node.children[0].children[0].matches);
+        string incfile_noquotes = incfile[1..$-1];
+        string full_path = this.program.source_path ~ dirSeparator ~ incfile_noquotes;
+        try {
+            File f = File(full_path);
+        }
+        catch(Exception e) {
+            this.program.error("File cannot be read: "~full_path);
+        }
         this.program.program_segment~="_IJS"~lblc~"\tINCBIN "~incfile~"\n";
         this.program.program_segment~="_IJ"~lblc~"\n";
         this.program.program_segment~= "\tECHO \"Included file ("~replace(incfile,"\"", "")~"):\",_IJS"~lblc~",\"-\", _IJ"~lblc~"\n";
