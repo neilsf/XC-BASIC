@@ -16,6 +16,9 @@ const SPRITE4_SHAPE = 2044
 const SPRITE5_SHAPE = 2045
 const SPRITE6_SHAPE = 2046
 
+const SPRITE1_X = $d000
+const SPRITE1_Y = $d001
+
 const SPRITE6_X = $d00c
 const SPRITE6_Y = $d00d
 
@@ -62,13 +65,14 @@ bullet_posy! = 0
 
 last_killed_enemy = 0
 score = 0
+addscore = 0
 lives! = 3
 level! = 1
 speed! = 20
 game_speed! = 20
 
 enemies_alive! = 60
-scroll_bottom_limit! = 210
+scroll_bottom_limit! = 202
 enemy_map_length = 340
 
 spos = 0

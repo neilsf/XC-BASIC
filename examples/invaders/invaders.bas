@@ -30,7 +30,7 @@ include "proc_update_enemy_map_bottom.bas"
 rem -- Include graphic charset at $2000
 
 origin $2000
-incbin "charset_s.bin"
+incbin "chars.bin"
 
 rem -- Include some more procedures
 
@@ -47,6 +47,7 @@ rem -- and code don't overlap
 origin $4000
 
 include "proc_lazy_routines.bas"
+include "proc_update_backup_ships.bas"
 include "proc_reset_game.bas"
 include "proc_init_sound.bas"
 
@@ -88,13 +89,14 @@ level:
   dec game_speed!
   speed! = game_speed!
   enemies_alive! = 60
-  scroll_bottom_limit! = 210
+  scroll_bottom_limit! = 202
   enemy_map_length = 344
   ufo_pos = 370
   ufo_on! = 0
   ufo_hit! = 0
   framecount_ufo = 500
   \bottom_row_cached! = 4
+  addscore = 0
 
   poke \SPRITE6_SHAPE, 246
   poke \SPRITE6_X, 0
@@ -120,18 +122,17 @@ loop:
     inc \bottom_row!
     if \bottom_row! = 24 then goto game_over
     enemy_dir! = 0
-    goto eloop
+  else
+    if enemy_posx! = 3 and enemy_dir! = 0 then
+      call dshift_enemies
+      inc enemy_posy!
+      inc \bottom_row!
+      if \bottom_row! = 23 then goto game_over
+      enemy_dir! = 1
+    endif
   endif
-  if enemy_posx! = 3 and enemy_dir! = 0 then
-    call dshift_enemies
-    inc enemy_posy!
-    inc \bottom_row!
-    if \bottom_row! = 23 then goto game_over
-    enemy_dir! = 1
-  endif
-
-  eloop:
-  call detect_collisions(@event!)
+  
+  call detect_collisions(@event!, @addscore)
   on event! goto skip, live_lost, game_won
 skip:
   call move_ship
@@ -182,7 +183,7 @@ game_over:
 first_start:
   textat 11, 2, "press fire to play"
   gosub wait_fire
-  goto set
+  return
 
 wait_fire:
     joy! = peek!($dc00)

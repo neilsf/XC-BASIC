@@ -28,6 +28,7 @@ proc move_ufo
       \framecount_ufo = 0
     endif
   endif
+  
   return
 
   pos_ufo:

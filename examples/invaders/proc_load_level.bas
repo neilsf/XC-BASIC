@@ -12,7 +12,7 @@ proc load_level
   \enemy_bullet_on![1] = 0
   \enemy_bullet_on![2] = 0
   \bottom_row! = 13
-  \scroll_bottom_limit! = 210
+  \scroll_bottom_limit! = 202
   \enemy_posx! = 8
   \enemy_posy! = 0
   \spos = 1224 + \enemy_posy! * 40 + \enemy_posx!

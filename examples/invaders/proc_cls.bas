@@ -12,4 +12,5 @@ proc cls
   memset \COLOR + 440, 80, 13
   memset \COLOR + 520, 80, 14
   memset \COLOR + 600, 400, 6
+  memset \COLOR + 760, 240, 12
 endproc

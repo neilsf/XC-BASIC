@@ -2,7 +2,7 @@ rem -----------------------------------
 rem -- test for sprite collisions
 rem -----------------------------------
 
-proc detect_collisions(result_ptr)
+proc detect_collisions(result_ptr, score_ptr)
   const SPR_BG_COLL  = $d01f
   const SPR_SPR_COLL = $d01e
   coll_state! = peek!(SPR_BG_COLL)
@@ -15,7 +15,7 @@ proc detect_collisions(result_ptr)
   enemy_hit:
     rem -- it can be the shield hit by player bullet
     rem -- TODO there's a bug here
-    if \bottom_row! < 19 and \bullet_posy! >= 210 then
+    if \bottom_row! < 19 and \bullet_posy! >= 202 then
       col! = cast!(rshift(\bullet_posx, 3)) - 3
       row! = rshift!(\bullet_posy! - 50, 3)
       hit_position = \SCREEN + col! + 40 * row!
@@ -48,12 +48,12 @@ proc detect_collisions(result_ptr)
         charat col!+1, row!, 77
       endif
       if char! >= 84 then
-        \score = \score + 20
+        doke score_ptr, 3
       else
         if char! >= 82 then
-          \score = \score + 30
+          doke score_ptr, 2
         else
-          \score = \score + 10
+          doke score_ptr, 1
         endif
       endif
       \bullet_on! = 0
@@ -102,9 +102,8 @@ proc detect_collisions(result_ptr)
       poke \SID_CNTRL1, 0
       poke \SPR_CNTRL, peek!(\SPR_CNTRL) & %11111101
       \ufo_hit! = 1
-      \score = \score + 300
+      doke score_ptr, 30
       poke \SPRITE6_SHAPE, 247 : rem ufo shape
-      textat 6, 0, \score
       return
     endif
 endproc

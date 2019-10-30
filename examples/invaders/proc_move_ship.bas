@@ -39,7 +39,7 @@ fire:
   if \bullet_on! = 1 then return
   \bullet_on! = 1
   \bullet_posx = \ship_pos + 11
-  \bullet_posy! = 235
+  \bullet_posy! = 229
   poke 53250, \bullet_posx
   poke 53251, \bullet_posy!
   if \bullet_posx > 255 then
