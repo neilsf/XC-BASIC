@@ -3,8 +3,21 @@ proc reset_game
   \framecount_shooting! = 0
   \event! = 0
   
+  \enemy_bullet_on![0] = 0
+  \enemy_bullet_on![1] = 0
+  \enemy_bullet_on![2] = 0
+  poke \SPR_CNTRL, %01000001
+  \sound_phase! = 3
+
+  rem -- clear sprite detection register
+  rem -- by reading the value
+
+  drop_this! = peek!(\SPR_SPR_COLL)
+
   \ship_pos = 176
+  poke \SPRITE1_X, \ship_pos
   poke $d010, peek!($d010) & %11111110
+  poke \SPRITE0_SHAPE, 255
 
   poke \SPRITE6_X, \ufo_pos
   if \ufo_pos > 255 then
@@ -21,10 +34,4 @@ proc reset_game
       watch \RASTER_POS, 0
     next j!
   next i!
-
-  \enemy_bullet_on![0] = 0
-  \enemy_bullet_on![1] = 0
-  \enemy_bullet_on![2] = 0
-  poke \SPR_CNTRL, %01000001
-  \sound_phase! = 3
 endproc

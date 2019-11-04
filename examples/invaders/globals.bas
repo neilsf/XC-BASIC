@@ -24,6 +24,8 @@ const SPRITE6_Y = $d00d
 
 const SPRITE6_COLOR = $d02d
 
+const SPR_SPR_COLL = $d01e
+
 const SID_FREQ1 = $d400
 const SID_FREQ2 = $d407
 const SID_FREQ3 = $d40e

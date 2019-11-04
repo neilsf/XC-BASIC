@@ -4,10 +4,9 @@ rem -----------------------------------
 
 proc detect_collisions(result_ptr, score_ptr)
   const SPR_BG_COLL  = $d01f
-  const SPR_SPR_COLL = $d01e
   coll_state! = peek!(SPR_BG_COLL)
-  spr_coll_state! = peek!(SPR_SPR_COLL)
-
+  spr_coll_state! = peek!(\SPR_SPR_COLL)
+  
   if coll_state! & %00000010 = 2 then gosub enemy_hit
   if coll_state! & %00011100 > 0 then gosub shield_hit_by_enemy
   if spr_coll_state! > 0 then gosub ship_hit
@@ -48,10 +47,10 @@ proc detect_collisions(result_ptr, score_ptr)
         charat col!+1, row!, 77
       endif
       if char! >= 84 then
-        doke score_ptr, 3
+        doke score_ptr, 2
       else
         if char! >= 82 then
-          doke score_ptr, 2
+          doke score_ptr, 3
         else
           doke score_ptr, 1
         endif

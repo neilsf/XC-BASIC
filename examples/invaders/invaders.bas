@@ -50,6 +50,7 @@ include "proc_lazy_routines.bas"
 include "proc_update_backup_ships.bas"
 include "proc_reset_game.bas"
 include "proc_init_sound.bas"
+include "proc_welcome_screen.bas"
 
 rem -----------------------------------
 rem -- main program starts here
@@ -63,15 +64,14 @@ main:
   poke BORDER, 0 : poke BACKGR, 0
   disableirq
 
-  call load_level
-  call draw_scene
-  gosub first_start
-
 set:
   score = 0
   lives! = 3
   level! = 1
   game_speed! = 20
+
+  call welcome_screen
+  gosub wait_fire
 
 level:
   call load_level
@@ -159,7 +159,6 @@ live_lost:
   textat 4, 2, "ship down! press fire to continue"
   gosub wait_fire
   memset 1104, 40, 32
-  poke \SPRITE0_SHAPE, 255
   goto game
 
 game_won:
@@ -167,8 +166,13 @@ game_won:
     \enemy_bullet_on![i!] = 0
   next i!
   poke \SPR_CNTRL, 1
-  inc lives!
-  textat 3, 2, "extra ship! press fire to continue"
+  rem -- no more extra ships after 10
+  if lives! < 10 then
+    inc lives!
+    textat 3, 2, "extra ship! press fire to continue"
+  else
+    textat 9, 2, "press fire to continue"
+  endif
   gosub wait_fire
   memset 1104, 40, 32
   inc level!
@@ -179,11 +183,6 @@ game_over:
   textat 2, 2, "game over - press fire to play again"
   gosub wait_fire
   goto set
-
-first_start:
-  textat 11, 2, "press fire to play"
-  gosub wait_fire
-  return
 
 wait_fire:
     joy! = peek!($dc00)
