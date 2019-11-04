@@ -1,9 +1,9 @@
 XC=BASIC Release Notes
 
 Current Release Number:
-   v2.1-beta2
+   v2.1
 Release Date:
-  05/08/2019
+  04/11/2019
 
 What's new in version 2.1?
 ==========================
@@ -21,6 +21,22 @@ What's new in version 2.1?
 (6) PRAGMA statement to set compiler options
 
 (7) LSHIFT and RSHIFT functions
+
+(8) MEMCPY, MEMSET, MEMSHIFT commands
+
+(9) WATCH and WAIT commands
+
+(10) Semicolon and single quote are now aliases for REM
+
+(11) PETSCII literals
+
+(12) Character literals
+
+(13) Support for arrays of strings
+
+(14) XCB Invaders - a new game is added
+
+(15) Bugfixes as always
 
 What's new in version 2.0?
 ==========================
