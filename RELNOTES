@@ -34,9 +34,11 @@ What's new in version 2.1?
 
 (13) Support for arrays of strings
 
-(14) XCB Invaders - a new game is added
+(14) ENABLEIRQ and DISABLEIRQ commands
 
-(15) Bugfixes as always
+(15) XCB Invaders - a new game is added
+
+(16) Bugfixes as always
 
 What's new in version 2.0?
 ==========================
