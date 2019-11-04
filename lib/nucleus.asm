@@ -125,13 +125,13 @@ PLOT		EQU $fff0
 	; Push one word variable on the stack
 	MAC pwvar
 	IF !FPUSH
-	lda.w {1}
+	lda {1}
 	pha
-	lda.w {1}+1
+	lda {1}+1
 	pha
 	ELSE
-	lda.w {1}
-	ldy.w {1}+1
+	lda {1}
+	ldy {1}+1
 	ENDIF
 	ENDM
 	
@@ -183,7 +183,7 @@ PLOT		EQU $fff0
 	pla
 	ENDIF
 	tax
-	lda.wx {1}
+	lda {1},x
 	IF !FPUSH
 	pha
 	ENDIF
@@ -224,6 +224,10 @@ PLOT		EQU $fff0
 	tay
 	txa
 	ENDIF
+	ENDM
+	
+	MAC psarray
+	pwarray {1}
 	ENDM
 	
 	;Push one float variable (indexed) on the stack
@@ -326,7 +330,7 @@ PLOT		EQU $fff0
 	ENDIF
 	tax
 	pla
-	sta.wx {1}
+	sta {1},x
 	ENDM
 	
 	;Pull one word variable (indexed)
@@ -354,6 +358,10 @@ PLOT		EQU $fff0
 	dey
 	pla
 	sta (R0),y
+	ENDM
+	
+	MAC plsarray
+	plwarray {1}
 	ENDM
 	
 	; Pull one float variable (indexed)
@@ -906,7 +914,7 @@ PLOT		EQU $fff0
 
     ; Perform XOR on top 2 bytes of stack
     MAC xorb
-     IF !FPULL
+    IF !FPULL
     pla
     ENDIF
     sta R1
@@ -1370,7 +1378,7 @@ NUCL_DIVU16 SUBROUTINE
 	bne .divloop	
 	rts
 
-	; poke routine (byte type)
+	; poke pseudo-op (byte type)
 	; requires that arguments are pushed backwards (value first)
 	MAC pokeb
 	IF !FPULL
@@ -1386,8 +1394,17 @@ NUCL_DIVU16 SUBROUTINE
 .selfmod_code:
 	sta.w $0000
 	ENDM
+	
+	; poke pseudo-op (byte type)
+	; used when the address is constant
+	MAC pokeb_c
+	IF !FPULL
+	pla
+	ENDIF
+	sta.w {1}
+	ENDM
 
-	; poke routine (word type)
+	; poke pseudo.op (word type)
 	; requires that arguments are pushed backwards (value first)
 	MAC pokew
 	IF !FPULL
@@ -1403,6 +1420,16 @@ NUCL_DIVU16 SUBROUTINE
 	pla
 .selfmod_code:
 	sta.w $0000
+	ENDM
+	
+	; poke pseudo-op (word type)
+	; used when the address is constant
+	MAC pokew_c
+	IF !FPULL
+	pla
+	pla
+	ENDIF
+	sta.w {1}
 	ENDM
 	
 	; doke routine
@@ -1586,11 +1613,123 @@ NUCL_DIVU16 SUBROUTINE
 	MAC incb
 	inc {1}
 	ENDM
-
+		
 	MAC decb
 	dec {1}
 	ENDM
-
+	
+	MAC incbarrb
+	IF !FPULL
+	pla
+	ENDIF
+	tax
+	inc.wx {1}
+	ENDM
+	
+	MAC decbarrb
+	IF !FPULL
+	pla
+	ENDIF
+	tax
+	dec.wx {1}
+	ENDM
+	
+	MAC incbarr
+	IF !FPULL
+	pla
+	sta .selfmod_code + 2
+	pla
+	sta .selfmod_code + 1
+	ELSE
+	sta .selfmod_code + 1
+	sty .selfmod_code + 2
+	ENDIF
+.selfmod_code:
+	inc $0000
+	ENDM
+	
+	MAC decbarr
+	IF !FPULL
+	pla
+	sta .selfmod_code + 2
+	pla
+	sta .selfmod_code + 1
+	ELSE
+	sta .selfmod_code + 1
+	sty .selfmod_code + 2
+	ENDIF
+.selfmod_code:
+	inc $0000
+	ENDM
+	
+	; These two are very much not effective :-(
+	
+	MAC incwarr
+	IF !FPULL
+	pla
+	sta R1
+	pla
+	sta R0
+	ELSE
+	sta R0
+	sty R1
+	ENDIF
+	
+	lda #>{1}
+	sta R3
+	lda #<{1}
+	clc
+	adc R0
+	sta R2
+	lda R1
+	adc R3
+	sta R3
+	
+	ldy #$00
+	lda (R2),y
+	clc
+	adc #$01
+	sta (R2),y
+	iny
+	lda (R2),y
+	adc #$00
+	sta (R2),y 
+	
+	ENDM
+	
+	MAC decwarr
+	IF !FPULL
+	pla
+	sta R1
+	pla
+	sta R0
+	ELSE
+	sta R0
+	sty R1
+	ENDIF
+	
+	lda #>{1}
+	sta R3
+	lda #<{1}
+	clc
+	adc R0
+	sta R2
+	lda R1
+	adc R3
+	sta R3
+	
+	ldy #$00
+	lda (R2),y
+	sec
+	sbc #$01
+	sta (R2),y
+	iny
+	lda (R2),y
+	sbc #$00
+	sta (R2),y 
+	
+	ENDM
+		
 	MAC incw
 	inc {1}
 	bne .skip
@@ -1997,8 +2136,12 @@ NUCL_SQRW	SUBROUTINE
 	IF !FPULL
 	pla
 	ENDIF
-	clc
+	tay
+	pla
+.loop
 	asl
+	dey
+	bne .loop
 	IF !FPUSH
 	pha
 	ENDIF
@@ -2008,9 +2151,191 @@ NUCL_SQRW	SUBROUTINE
 	IF !FPULL
 	pla
 	ENDIF
+	tay
+	pla
+.loop
 	lsr
+	dey
+	bne .loop
 	IF !FPUSH
 	pha
+	ENDIF
+	ENDM
+	
+	; Doubles word on stack
+	MAC dblw
+	tsx
+	asl.wx stack+2
+	rol.wx stack+1
+	ENDM
+	
+	MAC lshiftw
+	IF !FPULL
+	pla
+	ENDIF
+	tay
+	tsx
+.loop
+	asl.wx stack+2
+	rol.wx stack+1
+	dey
+	bne .loop
+	ENDM
+	
+	MAC rshiftw
+	IF !FPULL
+	pla
+	ENDIF
+	tay
+	tsx
+.loop
+	lsr.wx stack+1
+	ror.wx stack+2
+	dey
+	bne .loop
+	ENDM
+	
+	; LSHIFT!() function
+	; with constant argument
+	MAC lshiftbc
+	IF !FPULL
+	pla
+	ENDIF
+	REPEAT {1}
+	asl
+	REPEND
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
+
+	; LSHIFT() function
+	; with constant argument
+	MAC lshiftwc
+	tsx
+	REPEAT {1}
+	asl.wx stack+2
+	rol.wx stack+1
+	REPEND
+	ENDM
+	
+	; RSHIFT!() function
+	; with constant argument
+	MAC rshiftbc
+	IF !FPULL
+	pla
+	ENDIF
+	REPEAT {1}
+	lsr
+	REPEND
+	IF !FPUSH
+	pha
+	ENDIF
+	ENDM
+
+	; RSHIFT() function
+	; with constant argument
+	MAC rshiftwc
+	tsx
+	REPEAT {1}
+	lsr.wx stack+1
+	ror.wx stack+2
+	REPEND
+	ENDM
+	
+	MAC wait
+.MASK EQU R2
+.TRIG EQU R3
+	IF !FPULL
+	pla
+	sta .selfmod_code+2
+	pla
+	sta .selfmod_code+1
+	ELSE
+	sta .selfmod_code+1
+	sty .selfmod_code+2
+	ENDIF
+	pla
+	sta .MASK
+	pla
+	sta .TRIG
+.selfmod_code
+	lda.w $0000
+	eor .TRIG
+	and .MASK
+	beq .selfmod_code
+	ENDM
+	
+	MAC WATCH
+	IF !FPULL
+	pla
+	sta .selfmod_code+2
+	pla
+	sta .selfmod_code+1
+	ELSE
+	sta .selfmod_code+1
+	sty .selfmod_code+2
+	ENDIF
+	pla
+	sta R0
+.selfmod_code
+	lda.w $0000
+	cmp R0
+	bne .selfmod_code
+	ENDM
+	
+	; WATCH command with
+	; constant address
+	MAC watchc
+	IF !FPULL
+	pla
+	ENDIF
+.again
+	cmp {1}
+	bne .again
+	ENDM
+	
+	MAC ifstmt
+	IF !FPULL
+	pla
+	ENDIF
+	bne *+5
+	IFCONST _EL_{1}
+	jmp _EL_{1}
+	ELSE
+	jmp _EI_{1}
+	ENDIF
+	ENDM
+		
+	MAC while
+	IF !FPULL
+	pla
+	ENDIF
+	bne *+5
+	jmp _EW_{1}
+	ENDM
+	
+	MAC until
+	IF !FPULL
+	pla
+	ENDIF
+	bne *+5
+	jmp _RP_{1}
+	ENDM
+	
+	; This universal macro
+	; can be used for if, while, until
+	; usage:
+	; cond_stmt <false_label> [, <else_label>]
+	MAC cond_stmt
+	IF !FPULL
+	pla
+	ENDIF
+	bne *+5
+	IFCONST {2}
+	jmp {2}
+	ELSE
+	jmp {1}
 	ENDIF
 	ENDM
 	

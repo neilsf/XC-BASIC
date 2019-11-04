@@ -22,6 +22,16 @@ class Simplexp
         this.program = program;
     }
 
+    bool is_const()
+    {
+        if(this.node.children.length > 1) {
+            return false;
+        }
+
+        Term tmpTerm = new Term(this.node.children[0], this.program);
+        return tmpTerm.is_const();
+    }
+
     char detect_type()
     {
         char type = 'b';
@@ -79,7 +89,7 @@ class Simplexp
         }
     }
 
-     override string toString()
+    override string toString()
     {
         return this.asmcode;
     }

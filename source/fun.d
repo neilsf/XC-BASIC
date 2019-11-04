@@ -83,6 +83,16 @@ Fun FunFactory(ParseTree node, Program program) {
             fun = new ValFun(node, program);
         break;
 
+        case "lshift":
+            fun = new ShiftFun(node, program);
+            fun.direction = "l";
+        break;
+
+        case "rshift":
+            fun = new ShiftFun(node, program);
+            fun.direction = "r";
+        break;
+
         default:
         assert(0);
     }
@@ -103,11 +113,23 @@ template FunConstructor()
                 }
             }
 
+            // mandatory arguments
+            ubyte i=0;
 
-            for(ubyte i=0; i<this.arg_count; i++) {
+            while(i < this.arg_count) {
                 auto e = exprlist.children[i];
                 this.arglist[i] = new Expression(e, this.program);
                 this.arglist[i].eval();
+                i++;
+            }
+
+            // optional arguments
+
+            while(i < exprlist.children.length) {
+                auto e = exprlist.children[i];
+                this.arglist[i] = new Expression(e, this.program);
+                this.arglist[i].eval();
+                i++;
             }
         }
         else {
@@ -133,6 +155,8 @@ abstract class Fun:FunInterface
     protected Expression[8] arglist;
     protected string fncode;
     public char type;
+    // Currently only used in Shiftfun
+    public string direction = "";
 
     this(ParseTree node, Program program)
     {
@@ -181,6 +205,9 @@ class PeekFun:Fun
 
     void process()
     {
+        if(this.arglist[0].type == 'b') {
+            this.arglist[0].convert('w');
+        }
         this.fncode ~= "\tpeek"~to!string(this.type)~"\n";
     }
 }
@@ -543,5 +570,47 @@ class SgnFun:Fun
         }
 
         this.fncode ~= "\tsgn" ~ to!string(this.type) ~ "\n";
+    }
+}
+
+class ShiftFun:Fun
+{
+    mixin FunConstructor;
+
+    protected ubyte arg_count = 1;
+    protected ubyte opt_arg_count = 1;
+
+    override protected char[] getPossibleTypes()
+    {
+        return ['b', 'w'];
+    }
+
+    void process()
+    {
+        if(this.type != this.arglist[0].detect_type()) {
+            this.program.error(this.direction ~ "shift(): argument and return types must match");
+        }
+
+        bool is_const;
+        ubyte cval;
+
+        if(this.arglist[1] !is null) {
+
+            if(this.arglist[1].detect_type() != 'b') {
+                this.program.error("Argument #2 of lshift() must be a byte");
+            }
+
+            is_const = this.arglist[1].is_const;
+            if(is_const) {
+                cval = cast(ubyte)this.arglist[1].get_constval();
+                this.arglist[1] = null;
+            }
+        }
+        else {
+            is_const = true;
+            cval = 1;
+        }
+
+        this.fncode ~= "\t" ~ this.direction ~  "shift" ~ to!string(this.type) ~ (is_const ? ("c " ~ to!string(cval)) : "") ~ "\n";
     }
 }

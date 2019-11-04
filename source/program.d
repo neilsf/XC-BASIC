@@ -4,21 +4,29 @@ import core.stdc.stdlib;
 import statements;
 import basicstdlib;
 import nucleus;
-import stringlib;
+import opt;
+import stringlib, memlib;
 import globals;
+import std.algorithm.mutation;
 
 struct Variable {
-	ushort location;
+	ubyte location;
 	string name;
 	char type;
+
 	ushort[2] dimensions = [1,1];
 	bool isConst = false;
 	bool isData = false;
 	bool isGlobal = true;
+    bool isFast = false;
 	string procname;
 
 	int constValInt = 0;
 	real constValFloat = 0;
+
+    static const ubyte zp_low = 0x02;
+    static const ubyte zp_high = 0x10;
+    static ubyte zp_ptr = zp_low;
 
 	string getLabel()
 	{
@@ -48,6 +56,27 @@ struct Procedure {
 	}
 }
 
+struct Stack {
+    int[] elements;
+
+    void push(int value)
+    {
+        this.elements ~= value;
+    }
+
+    int pull()
+    {
+        int last_value = this.elements[elements.length - 1];
+        this.elements = this.elements.remove(elements.length - 1);
+        return last_value;
+    }
+
+    int top()
+    {
+        return this.elements[elements.length - 1];
+    }
+}
+
 class Program
 {
 	ubyte[char] varlen;
@@ -75,6 +104,11 @@ class Program
 
     string source_path = "";
 	bool use_stringlib = false;
+    bool use_memlib = false;
+
+    int[string] compiler_options;
+
+    Stack if_stack, while_stack, repeat_stack;
 
     /**
      * Constructor
@@ -90,7 +124,22 @@ class Program
 		this.vartype_names['s'] = "string";
 		this.vartype_names['f'] = "float";
         this.vartype_names['b'] = "byte";
+
+        this.compiler_options = [
+            "civars" : 0
+        ];
 	}
+
+    void setCompilerOption(string option_key, int option_value)
+    {
+        int* ptr = (option_key in this.compiler_options);
+        if(ptr !is null) {
+            *ptr = option_value;
+        }
+        else {
+            this.warning("Compiler option '" ~ option_key ~ "' not recognized");
+        }
+    }
 
     /**
      * Checks if a label exists
@@ -187,6 +236,11 @@ class Program
 		varsegment ~= "\tORG data_end+1\n";
 
 		foreach(ref variable; this.variables) {
+            if(variable.isFast) {
+                varsegment ~= variable.getLabel() ~"\tEQU $" ~ to!string(variable.location, 16) ~ "\n";
+                continue;
+            }
+
 			if(!variable.isData && !variable.isConst) {
 				ubyte varlen = this.varlen[variable.type];
 				int array_length = variable.dimensions[0] * variable.dimensions[1];
@@ -229,20 +283,23 @@ class Program
 		asm_code ~= "\tENDIF\n";
 		asm_code ~= "\tHEX 00\n";
 		asm_code ~= "next_line:\n\tHEX 00 00\n";
-		asm_code ~= "\t;--------------------\n";
+		asm_code ~= "\t;------------    --------\n";
         asm_code ~= "\tECHO \"Memory information:\"\n";
         asm_code ~= "\tECHO \"===================\"\n";
         asm_code ~= "\tECHO \"BASIC loader: $801 -\", *-1\n";
         asm_code ~= "library_start:\n";
-		asm_code ~= nucleus.code;
-		asm_code ~= basicstdlib.code;
+		asm_code ~= nucleus.code ~ "\n";
+        asm_code ~= opt.code ~ "\n";
+		asm_code ~= basicstdlib.code ~ "\n";
+
         if(this.use_stringlib) {
-            asm_code ~= stringlib.code;
+            asm_code ~= stringlib.code ~ "\n";
+        }
+
+        if(this.use_memlib) {
+            asm_code ~= memlib.code ~ "\n";
         }
         asm_code ~= "\tECHO \"Library     :\",library_start,\"-\", *-1\n";
-
-
-
 		asm_code ~= this.getCodeSegment();
         asm_code ~= "\tECHO \"Code        :\",prg_start,\"-\", *-1\n";
 		asm_code ~= this.getDataSegment();
@@ -263,6 +320,10 @@ class Program
 		if(global_mod) {
 			id = stripLeft(id, "\\");
 		}
+
+        if(this.compiler_options["civars"] == 1) {
+            id = toLower(id);
+        }
 
 		foreach(ref elem; this.variables) {
 			if(this.in_procedure && !global_mod) {
@@ -307,12 +368,16 @@ class Program
 		assert(0);
 	}
 
-	void addVariable(Variable var)
+	void addVariable(Variable var, bool is_fast = false)
 	{
 		bool global_mod = var.name[0] == '\\';
 		if(global_mod) {
 			var.name = stripLeft(var.name, "\\");
 		}
+
+        if(this.compiler_options["civars"] == 1) {
+            var.name = toLower(var.name);
+        }
 
         bool name_exists = false;
         string id = var.name;
@@ -339,6 +404,18 @@ class Program
 			var.procname = this.current_proc_name;
 		}
 
+        if(is_fast) {
+            if(Variable.zp_ptr + this.varlen[var.type] * var.dimensions[0] * var.dimensions[1] - 1 <= Variable.zp_high) {
+                var.isFast = true;
+                var.location = Variable.zp_ptr;
+                Variable.zp_ptr += this.varlen[var.type];
+            }
+            else {
+                this.warning("Out of zeropage space, ignoring directive");
+            }
+
+        }
+
 		this.variables ~= var;
 
         if(var.type == 's') {
@@ -354,6 +431,10 @@ class Program
 		if(global_mod) {
 			id = stripLeft(id, "\\");
 		}
+
+        if(this.compiler_options["civars"] == 1) {
+            id = toLower(id);
+        }
 
 		foreach(ref elem; this.variables) {
 			if(this.in_procedure && !global_mod) {
@@ -425,7 +506,7 @@ class Program
             if(has_statement) {
                 if(statements.children[0].children[0].name == "XCBASIC.Proc_stmt") {
                     this.in_procedure = true;
-                    this.current_proc_name = join(statements.children[0].children[0].matches);
+                    this.current_proc_name = join(statements.children[0].children[0].children[0].matches);
                 }
                 else if(statements.children[0].children[0].name == "XCBASIC.Endproc_stmt") {
                     this.in_procedure = false;
@@ -514,9 +595,32 @@ class Program
 		}
 	}
 
+    void checkPragmas(ParseTree node)
+    {
+        bool other_statement_found = false;
+        foreach(ref child; node.children[0].children) {
+            // empty row?
+            if(child.name != "XCBASIC.Line" || child.children.length < 2) {
+                continue;
+            }
+
+            auto stmt = child.children[1].children[0].children[0];
+            this.current_node = stmt;
+            if(stmt.name != "XCBASIC.Pragma_stmt" && stmt.name != "XCBASIC.Rem_stmt") {
+                other_statement_found = true;
+                continue;
+            }
+            else if(stmt.name == "XCBASIC.Pragma_stmt" && other_statement_found) {
+                this.error("PRAGMA is only allowed in the beginning of the program");
+            }
+        }
+    }
+
 	void processAst(ParseTree node)
 	{
-		fetchLabels(node);
+        this.checkPragmas(node);
+		this.fetchLabels(node);
+
 		void walkAst(ParseTree node, ubyte pass)
 		{
 			this.current_node = node;

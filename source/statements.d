@@ -2,12 +2,13 @@ module statements;
 
 import pegged.grammar;
 import program;
-import std.string, std.conv, std.stdio;
+import std.string, std.conv, std.stdio, std.file, std.path;
 import expression;
 import stringliteral;
 import number;
 import excess;
 import xcbarray;
+import condition;
 import std.algorithm.mutation;
 
 Stmt StmtFactory(ParseTree node, Program program) {
@@ -148,6 +149,66 @@ Stmt StmtFactory(ParseTree node, Program program) {
 
         case "XCBASIC.On_stmt":
             stmt = new On_stmt(node, program);
+        break;
+
+        case "XCBASIC.Wait_stmt":
+            stmt = new Wait_stmt(node, program);
+        break;
+
+        case "XCBASIC.Watch_stmt":
+            stmt = new Watch_stmt(node, program);
+        break;
+
+        case "XCBASIC.Pragma_stmt":
+            stmt = new Pragma_stmt(node, program);
+        break;
+
+        case "XCBASIC.Memset_stmt":
+            stmt = new Memset_stmt(node, program);
+        break;
+
+        case "XCBASIC.Memcpy_stmt":
+            stmt = new Memcpy_stmt(node, program);
+        break;
+
+        case "XCBASIC.Memshift_stmt":
+            stmt = new Memshift_stmt(node, program);
+        break;
+
+        case "XCBASIC.While_stmt":
+            stmt = new While_stmt(node, program);
+        break;
+
+        case "XCBASIC.Endwhile_stmt":
+            stmt = new Endwhile_stmt(node, program);
+        break;
+
+        case "XCBASIC.Repeat_stmt":
+            stmt = new Repeat_stmt(node, program);
+        break;
+
+        case "XCBASIC.Until_stmt":
+            stmt = new Until_stmt(node, program);
+        break;
+
+        case "XCBASIC.If_sa_stmt":
+            stmt = new If_standalone_stmt(node, program);
+        break;
+
+        case "XCBASIC.Else_stmt":
+            stmt = new Else_stmt(node, program);
+        break;
+
+        case "XCBASIC.Endif_stmt":
+            stmt = new Endif_stmt(node, program);
+        break;
+
+        case "XCBASIC.Disableirq_stmt":
+            stmt = new Disableirq_stmt(node, program);
+        break;
+
+        case "XCBASIC.Enableirq_stmt":
+            stmt = new Enableirq_stmt(node, program);
         break;
 
 		default:
@@ -300,6 +361,11 @@ class Dim_stmt:Stmt
 	void process()
 	{
 		ParseTree v = this.node.children[0].children[0];
+        bool is_fast = false;
+        if(this.node.matches[$-1] == "fast" || this.node.matches[$-1] == "FAST") {
+            is_fast = true;
+        }
+
 		string varname = join(v.children[0].matches);
         string sigil = join(v.children[1].matches);
 		char vartype = this.program.resolve_sigil(sigil);
@@ -355,7 +421,7 @@ class Dim_stmt:Stmt
 		}
 
 		Variable var = Variable(0, varname, vartype, dimensions);
-		this.program.addVariable(var);
+		this.program.addVariable(var, is_fast);
 	}
 }
 
@@ -519,7 +585,7 @@ class Call_stmt:Stmt
                     // an array
                     int length = var.dimensions[0] * var.dimensions[1] * this.program.varlen[var.type];
                     for(int offset = 0; offset < length; offset++) {
-                        this.program.program_segment ~= "\tpbvar " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
+                        this.program.program_segment ~= "\tpbyte " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
                     }
                 }
             }
@@ -596,99 +662,16 @@ class If_stmt:Stmt
 {
 	mixin StmtConstructor;
 
-	public static ushort counter = 1;
+	public static int counter = 65536;
 
 	void process()
 	{
-		ParseTree[] relations;
-		int rel_count = 1;
-		bool logop_present = false;
+        auto statement = this.node.children[0];
+        Condition cond = new Condition(statement.children[0], this.program);
+        cond.eval();
+        this.program.program_segment ~= cond.asmcode;
 
-		auto statement = this.node.children[0];
-		relations ~= statement.children[0];
-
-		if(statement.children[1].name == "XCBASIC.Logop") {
-			relations ~= statement.children[2];
-			rel_count++;
-			logop_present = true;
-		}
-
-		for(int i; i < rel_count; i++) {
-			auto e1 = relations[i].children[0];
-			string rel = join(relations[i].children[1].matches);
-			auto e2 = relations[i].children[2];
-
-			auto Ex1 = new Expression(e1, this.program);
-			Ex1.eval();
-			auto Ex2 = new Expression(e2, this.program);
-			Ex2.eval();
-
-            string exp_type;
-
-            if(Ex1.detect_type() == Ex2.detect_type()) {
-                exp_type = to!string(Ex1.type);
-            }
-            else {
-                char common_type = this.program.get_higher_type(Ex1.type, Ex2.type);
-                if(Ex1.type != common_type) {
-                    Ex1.convert(common_type);
-                }
-                else {
-                    Ex2.convert(common_type);
-                }
-                exp_type = to!string(common_type);
-            }
-			this.program.program_segment ~= to!string(Ex1);
-			this.program.program_segment ~= to!string(Ex2);
-
-			string rel_type;
-
-			final switch(rel) {
-				case "<":
-					rel_type = "lt";
-					break;
-
-				case "<=":
-					rel_type = "lte";
-					break;
-
-				case "<>":
-					rel_type = "neq";
-					break;
-
-				case ">":
-					rel_type = "gt";
-					break;
-
-				case ">=":
-					rel_type = "gte";
-					break;
-
-				case "=":
-					rel_type = "eq";
-					break;
-			}
-
-            exp_type = (exp_type == "s" ? "w" : exp_type);
-			this.program.program_segment~="\tcmp" ~ exp_type ~rel_type~"\n";
-		}
-
-		// relations are evaluated, now the comes logical op if present
-
-		if(logop_present) {
-			string logop = join(statement.children[1].matches);
-			final switch(logop) {
-				case "and":
-					this.program.program_segment~="\tandb\n";
-				break;
-
-				case "or":
-					this.program.program_segment~="\torb\n";
-				break;
-			}
-		}
-
-		int cursor = logop_present ? 3 : 1;
+		int cursor = 1;
 		auto st = statement.children[cursor];
 		bool else_present = false;
 
@@ -700,15 +683,7 @@ class If_stmt:Stmt
 		}
 
 		string ret;
-		ret ~= "\tpla\n"
-			 ~ "\tbne *+5\n";
-
-		if(else_present) {
-			ret ~= "\tjmp _E" ~ to!string(counter)  ~ "\n";
-		}
-		else {
-			ret ~= "\tjmp _J" ~ to!string(counter)  ~ "\n";
-		}
+		ret ~= "\tcond_stmt _EI_" ~ to!string(counter) ~ ", _EL_" ~ to!string(counter) ~ "\n";
 
 		this.program.program_segment~=ret;
 
@@ -720,8 +695,8 @@ class If_stmt:Stmt
 
 		// else branch
 		if(else_present) {
-			this.program.program_segment ~= "\tjmp _J" ~ to!string(counter)  ~ "\n";
-			this.program.program_segment ~= "_E" ~to!string(counter)~ ":\n";
+			this.program.program_segment ~= "\tjmp _EI_" ~ to!string(counter)  ~ "\n";
+			this.program.program_segment ~= "_EL_" ~to!string(counter)~ ":\n";
 
             // can be multiple statements
             foreach(ref e_child; else_st.children) {
@@ -730,9 +705,123 @@ class If_stmt:Stmt
             }
 		}
 
-		this.program.program_segment ~= "_J" ~to!string(counter)~ ":\n";
+		this.program.program_segment ~= "_EI_" ~to!string(counter)~ ":\n";
 		counter++;
 	}
+}
+
+class If_standalone_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    public static int counter = 0;
+
+    void process()
+    {
+        counter++;
+        this.program.if_stack.push(counter);
+
+        auto statement = this.node.children[0];
+        Condition cond = new Condition(statement.children[0], this.program);
+        cond.eval();
+        this.program.program_segment ~= cond.asmcode;
+        this.program.program_segment ~= "\tcond_stmt _EI_" ~ to!string(counter) ~ ", _EL_" ~ to!string(counter) ~ "\n";
+    }
+}
+
+class Else_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        string label_q = to!string(this.program.if_stack.top());
+        this.program.program_segment ~= "\tjmp _EI_" ~label_q~ "\n";
+        this.program.program_segment ~= "_EL_"~ label_q ~ ":\n";
+    }
+}
+
+class Endif_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        this.program.program_segment ~= "_EI_"~ to!string(this.program.if_stack.pull()) ~ ":\n";
+    }
+}
+
+class While_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    public static int counter = 0;
+
+    void process()
+    {
+        counter++;
+        this.program.while_stack.push(counter);
+
+        string ret;
+        string strcounter = to!string(counter);
+
+        ret ~= "_WH_" ~ strcounter ~ ":\n";
+
+        auto statement = this.node.children[0];
+        Condition cond = new Condition(statement.children[0], this.program);
+        cond.eval();
+        ret ~= cond.asmcode;
+
+        ret ~= "\tcond_stmt _EW_" ~ strcounter ~ ", _void_\n";
+        this.program.program_segment ~= ret;
+    }
+}
+
+class Endwhile_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        int counter = this.program.while_stack.pull();
+        this.program.program_segment ~= "\tjmp _WH_" ~ to!string(counter) ~ "\n";
+        this.program.program_segment ~= "_EW_" ~ to!string(counter) ~ ":\n";
+    }
+}
+
+class Repeat_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    public static int counter = 0;
+
+    void process()
+    {
+        counter++;
+        this.program.repeat_stack.push(counter);
+        this.program.program_segment ~= "_RP_" ~ to!string(counter) ~ ":\n";
+    }
+}
+
+class Until_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        int counter = this.program.repeat_stack.pull();
+
+        string ret;
+        string strcounter = to!string(counter);
+
+        auto statement = this.node.children[0];
+        Condition cond = new Condition(statement.children[0], this.program);
+        cond.eval();
+        ret ~= cond.asmcode;
+
+        ret ~= "\tcond_stmt _RP_" ~ strcounter ~ ", _void_ \n";
+        this.program.program_segment ~= ret;
+    }
 }
 
 class Poke_stmt:Stmt
@@ -745,14 +834,18 @@ class Poke_stmt:Stmt
 		auto e2 = this.node.children[0].children[1];
 
 		auto Ex1 = new Expression(e1, this.program);
-        if(Ex1.detect_type() != 'w') {
-            this.program.error("Address must be an integer");
+        if(Ex1.detect_type() == 'f') {
+            this.program.error("Address must not be a float");
         }
-		Ex1.eval();
+
+        Ex1.eval();
+        Ex1.convert('w');
+
 		auto Ex2 = new Expression(e2, this.program);
         if(Ex2.detect_type() == 'f') {
             this.program.error("Value must not be a float");
         }
+
         Ex2.eval();
 
 		this.program.program_segment ~= to!string(Ex2); // value first
@@ -911,14 +1004,14 @@ class Data_stmt:Stmt
 			this.program.error(varname ~ " is a constant");
 		}
 
-
         if(list.name == "XCBASIC.Datalist") {
-            this.program.data_segment ~= var.getLabel();
+            string seg = "";
+            seg ~= var.getLabel();
             if(vartype == 'b' || vartype == 'f') {
-                this.program.data_segment ~= "\tDC.B ";
+                seg ~= "\tDC.B ";
             }
             else {
-                this.program.data_segment ~= "\tDC.W ";
+                seg ~= "\tDC.W ";
             }
 
             string value;
@@ -926,48 +1019,62 @@ class Data_stmt:Stmt
             ubyte counter = 0;
             for(int i=0; i< list.children.length; i++) {
                 ParseTree v = list.children[i];
-                Number num = new Number(v, this.program);
-
                 if (counter > 0) {
-                    this.program.data_segment ~= ", ";
+                    seg ~= ", ";
                 }
+                final switch(v.name) {
+                    case "XCBASIC.Number":
 
-                if(vartype == 'f' && num.type !='f' || num.type == 'f' && vartype != 'f') {
-                    this.program.error("Type mismatch");
-                }
+                        Number num = new Number(v, this.program);
 
-                if(vartype == 'b' && num.type == 'w') {
-                    this.program.error("Number out of range");
-                }
+                        if(vartype == 's' || (vartype == 'f' && num.type !='f') || (num.type == 'f' && vartype != 'f')) {
+                            this.program.error("Type mismatch");
+                        }
 
-                if(vartype == 'b' || vartype == 'w') {
-                    value = to!string(num.intval);
-                    this.program.data_segment ~= "#" ~value;
-                }
-                else {
-                    floatbytes = excess.float_to_hex(num.floatval);
-                    this.program.data_segment ~=
-                        "#$" ~ to!string(floatbytes[0], 16) ~
-                        ", #$" ~ to!string(floatbytes[1], 16) ~
-                        ", #$" ~ to!string(floatbytes[2], 16) ~
-                        ", #$" ~ to!string(floatbytes[3], 16) ~
-                        ", #$" ~ to!string(floatbytes[4], 16);
+                        if(vartype == 'b' && num.type == 'w') {
+                            this.program.error("Number out of range");
+                        }
+
+                        if(vartype == 'b' || vartype == 'w') {
+                            value = to!string(num.intval);
+                            seg ~= "#" ~value;
+                        }
+                        else {
+                            floatbytes = excess.float_to_hex(num.floatval);
+                            seg ~=
+                                "#$" ~ to!string(floatbytes[0], 16) ~
+                                ", #$" ~ to!string(floatbytes[1], 16) ~
+                                ", #$" ~ to!string(floatbytes[2], 16) ~
+                                ", #$" ~ to!string(floatbytes[3], 16) ~
+                                ", #$" ~ to!string(floatbytes[4], 16);
+                        }
+                    break;
+
+                    case "XCBASIC.String":
+                        if(vartype != 's') {
+                            this.program.error("Type mismatch");
+                        }
+                        string str = join(v.matches[1..$-1]);
+                        Stringliteral sl = new Stringliteral(str, this.program);
+                        sl.register();
+                        seg ~= "_S" ~ to!string(Stringliteral.id);
+                    break;
                 }
 
                 counter++;
                 if(counter == 16 && i < list.children.length-1) {
-                    this.program.data_segment ~= "\n";
+                    seg ~= "\n";
                     if(vartype == 'b' || vartype == 'f') {
-                        this.program.data_segment ~= "\tDC.B ";
+                        seg ~= "\tDC.B ";
                     }
                     else {
-                        this.program.data_segment ~= "\tDC.W ";
+                        seg ~= "\tDC.W ";
                     }
                     counter = 0;
                 }
             }
 
-            this.program.data_segment ~="\n";
+            this.program.data_segment ~= seg ~ "\n";
         }
         else {
             if(vartype != 'b') {
@@ -1072,7 +1179,19 @@ class Inc_stmt:Stmt
 			this.program.error(varname ~ " is a constant");
 		}
 
-		this.program.program_segment ~= "\tinc"~to!string(var.type)~" "~var.getLabel()~"\n";
+        string asmcode;
+
+        if(v.children.length > 2) {
+            // an array
+            auto subscript = v.children[2];
+            XCBArray arr = new XCBArray(this.program, var, subscript);
+            asmcode = arr.incordec("inc");
+        }
+        else {
+            asmcode = "\tinc"~to!string(var.type)~" "~var.getLabel()~"\n";
+        }
+
+		this.program.program_segment ~= asmcode;
 	}
 }
 
@@ -1098,7 +1217,21 @@ class Dec_stmt:Stmt
 		if(var.isConst) {
 			this.program.error(varname ~ " is a constant");
 		}
-		this.program.program_segment ~= "\tdec"~to!string(var.type)~" "~var.getLabel()~"\n";
+
+        string asmcode;
+
+        if(v.children.length > 2) {
+            // an array
+            auto subscript = v.children[2];
+            XCBArray arr = new XCBArray(this.program, var, subscript);
+            asmcode = arr.incordec("dec");
+        }
+        else {
+            asmcode = "\tdec"~to!string(var.type)~" "~var.getLabel()~"\n";
+        }
+
+        this.program.program_segment ~= asmcode;
+
 	}
 }
 
@@ -1128,7 +1261,12 @@ class Proc_stmt:Stmt
 		if(this.node.children[0].children.length > 1) {
 			ParseTree varlist = this.node.children[0].children[1];
 			foreach(ref var; varlist.children) {
-				Variable argument = Variable(0, join(var.children[0].matches), this.program.resolve_sigil(join(var.children[1].matches)));
+				Variable argument =
+                    Variable(
+                        0,
+                        join(var.children[0].matches),
+                        this.program.resolve_sigil(join(var.children[1].matches))
+                    );
 				this.program.addVariable(argument);
 				proc.addArgument(argument);
 			}
@@ -1149,7 +1287,6 @@ class Endproc_stmt:Stmt
 		if(!this.program.in_procedure) {
 			this.program.error("Not in procedure context");
 		}
-
 
 		Procedure current_proc = this.program.findProcedure(this.program.current_proc_name);
 
@@ -1383,6 +1520,14 @@ class Incbin_stmt:Stmt
         Incbin_stmt.counter+=1;
         string lblc = to!string(Incbin_stmt.counter);
         string incfile = join(this.node.children[0].children[0].matches);
+        string incfile_noquotes = incfile[1..$-1];
+        string full_path = this.program.source_path ~ dirSeparator ~ incfile_noquotes;
+        try {
+            File f = File(full_path);
+        }
+        catch(Exception e) {
+            this.program.error("File cannot be read: "~full_path);
+        }
         this.program.program_segment~="_IJS"~lblc~"\tINCBIN "~incfile~"\n";
         this.program.program_segment~="_IJ"~lblc~"\n";
         this.program.program_segment~= "\tECHO \"Included file ("~replace(incfile,"\"", "")~"):\",_IJS"~lblc~",\"-\", _IJ"~lblc~"\n";
@@ -1442,5 +1587,227 @@ class On_stmt:Stmt
         this.program.data_segment ~= lbs ~ "\n" ~ hbs ~ "\n";
         this.program.program_segment ~= to!string(index);
         this.program.program_segment ~= "\ton" ~ branch_type ~ " _On_LB"~to!string(On_stmt.counter)~", _On_HB"~to!string(On_stmt.counter) ~ "\n";
+    }
+}
+
+class Wait_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        auto args = this.node.children[0].children;
+        auto address = new Expression(args[0], this.program);
+        address.eval();
+        if(address.type == 'f') {
+            this.program.error("Argument #1 of WAIT must not be a float");
+        }
+        else if(address.type == 'b') {
+            address.convert('w');
+        }
+
+        auto mask = new Expression(args[1], this.program);
+        mask.eval();
+        if(mask.type == 'f') {
+            this.program.error("Argument #2 of WAIT must not be a float");
+        }
+        else if(mask.type == 'w') {
+            mask.convert('b');
+        }
+
+        if(args.length > 2) {
+            auto trig = new Expression(args[2], this.program);
+            trig.eval();
+            if(trig.type == 'f') {
+                this.program.error("Argument #3 of WAIT must not be a float");
+            }
+            else if(trig.type == 'w') {
+                trig.convert('b');
+            }
+            this.program.program_segment ~= to!string(trig);
+        }
+        else {
+            this.program.program_segment ~= "\tpzero\n";
+        }
+
+        this.program.program_segment ~= to!string(mask);
+        this.program.program_segment ~= to!string(address);
+        this.program.program_segment ~= "\twait\n";
+    }
+}
+
+class Watch_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        auto args = this.node.children[0].children;
+        auto address = new Expression(args[0], this.program);
+        bool const_addr = address.is_const();
+        address.eval();
+        if(address.type == 'f') {
+            this.program.error("Argument #1 of WATCH must not be a float");
+        }
+        else if(address.type == 'b') {
+            address.convert('w');
+        }
+
+        auto mask = new Expression(args[1], this.program);
+        mask.eval();
+        if(mask.type == 'f') {
+            this.program.error("Argument #2 of WATCH must not be a float");
+        }
+        else if(mask.type == 'w') {
+            mask.convert('b');
+        }
+
+        this.program.program_segment ~= to!string(mask);
+        if(!const_addr) {
+            this.program.program_segment ~= to!string(address);
+            this.program.program_segment ~= "\twatch\n";
+        }
+        else {
+            this.program.program_segment ~= "\twatchc "~ to!string(address.get_constval()) ~"\n";
+        }
+
+    }
+}
+
+class Pragma_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        auto stmt = this.node.children[0];
+        string option_key = join(stmt.children[0].matches);
+        auto num = new Number(stmt.children[1], this.program);
+        this.program.setCompilerOption(option_key, num.intval);
+    }
+}
+
+class Memset_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        auto args = this.node.children[0].children;
+        auto source = new Expression(args[0], this.program);
+        source.eval();
+        if(source.type == 'f') {
+            this.program.error("Argument #1 of MEMSET must not be a float");
+        }
+        else if(source.type == 'b') {
+            source.convert('w');
+        }
+
+        auto len = new Expression(args[1], this.program);
+        len.eval();
+        if(len.type == 'f') {
+            this.program.error("Argument #2 of MEMSET must not be a float");
+        }
+        else if(len.type == 'b') {
+            len.convert('w');
+        }
+
+        auto val = new Expression(args[2], this.program);
+        val.eval();
+        if(val.type == 'f') {
+            this.program.error("Argument #3 of MEMSET must not be a float");
+        }
+        else if(val.type == 'w') {
+            val.convert('b');
+        }
+
+        this.program.program_segment ~= to!string(val);
+        this.program.program_segment ~= to!string(len);
+        this.program.program_segment ~= to!string(source);
+        this.program.program_segment ~= "\tmemset\n";
+
+        this.program.use_memlib = true;
+    }
+}
+
+abstract class Memmove_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    abstract protected string getName();
+    abstract protected string getMenmonic();
+
+    void process()
+    {
+        auto args = this.node.children[0].children;
+
+        Expression e;
+
+        for(int i=2; i>=0; i--) {
+            e = new Expression(args[i], this.program);
+            e.eval();
+            if(e.type == 'f') {
+                this.program.error("Argument #" ~to!string(i+1)~ " of " ~this.getName()~ " must not be a float");
+            }
+            else if(e.type == 'b') {
+                e.convert('w');
+            }
+
+            this.program.program_segment ~= to!string(e);
+        }
+
+        this.program.program_segment ~= "\t" ~this.getMenmonic()~ "\n";
+
+        this.program.use_memlib = true;
+    }
+}
+
+class Memcpy_stmt: Memmove_stmt
+{
+    mixin StmtConstructor;
+
+    override protected string getName()
+    {
+        return "MEMCPY";
+    }
+
+    override protected string getMenmonic()
+    {
+        return "memcpy";
+    }
+}
+
+class Memshift_stmt: Memmove_stmt
+{
+    mixin StmtConstructor;
+
+    override protected string getName()
+    {
+        return "MEMSHIFT";
+    }
+
+    override protected string getMenmonic()
+    {
+        return "memshift";
+    }
+}
+
+class Disableirq_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        this.program.program_segment ~= "\tsei\n";
+    }
+}
+
+class Enableirq_stmt: Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        this.program.program_segment ~= "\tcli\n";
     }
 }

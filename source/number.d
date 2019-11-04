@@ -5,6 +5,7 @@ import std.conv;
 import std.string;
 import pegged.grammar;
 import program;
+import petscii;
 
 class Number
 {
@@ -25,6 +26,20 @@ class Number
 
         string num_str = join(node.children[0].matches);
         final switch(node.children[0].name) {
+
+            case "XCBASIC.Charlit":
+                this.type = 'b';
+                string chrlit = join(node.children[0].matches);
+                char chr = chrlit[1];
+                if(chr != 123) {    // not a "{" character
+                    this.intval = to!int(ascii_to_petscii(chr));
+                }
+                else {
+                    char[] replaced_chrlit = replace_petscii_escapes(chrlit[1..$-1]);
+                    this.intval = to!int(replaced_chrlit[0]);
+                }
+                break;
+
             case "XCBASIC.Integer":
                 int num = to!int(num_str);
                 if(num < -32768 || num > 65535) {
