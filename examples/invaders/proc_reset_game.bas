@@ -6,7 +6,6 @@ proc reset_game
   \enemy_bullet_on![0] = 0
   \enemy_bullet_on![1] = 0
   \enemy_bullet_on![2] = 0
-  poke \SPR_CNTRL, %01000001
   \sound_phase! = 3
 
   rem -- clear sprite detection register
@@ -34,4 +33,6 @@ proc reset_game
       watch \RASTER_POS, 0
     next j!
   next i!
+
+   poke \SPR_CNTRL, %01000001
 endproc
