@@ -43,9 +43,15 @@ struct Procedure {
 	string name;
 	Variable[] arguments;
 
+    bool is_function = false;
+    char type; // applies to functions only!
+
 	string getLabel()
 	{
-		return "_P" ~ this.name;
+		return this.is_function ?
+            "_F" ~ to!string(this.type) ~ this.name
+            :
+            "_P" ~ this.name;
 	}
 
 	void addArgument(Variable var)

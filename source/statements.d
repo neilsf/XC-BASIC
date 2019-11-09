@@ -99,9 +99,17 @@ Stmt StmtFactory(ParseTree node, Program program) {
 			stmt = new Proc_stmt(node, program);
 		break;
 
+        case "XCBASIC.Fun_stmt":
+            stmt = new Fun_stmt(node, program);
+        break;
+
 		case "XCBASIC.Endproc_stmt":
 			stmt = new Endproc_stmt(node, program);
 		break;
+
+        case "XCBASIC.Endfun_stmt":
+            stmt = new Endfun_stmt(node, program);
+        break;
 
 		case "XCBASIC.Call_stmt":
 			stmt = new Call_stmt(node, program);
@@ -209,6 +217,10 @@ Stmt StmtFactory(ParseTree node, Program program) {
 
         case "XCBASIC.Enableirq_stmt":
             stmt = new Enableirq_stmt(node, program);
+        break;
+
+        case "XCBASIC.Return_fn_stmt":
+            stmt = new Return_fn_stmt(node, program);
         break;
 
 		default:
@@ -1239,43 +1251,88 @@ class Proc_stmt:Stmt
 {
 	mixin StmtConstructor;
 
-	void process()
-	{
-		if(this.program.in_procedure) {
-			this.program.error("Procedure declaration is not allowed here.");
-		}
-		this.program.in_procedure = true;
+    string name;
 
-		ParseTree pname = this.node.children[0].children[0];
-		string name = join(pname.matches);
-		if(this.program.procExists(name)) {
-			this.program.error("Procedure already declared");
-		}
+    protected string get_type()
+    {
+        return "Procedure";
+    }
 
-		this.program.current_proc_name = name;
+    private void verify_context()
+    {
+        if(this.program.in_procedure) {
+            this.program.error(this.get_type() ~ " definition is not allowed here.");
+        }
+        this.program.in_procedure = true;
+    }
 
-		Variable[] arguments;
+    protected void verify_name()
+    {
+        ParseTree pname = this.node.children[0].children[0];
+        string name = join(pname.matches);
+        if(this.program.procExists(name)) {
+            this.program.error(this.get_type() ~ " already defined");
+        }
 
-		Procedure proc = Procedure(name);
+        this.program.current_proc_name = name;
+        this.name = name;
+    }
 
-		if(this.node.children[0].children.length > 1) {
-			ParseTree varlist = this.node.children[0].children[1];
-			foreach(ref var; varlist.children) {
-				Variable argument =
+    private void add_arguments(ref Procedure proc)
+    {
+        Variable[] arguments;
+
+        if(this.node.children[0].children.length > 2) {
+            ParseTree varlist = this.node.children[0].children[2];
+            foreach(ref var; varlist.children) {
+                Variable argument =
                     Variable(
                         0,
                         join(var.children[0].matches),
                         this.program.resolve_sigil(join(var.children[1].matches))
                     );
-				this.program.addVariable(argument);
-				proc.addArgument(argument);
-			}
-		}
+                this.program.addVariable(argument);
+                proc.addArgument(argument);
+            }
+        }
+    }
+
+    protected Procedure get_procedure()
+    {
+        Procedure proc = Procedure(this.name);
+        return proc;
+    }
+
+	void process()
+	{
+        this.verify_context();
+        this.verify_name();
+
+        Procedure proc = this.get_procedure();
+        this.add_arguments(proc);
 
 		this.program.procedures ~= proc;
 		this.program.program_segment ~= "\tjmp " ~ proc.getLabel() ~ "_end\n";
 		this.program.program_segment ~= proc.getLabel() ~ ":\n";
 	}
+}
+
+class Fun_stmt : Proc_stmt
+{
+    mixin StmtConstructor;
+
+    override protected string get_type()
+    {
+        return "Function";
+    }
+
+    override protected Procedure get_procedure()
+    {
+        string sigil = this.node.children[0].children[1].matches[0];
+        char type = this.program.resolve_sigil(sigil);
+        Procedure proc = {name: this.name, is_function: true, type: type};
+        return proc;
+    }
 }
 
 class Endproc_stmt:Stmt
@@ -1290,12 +1347,75 @@ class Endproc_stmt:Stmt
 
 		Procedure current_proc = this.program.findProcedure(this.program.current_proc_name);
 
+        if(current_proc.is_function) {
+            this.program.error("Not in procedure context. Did you mean ENDFUN?");
+        }
+
 		this.program.program_segment ~= "\trts\n";
 		this.program.program_segment ~= current_proc.getLabel() ~"_end:\n";
 
 		this.program.in_procedure = false;
 		this.program.current_proc_name = "";
 	}
+}
+
+class Endfun_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        if(!this.program.in_procedure) {
+            this.program.error("Not in function context");
+        }
+
+        Procedure current_proc = this.program.findProcedure(this.program.current_proc_name);
+
+        if(!current_proc.is_function) {
+            this.program.error("Not in function context. Did you mean ENDPROC?");
+        }
+
+        this.program.program_segment ~= "\tbrk\n"; // Should never reach here. It means no return statement was used.
+        this.program.program_segment ~= current_proc.getLabel() ~"_tmp_retaddr DC.W 0\n";
+        this.program.program_segment ~= current_proc.getLabel() ~"_end:\n";
+
+        this.program.in_procedure = false;
+        this.program.current_proc_name = "";
+    }
+}
+
+
+class Return_fn_stmt:Stmt
+{
+    mixin StmtConstructor;
+
+    void process()
+    {
+        if(!this.program.in_procedure) {
+            this.program.error("Not in function context");
+        }
+
+        Procedure current_proc = this.program.findProcedure(this.program.current_proc_name);
+
+        if(!current_proc.is_function) {
+            this.program.error("Procedures can't return a value.");
+        }
+
+        auto e1 = this.node.children[0].children[0];
+        auto Ex1 = new Expression(e1, this.program);
+        Ex1.eval();
+
+        if(Ex1.type != current_proc.type) {
+            this.program.error("Function " ~ current_proc.name ~ " is supposed to return a(n) " ~
+                this.program.vartype_names[current_proc.type] ~ ", not a(n) " ~
+                this.program.vartype_names[Ex1.type]);
+        }
+
+        this.program.program_segment ~= "\tpull_retaddr "~ current_proc.getLabel() ~"\n";
+        this.program.program_segment ~= to!string(Ex1);
+        this.program.program_segment ~= "\tpush_retaddr "~ current_proc.getLabel() ~"\n";
+        this.program.program_segment ~= "\trts\n";
+    }
 }
 
 class Sys_stmt:Stmt

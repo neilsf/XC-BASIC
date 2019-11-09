@@ -2339,6 +2339,26 @@ NUCL_SQRW	SUBROUTINE
 	ENDIF
 	ENDM
 	
+	; Pulls the function return address
+	; and stores it to temporary location
+	;
+	MAC pull_retaddr
+	pla
+	sta {1}_tmp_retaddr+1
+	pla
+	sta {1}_tmp_retaddr
+	ENDM
+	
+	; Restores the function return address
+	; from temporary location
+	;
+	MAC push_retaddr
+	lda {1}_tmp_retaddr
+	pha
+	lda {1}_tmp_retaddr+1
+	pha
+	ENDM
+	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
 err_illegal_quantity HEX 49 4C 4C 45 47 41 4C 20 51 55 41 4E 54 49 54 59 00
 

@@ -8,12 +8,13 @@ XCBASIC:
     Line <- Line_id :WS? Statements?
     Statements < Statement :WS? (":" :WS? Statement :WS?)*
 
-    Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt / Return_stmt /
+    Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt /
                 Rem_stmt / Poke_stmt / For_stmt / Next_stmt / Dim_stmt / Charat_stmt / Data_stmt / Textat_stmt / Incbin_stmt /
                 Include_stmt / Inc_stmt / Dec_stmt / Proc_stmt / Endproc_stmt /  Sys_stmt / Load_stmt / Save_stmt /
                 Origin_stmt / Asm_stmt / Doke_stmt / Strcpy_stmt / Strncpy_stmt / Curpos_stmt / On_stmt / Wait_stmt / Watch_stmt /
                 Pragma_stmt / Memset_stmt / Memcpy_stmt / Memshift_stmt / While_stmt / Endwhile_stmt /
-                If_sa_stmt / Else_stmt / Endif_stmt / End_stmt / Repeat_stmt / Until_stmt / Disableirq_stmt / Enableirq_stmt
+                If_sa_stmt / Else_stmt / Endif_stmt / Repeat_stmt / Until_stmt / Disableirq_stmt / Enableirq_stmt /
+                Fun_stmt / Endfun_stmt / End_stmt / Return_fn_stmt / Return_stmt
     Const_stmt <    "const"i :WS? Var :WS? "=" :WS? Number
     Let_stmt <      ("let"i / eps) :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print"i :WS? ExprList
@@ -26,11 +27,11 @@ XCBASIC:
     Gosub_stmt <    "gosub"i :WS? (Label_ref / Unsigned)
     Call_stmt <     "call"i :WS? (Label_ref / Unsigned) :WS? (:"(" :WS? ExprList :WS? :")")?
     Return_stmt <   "return"i
+    Return_fn_stmt < "return"i :WS? Expression
     Poke_stmt <     "poke"i :WS? Expression :WS? "," :WS? Expression
     Doke_stmt <     "doke"i :WS? Expression :WS? "," :WS? Expression
     While_stmt  <   "while"i :WS? Condition
     Endwhile_stmt < "endwhile"i
-    End_stmt <      "end"i
     Repeat_stmt <   "repeat"i
     Until_stmt <    "until"i :WS? Condition
     Rem_stmt <      (";" / "'" / "rem"i) (!eol .)*
@@ -45,8 +46,10 @@ XCBASIC:
     Include_stmt <  "include"i :WS? String
     Inc_stmt <      "inc"i :WS? Var
     Dec_stmt <      "dec"i :WS? Var
-    Proc_stmt <     "proc"i :WS Label_ref :WS? (:"(" :WS? VarList :WS? :")")?
+    Proc_stmt <     "proc"i :WS Label_ref eps :WS? (:"(" :WS? VarList :WS? :")")?
+    Fun_stmt <      "fun"i :WS Varname Vartype :WS? (:"(" :WS? VarList :WS? :")")?
     Endproc_stmt <  "endproc"i
+    Endfun_stmt <   "endfun"i
     Sys_stmt <      "sys"i :WS? Expression
     Load_stmt <     "load"i :WS? String :WS? "," :WS? Expression (:WS? "," :WS? Expression)?
     Save_stmt <     "save"i :WS? String :WS? "," :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
@@ -63,6 +66,7 @@ XCBASIC:
     Memshift_stmt < "memshift"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
     Disableirq_stmt < "disableirq"i
     Enableirq_stmt <  "enableirq"i
+    End_stmt <      "end"i
 
     Branch_type < "goto"i / "gosub"i
     Relation < Expression :WS? Relop :WS? Expression
@@ -74,7 +78,7 @@ XCBASIC:
     Expression < Simplexp (:WS? BW_OP :WS? Simplexp :WS?)*
     Simplexp < Term (:WS? E_OP :WS? Term :WS?)*
     Term < Factor (:WS? T_OP :WS? Factor :WS?)*
-    Factor < (Var / Number / Parenthesis / String / Expression / Fn_call / Address)
+    Factor < (Fn_call / Var / Number / Parenthesis / String / Expression / Address)
     Fn_call < Id Vartype  "(" :WS? (ExprList / eps) :WS? ")"
 
     Var < Varname Vartype Subscript?
@@ -114,7 +118,7 @@ XCBASIC:
                   "or"i / "load"i / "save"i / "ferr"i / "deek"i / "doke"i /
                  "abs"i / "cast"i / "sin"i / "cos"i / "tan"i / "atn"i / "asm"i / "strcpy"i / "strncpy"i / "strlen"i / "strcmp"i / "curpos"i /
                  "strpos"i / "val"i / "sqr"i / "sgn"i / "wait"i / "watch"i / "pragma"i / "memset"i / "memcpy"i / "memshift"i /
-                 "while"i / "endwhile"i / "repeat"i / "until"i / "lshift"i / "rshift"i / "disableirq"i / "enableirq"i)
+                 "while"i / "endwhile"i / "repeat"i / "until"i / "lshift"i / "rshift"i / "disableirq"i / "enableirq"i / "fun"i)
     WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 

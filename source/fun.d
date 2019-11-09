@@ -4,97 +4,121 @@ import pegged.grammar;
 import program;
 import std.string, std.conv, std.stdio;
 import expression;
-import std.algorithm.mutation;
+import std.algorithm.mutation, std.algorithm.searching;
 import stringliteral;
 
 Fun FunFactory(ParseTree node, Program program) {
+
+    string[] builtin_functions = [
+        "peek", "deek", "inkey", "rnd", "usr", "ferr", "abs", "cast",
+        "sin", "cos", "tan", "atn", "sqr", "sgn",
+        "strlen", "strcmp", "strpos",
+        "val", "lshift", "rshift"
+    ];
+
     string funName = join(node.children[0].matches);
     Fun fun;
-    switch (funName) {
-        case "peek":
-            fun = new PeekFun(node, program);
-        break;
+    if(builtin_functions.find(funName).empty) {
 
-        case "deek":
-            fun = new DeekFun(node, program);
-        break;
+        if(program.procExists(funName)) {
+            Procedure proc = program.findProcedure(funName);
+            if(!proc.is_function) {
+                program.error(funName ~ "is not a function");
+            }
 
-        case "inkey":
-            fun = new InKeyFun(node, program);
-        break;
+            fun = new UserDefFun(node, program, proc);
+        }
+        else {
+            program.error("Function " ~ funName ~ " not defined");
+        }
+    }
+    else {
+        switch (funName) {
+            case "peek":
+                fun = new PeekFun(node, program);
+            break;
 
-        case "rnd":
-            fun = new RndFun(node, program);
-        break;
+            case "deek":
+                fun = new DeekFun(node, program);
+            break;
 
-        case "usr":
-            fun = new UsrFun(node, program);
-        break;
+            case "inkey":
+                fun = new InKeyFun(node, program);
+            break;
 
-        case "ferr":
-            fun = new FerrFun(node, program);
-        break;
+            case "rnd":
+                fun = new RndFun(node, program);
+            break;
 
-        case "abs":
-            fun = new AbsFun(node, program);
-        break;
+            case "usr":
+                fun = new UsrFun(node, program);
+            break;
 
-        case "cast":
-            fun = new CastFun(node, program);
-        break;
+            case "ferr":
+                fun = new FerrFun(node, program);
+            break;
 
-        case "sin":
-            fun = new SinFun(node, program);
-        break;
+            case "abs":
+                fun = new AbsFun(node, program);
+            break;
 
-        case "cos":
-            fun = new CosFun(node, program);
-        break;
+            case "cast":
+                fun = new CastFun(node, program);
+            break;
 
-        case "tan":
-            fun = new TanFun(node, program);
-        break;
+            case "sin":
+                fun = new SinFun(node, program);
+            break;
 
-        case "atn":
-            fun = new AtnFun(node, program);
-        break;
+            case "cos":
+                fun = new CosFun(node, program);
+            break;
 
-        case "sqr":
-            fun = new SqrFun(node, program);
-        break;
+            case "tan":
+                fun = new TanFun(node, program);
+            break;
 
-        case "sgn":
-            fun = new SgnFun(node, program);
-        break;
+            case "atn":
+                fun = new AtnFun(node, program);
+            break;
 
-        case "strlen":
-            fun = new StrlenFun(node, program);
-        break;
+            case "sqr":
+                fun = new SqrFun(node, program);
+            break;
 
-        case "strcmp":
-            fun = new StrcmpFun(node, program);
-        break;
+            case "sgn":
+                fun = new SgnFun(node, program);
+            break;
 
-        case "strpos":
-            fun = new StrposFun(node, program);
-        break;
+            case "strlen":
+                fun = new StrlenFun(node, program);
+            break;
 
-        case "val":
-            fun = new ValFun(node, program);
-        break;
+            case "strcmp":
+                fun = new StrcmpFun(node, program);
+            break;
 
-        case "lshift":
-            fun = new ShiftFun(node, program);
-            fun.direction = "l";
-        break;
+            case "strpos":
+                fun = new StrposFun(node, program);
+            break;
 
-        case "rshift":
-            fun = new ShiftFun(node, program);
-            fun.direction = "r";
-        break;
+            case "val":
+                fun = new ValFun(node, program);
+            break;
 
-        default:
-        assert(0);
+            case "lshift":
+                fun = new ShiftFun(node, program);
+                fun.direction = "l";
+            break;
+
+            case "rshift":
+                fun = new ShiftFun(node, program);
+                fun.direction = "r";
+            break;
+
+            default:
+            assert(0);
+        }
     }
 
     return fun;
@@ -612,5 +636,60 @@ class ShiftFun:Fun
         }
 
         this.fncode ~= "\t" ~ this.direction ~  "shift" ~ to!string(this.type) ~ (is_const ? ("c " ~ to!string(cval)) : "") ~ "\n";
+    }
+}
+
+class UserDefFun : Fun
+{
+    Procedure proc;
+
+    this(ParseTree node, Program program, Procedure proc)
+    {
+        this.proc = proc;
+
+        super(node, program);
+
+        if(node.children.length > 2) {
+            auto exprlist = node.children[2];
+            if(exprlist.children.length != proc.arguments.length) {
+                this.program.error("Wrong number of arguments");
+            }
+
+            ubyte i=0;
+            while(i < exprlist.children.length) {
+                auto e = exprlist.children[i];
+                this.arglist[i] = new Expression(e, this.program);
+                this.arglist[i].eval();
+                if(this.arglist[i].type != proc.arguments[i].type) {
+                    // Do implicit conversion
+                    this.arglist[i].convert(proc.arguments[i].type);
+                }
+                i++;
+            }
+        }
+    }
+
+    override protected char[] getPossibleTypes()
+    {
+        return [this.proc.type];
+    }
+
+    void process()
+    {
+        this.fncode ~= "\tjsr " ~ this.proc.getLabel() ~ "\n";
+    }
+
+    override string toString()
+    {
+        string asmcode;
+        for(ubyte i = 0; i < this.proc.arguments.length; i++) {
+            asmcode ~= to!string(this.arglist[i]);
+            char vartype = this.proc.arguments[i].type;
+            string varlabel = this.proc.arguments[i].getLabel();
+            asmcode ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ varlabel ~ "\n";
+        }
+
+        asmcode ~= fncode;
+        return asmcode;
     }
 }

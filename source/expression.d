@@ -90,6 +90,7 @@ class Expression
         if(this.type == char.init) {
             this.detect_type();
         }
+
         Simplexp s1 = new Simplexp(this.node.children[i], this.program);
         s1.expected_type = this.type;
         s1.eval();
