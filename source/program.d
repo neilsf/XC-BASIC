@@ -305,6 +305,7 @@ class Program
         if(this.use_memlib) {
             asm_code ~= memlib.code ~ "\n";
         }
+        asm_code ~= this.getConstantDefinitions();
         asm_code ~= "\tECHO \"Library     :\",library_start,\"-\", *-1\n";
 		asm_code ~= this.getCodeSegment();
         asm_code ~= "\tECHO \"Code        :\",prg_start,\"-\", *-1\n";
@@ -317,6 +318,17 @@ class Program
 
 		return asm_code;
 	}
+
+    string getConstantDefinitions()
+    {
+        string ret = "";
+        foreach(ref var; this.variables) {
+            if(var.isConst && (var.type == 'b' || var.type == 'w')) {
+                ret ~= var.getLabel() ~ " EQU $" ~ to!string(var.constValInt, 16) ~ "\n";
+            }
+        }
+        return ret ~ "\n";
+    }
 
 	Variable findVariable(string id, string sigil)
 	{

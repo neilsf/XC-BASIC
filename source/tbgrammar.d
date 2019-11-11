@@ -5,7 +5,7 @@ import pegged.grammar;
 mixin(grammar(`
 XCBASIC:
     Program <- Line (NL* Line)+ EOI
-    Line <- Line_id :WS? Statements?
+    Line <- :WS? Line_id :WS? Statements?
     Statements < Statement :WS? (":" :WS? Statement :WS?)*
 
     Statement < Const_stmt / Let_stmt / Print_stmt / If_stmt / Goto_stmt / Input_stmt / Gosub_stmt / Call_stmt /
@@ -14,7 +14,7 @@ XCBASIC:
                 Origin_stmt / Asm_stmt / Doke_stmt / Strcpy_stmt / Strncpy_stmt / Curpos_stmt / On_stmt / Wait_stmt / Watch_stmt /
                 Pragma_stmt / Memset_stmt / Memcpy_stmt / Memshift_stmt / While_stmt / Endwhile_stmt /
                 If_sa_stmt / Else_stmt / Endif_stmt / Repeat_stmt / Until_stmt / Disableirq_stmt / Enableirq_stmt /
-                Fun_stmt / Endfun_stmt / End_stmt / Return_fn_stmt / Return_stmt
+                Fun_stmt / Endfun_stmt / End_stmt / Return_fn_stmt / Return_stmt / Userdef_cmd
     Const_stmt <    "const"i :WS? Var :WS? "=" :WS? Number
     Let_stmt <      ("let"i / eps) :WS? Var :WS? "=" :WS? Expression
     Print_stmt <    "print"i :WS? ExprList
@@ -67,6 +67,7 @@ XCBASIC:
     Disableirq_stmt < "disableirq"i
     Enableirq_stmt <  "enableirq"i
     End_stmt <      "end"i
+    Userdef_cmd <   Label_ref :WS? ExprList?
 
     Branch_type < "goto"i / "gosub"i
     Relation < Expression :WS? Relop :WS? Expression

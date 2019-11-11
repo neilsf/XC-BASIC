@@ -112,6 +112,7 @@ Stmt StmtFactory(ParseTree node, Program program) {
         break;
 
 		case "XCBASIC.Call_stmt":
+        case "XCBASIC.Userdef_cmd":
 			stmt = new Call_stmt(node, program);
 		break;
 
@@ -561,9 +562,18 @@ class Call_stmt:Stmt
 
 	void process()
 	{
-		string lbl = join(this.node.children[0].children[0].matches);
+        bool is_cmd = (node.children[0].name == "XCBASIC.Userdef_cmd");
+        string lbl = join(this.node.children[0].children[0].matches);
+
 		if(!this.program.procExists(lbl)) {
-			this.program.error("Procedure not declared");
+            string error;
+            if(is_cmd) {
+                error = "Unknown command: " ~ lbl;
+            }
+            else {
+                error = "Unknown procedure: " ~ lbl;
+            }
+			this.program.error(error);
 		}
 		Procedure proc = this.program.findProcedure(lbl);
 		if(this.node.children[0].children.length > 1) {
@@ -1253,7 +1263,7 @@ class Proc_stmt:Stmt
 
     string name;
 
-    protected string get_type()
+    protected string get_variant()
     {
         return "Procedure";
     }
@@ -1261,7 +1271,7 @@ class Proc_stmt:Stmt
     private void verify_context()
     {
         if(this.program.in_procedure) {
-            this.program.error(this.get_type() ~ " definition is not allowed here.");
+            this.program.error(this.get_variant() ~ " definition is not allowed here.");
         }
         this.program.in_procedure = true;
     }
@@ -1271,7 +1281,7 @@ class Proc_stmt:Stmt
         ParseTree pname = this.node.children[0].children[0];
         string name = join(pname.matches);
         if(this.program.procExists(name)) {
-            this.program.error(this.get_type() ~ " already defined");
+            this.program.error(this.get_variant() ~ " already defined");
         }
 
         this.program.current_proc_name = name;
@@ -1281,9 +1291,13 @@ class Proc_stmt:Stmt
     private void add_arguments(ref Procedure proc)
     {
         Variable[] arguments;
+        ubyte varlist_index = 2;
+        if(this.get_variant() == "Procedure") {
+            varlist_index = 1;
+        }
 
-        if(this.node.children[0].children.length > 2) {
-            ParseTree varlist = this.node.children[0].children[2];
+        if(this.node.children[0].children.length > varlist_index) {
+            ParseTree varlist = this.node.children[0].children[varlist_index];
             foreach(ref var; varlist.children) {
                 Variable argument =
                     Variable(
@@ -1321,7 +1335,7 @@ class Fun_stmt : Proc_stmt
 {
     mixin StmtConstructor;
 
-    override protected string get_type()
+    override protected string get_variant()
     {
         return "Function";
     }
