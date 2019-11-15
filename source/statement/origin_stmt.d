@@ -12,6 +12,6 @@ class Origin_stmt:Stmt
     void process()
     {
         string num = join(this.node.children[0].children[0].matches);
-        this.program.program_segment~="\torg "~num~"\n";
+        this.program.appendProgramSegment("\torg "~num~"\n");
     }
 }

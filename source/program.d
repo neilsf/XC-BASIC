@@ -95,7 +95,7 @@ class Program
 	Procedure[] procedures;
 
 	ushort stringlit_counter = 0;
-	string program_segment;
+	private string program_segment;
 	string data_segment;
     string routines_segment;
 
@@ -270,6 +270,16 @@ class Program
 		codesegment ~= "\thalt\n";
 		return codesegment;
 	}
+
+    public void appendProgramSegment(string code)
+    {
+        if(!this.in_procedure) {
+            this.program_segment ~= code;
+        }
+        else {
+            this.routines_segment ~= code;
+        }
+    }
 
 	string getAsmCode()
 	{

@@ -43,15 +43,15 @@ class Let_stmt:Stmt
         }
 
         Ex.eval();
-        this.program.program_segment ~= to!string(Ex);
+        this.program.appendProgramSegment(to!string(Ex));
 
         if(extype == 'b' && vartype == 'w') {
-            this.program.program_segment ~= "\tbtow\n";
+            this.program.appendProgramSegment("\tbtow\n");
             // bytes should be silently promoted to integers
             //this.program.warning("Implicit type conversion");
         }
         else if(extype == 'w' && vartype == 'b') {
-            this.program.program_segment ~= "\twtob\n";
+            this.program.appendProgramSegment("\twtob\n");
             this.program.warning("Integer truncated to byte");
         }
 
@@ -63,10 +63,10 @@ class Let_stmt:Stmt
             */
             auto subscript = v.children[2];
             XCBArray arr = new XCBArray(this.program, var, subscript);
-            this.program.program_segment ~= arr.store();
+            this.program.appendProgramSegment(arr.store());
         }
         else {
-            this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n";
+            this.program.appendProgramSegment("\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n");
         }
     }
 }

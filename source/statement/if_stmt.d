@@ -18,7 +18,7 @@ class If_stmt:Stmt
         auto statement = this.node.children[0];
         Condition cond = new Condition(statement.children[0], this.program);
         cond.eval();
-        this.program.program_segment ~= cond.asmcode;
+        this.program.appendProgramSegment(cond.asmcode);
 
         int cursor = 1;
         auto st = statement.children[cursor];
@@ -34,7 +34,7 @@ class If_stmt:Stmt
         string ret;
         ret ~= "\tcond_stmt _EI_" ~ to!string(counter) ~ ", _EL_" ~ to!string(counter) ~ "\n";
 
-        this.program.program_segment~=ret;
+        this.program.appendProgramSegment(ret);
 
         // can be multiple statements
         foreach(ref child; st.children) {
@@ -44,8 +44,8 @@ class If_stmt:Stmt
 
         // else branch
         if(else_present) {
-            this.program.program_segment ~= "\tjmp _EI_" ~ to!string(counter)  ~ "\n";
-            this.program.program_segment ~= "_EL_" ~to!string(counter)~ ":\n";
+            this.program.appendProgramSegment("\tjmp _EI_" ~ to!string(counter)  ~ "\n");
+            this.program.appendProgramSegment("_EL_" ~to!string(counter)~ ":\n");
 
             // can be multiple statements
             foreach(ref e_child; else_st.children) {
@@ -54,7 +54,7 @@ class If_stmt:Stmt
             }
         }
 
-        this.program.program_segment ~= "_EI_" ~to!string(counter)~ ":\n";
+        this.program.appendProgramSegment("_EI_" ~to!string(counter)~ ":\n");
         counter++;
     }
 }
@@ -73,7 +73,7 @@ class If_standalone_stmt:Stmt
         auto statement = this.node.children[0];
         Condition cond = new Condition(statement.children[0], this.program);
         cond.eval();
-        this.program.program_segment ~= cond.asmcode;
-        this.program.program_segment ~= "\tcond_stmt _EI_" ~ to!string(counter) ~ ", _EL_" ~ to!string(counter) ~ "\n";
+        this.program.appendProgramSegment(cond.asmcode);
+        this.program.appendProgramSegment("\tcond_stmt _EI_" ~ to!string(counter) ~ ", _EL_" ~ to!string(counter) ~ "\n");
     }
 }

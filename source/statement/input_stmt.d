@@ -31,7 +31,7 @@ class Input_stmt:Stmt
             this.program.error("Argument 1 of INPUT must be a string pointer");
         }
 
-        this.program.program_segment ~= "\tpwvar "~var.getLabel()~"\n";
+        this.program.appendProgramSegment("\tpwvar "~var.getLabel()~"\n");
 
         ParseTree len = list.children[1];
         Expression e = new Expression(len, this.program);
@@ -40,7 +40,7 @@ class Input_stmt:Stmt
         }
 
         e.eval();
-        this.program.program_segment ~= e.asmcode;
+        this.program.appendProgramSegment(e.asmcode);
 
         if(list.children.length > 2) {
             string mask = join(list.children[2].matches)[1..$-1];
@@ -50,12 +50,12 @@ class Input_stmt:Stmt
 
             auto sl = new Stringliteral(mask, this.program);
             sl.register();
-            this.program.program_segment ~= "\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n";
+            this.program.appendProgramSegment("\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n");
         }
         else {
-            this.program.program_segment ~= "\tpaddr str_default_mask\n";
+            this.program.appendProgramSegment("\tpaddr str_default_mask\n");
         }
 
-        this.program.program_segment~="\tinput\n";
+        this.program.appendProgramSegment("\tinput\n");
     }
 }

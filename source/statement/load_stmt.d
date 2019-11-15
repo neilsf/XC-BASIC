@@ -35,16 +35,16 @@ class Load_stmt:Stmt
             if(address.type != 'w') {
                 this.program.error("Argument #3 of LOAD must be an integer");
             }
-            this.program.program_segment ~= to!string(address);
+            this.program.appendProgramSegment(to!string(address));
             fixed_address = true;
         }
 
-        this.program.program_segment ~= to!string(device_no);
-        this.program.program_segment ~= "\tpbyte #" ~ to!string(filename.length) ~ "\n";
-        this.program.program_segment ~= "\tlda #<_S" ~ to!string(Stringliteral.id) ~ "\n";
-        this.program.program_segment ~= "\tpha\n";
-        this.program.program_segment ~= "\tlda #>_S" ~ to!string(Stringliteral.id) ~ "\n";
-        this.program.program_segment ~= "\tpha\n";
-        this.program.program_segment~="\tload " ~ (fixed_address ? "0" : "1") ~ "\n";
+        this.program.appendProgramSegment(to!string(device_no));
+        this.program.appendProgramSegment("\tpbyte #" ~ to!string(filename.length) ~ "\n");
+        this.program.appendProgramSegment("\tlda #<_S" ~ to!string(Stringliteral.id) ~ "\n");
+        this.program.appendProgramSegment("\tpha\n");
+        this.program.appendProgramSegment("\tlda #>_S" ~ to!string(Stringliteral.id) ~ "\n");
+        this.program.appendProgramSegment("\tpha\n");
+        this.program.appendProgramSegment("\tload " ~ (fixed_address ? "0" : "1") ~ "\n");
     }
 }

@@ -24,8 +24,8 @@ class Incbin_stmt:Stmt
         catch(Exception e) {
             this.program.error("File cannot be read: "~full_path);
         }
-        this.program.program_segment~="_IJS"~lblc~"\tINCBIN "~incfile~"\n";
-        this.program.program_segment~="_IJ"~lblc~"\n";
-        this.program.program_segment~= "\tECHO \"Included file ("~replace(incfile,"\"", "")~"):\",_IJS"~lblc~",\"-\", _IJ"~lblc~"\n";
+        this.program.appendProgramSegment("_IJS"~lblc~"\tINCBIN "~incfile~"\n");
+        this.program.appendProgramSegment("_IJ"~lblc~"\n");
+        this.program.appendProgramSegment("\tECHO \"Included file ("~replace(incfile,"\"", "")~"):\",_IJS"~lblc~",\"-\", _IJ"~lblc~"\n");
     }
 }

@@ -21,9 +21,9 @@ class Endfun_stmt:Stmt
             this.program.error("Not in function context. Did you mean ENDPROC?");
         }
 
-        this.program.program_segment ~= "\tbrk\n"; // Should never reach here. It means no return statement was used.
-        this.program.program_segment ~= current_proc.getLabel() ~"_tmp_retaddr DC.W 0\n";
-        this.program.program_segment ~= current_proc.getLabel() ~"_end:\n";
+        this.program.appendProgramSegment("\tbrk\n"); // Should never reach here. It means no return statement was used.
+        this.program.appendProgramSegment(current_proc.getLabel() ~"_tmp_retaddr DC.W 0\n");
+        this.program.appendProgramSegment(current_proc.getLabel() ~"_end:\n");
 
         this.program.in_procedure = false;
         this.program.current_proc_name = "";

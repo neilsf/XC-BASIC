@@ -23,6 +23,6 @@ class Until_stmt:Stmt
         ret ~= cond.asmcode;
 
         ret ~= "\tcond_stmt _RP_" ~ strcounter ~ ", _void_ \n";
-        this.program.program_segment ~= ret;
+        this.program.appendProgramSegment(ret);
     }
 }

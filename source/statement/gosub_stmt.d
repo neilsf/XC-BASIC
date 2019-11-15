@@ -17,6 +17,6 @@ class Gosub_stmt:Stmt
         }
 
         lbl = this.program.in_procedure ? this.program.current_proc_name ~ "." ~ lbl : lbl;
-        this.program.program_segment ~= "\tjsr _L"~lbl~"\n";
+        this.program.appendProgramSegment("\tjsr _L"~lbl~"\n");
     }
 }

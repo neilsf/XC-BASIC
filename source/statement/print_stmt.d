@@ -21,12 +21,12 @@ class Print_stmt:Stmt
                     auto Ex = new Expression(exlist.children[i], this.program);
                     Ex.eval();
                     char type = Ex.detect_type();
-                    this.program.program_segment ~= to!string(Ex);
+                    this.program.appendProgramSegment(to!string(Ex));
                     if(type == 's') {
-                        this.program.program_segment ~= "\tstdlib_putstr\n";
+                        this.program.appendProgramSegment("\tstdlib_putstr\n");
                     }
                     else {
-                        this.program.program_segment ~= "\tstdlib_print"~ to!string(type) ~"\n";
+                        this.program.appendProgramSegment("\tstdlib_print"~ to!string(type) ~"\n");
                     }
                 break;
 
@@ -34,13 +34,13 @@ class Print_stmt:Stmt
                     string str = join(exlist.children[i].matches[1..$-1]);
                     Stringliteral sl = new Stringliteral(str, this.program);
                     sl.register();
-                    this.program.program_segment ~= "\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n";
-                    this.program.program_segment ~= "\tstdlib_putstr\n";
+                    this.program.appendProgramSegment("\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n");
+                    this.program.appendProgramSegment("\tstdlib_putstr\n");
                 break;
             }
         }
 
-        this.program.program_segment ~= "\tlda #13\n";
-        this.program.program_segment ~= "\tjsr KERNAL_PRINTCHR\n";
+        this.program.appendProgramSegment("\tlda #13\n");
+        this.program.appendProgramSegment("\tjsr KERNAL_PRINTCHR\n");
     }
 }

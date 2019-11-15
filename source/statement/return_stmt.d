@@ -10,6 +10,6 @@ class Return_stmt:Stmt
 
     void process()
     {
-        this.program.program_segment ~= "\trts\n";
+        this.program.appendProgramSegment("\trts\n");
     }
 }

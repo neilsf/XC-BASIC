@@ -43,7 +43,7 @@ class On_stmt:Stmt
         }
 
         this.program.data_segment ~= lbs ~ "\n" ~ hbs ~ "\n";
-        this.program.program_segment ~= to!string(index);
-        this.program.program_segment ~= "\ton" ~ branch_type ~ " _On_LB"~to!string(On_stmt.counter)~", _On_HB"~to!string(On_stmt.counter) ~ "\n";
+        this.program.appendProgramSegment(to!string(index));
+        this.program.appendProgramSegment("\ton" ~ branch_type ~ " _On_LB"~to!string(On_stmt.counter)~", _On_HB"~to!string(On_stmt.counter) ~ "\n");
     }
 }

@@ -23,9 +23,9 @@ class Strcpy_stmt:Stmt
             this.program.error("STRCPY accepts string pointers only");
         }
 
-        this.program.program_segment ~= to!string(Ex1);
-        this.program.program_segment ~= to!string(Ex2);
+        this.program.appendProgramSegment(to!string(Ex1));
+        this.program.appendProgramSegment(to!string(Ex2));
         this.program.use_stringlib = true;
-        this.program.program_segment~="\tstrcpy\n";
+        this.program.appendProgramSegment("\tstrcpy\n");
     }
 }

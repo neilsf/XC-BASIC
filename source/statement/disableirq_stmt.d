@@ -11,6 +11,6 @@ class Disableirq_stmt: Stmt
 
     void process()
     {
-        this.program.program_segment ~= "\tsei\n";
+        this.program.appendProgramSegment("\tsei\n");
     }
 }

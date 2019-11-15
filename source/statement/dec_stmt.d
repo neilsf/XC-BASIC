@@ -39,7 +39,6 @@ class Dec_stmt:Stmt
             asmcode = "\tdec"~to!string(var.type)~" "~var.getLabel()~"\n";
         }
 
-        this.program.program_segment ~= asmcode;
-
+        this.program.appendProgramSegment(asmcode);
     }
 }

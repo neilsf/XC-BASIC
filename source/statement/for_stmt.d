@@ -38,8 +38,8 @@ class For_stmt: Stmt
         else if(Ex.type == 'b' && vartype == 'w') {
             Ex.btow();
         }
-        this.program.program_segment ~= to!string(Ex);
-        this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n";
+        this.program.appendProgramSegment(to!string(Ex));
+        this.program.appendProgramSegment("\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n");
 
         /* step 2 evaluate max_value and push value */
         ParseTree ex2 = this.node.children[0].children[2];
@@ -51,9 +51,9 @@ class For_stmt: Stmt
         else if(Ex2.type == 'b' && vartype == 'w') {
             Ex2.btow();
         }
-        this.program.program_segment ~= to!string(Ex2);
+        this.program.appendProgramSegment(to!string(Ex2));
 
         /* step 3 call for */
-        this.program.program_segment ~= "\tfor\n";
+        this.program.appendProgramSegment("\tfor\n");
     }
 }

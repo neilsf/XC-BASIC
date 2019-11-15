@@ -11,6 +11,6 @@ class Enableirq_stmt: Stmt
 
     void process()
     {
-        this.program.program_segment ~= "\tcli\n";
+        this.program.appendProgramSegment("\tcli\n");
     }
 }

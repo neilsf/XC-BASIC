@@ -331,10 +331,10 @@ abstract class Memmove_stmt: Stmt
                 e.convert('w');
             }
 
-            this.program.program_segment ~= to!string(e);
+            this.program.appendProgramSegment(to!string(e));
         }
 
-        this.program.program_segment ~= "\t" ~this.getMenmonic()~ "\n";
+        this.program.appendProgramSegment("\t" ~this.getMenmonic()~ "\n");
 
         this.program.use_memlib = true;
     }

@@ -31,9 +31,9 @@ class Return_fn_stmt:Stmt
                 this.program.vartype_names[Ex1.type]);
         }
 
-        this.program.program_segment ~= "\tpull_retaddr "~ current_proc.getLabel() ~"\n";
-        this.program.program_segment ~= to!string(Ex1);
-        this.program.program_segment ~= "\tpush_retaddr "~ current_proc.getLabel() ~"\n";
-        this.program.program_segment ~= "\trts\n";
+        this.program.appendProgramSegment("\tpull_retaddr "~ current_proc.getLabel() ~"\n");
+        this.program.appendProgramSegment(to!string(Ex1));
+        this.program.appendProgramSegment("\tpush_retaddr "~ current_proc.getLabel() ~"\n");
+        this.program.appendProgramSegment("\trts\n");
     }
 }

@@ -74,7 +74,7 @@ class Proc_stmt:Stmt
         this.add_arguments(proc);
 
         this.program.procedures ~= proc;
-        this.program.program_segment ~= "\tjmp " ~ proc.getLabel() ~ "_end\n";
-        this.program.program_segment ~= proc.getLabel() ~ ":\n";
+        this.program.appendProgramSegment("\tjmp " ~ proc.getLabel() ~ "_end\n");
+        this.program.appendProgramSegment(proc.getLabel() ~ ":\n");
     }
 }

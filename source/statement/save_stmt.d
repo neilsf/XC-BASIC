@@ -40,14 +40,14 @@ class Save_stmt:Stmt
             this.program.error("Argument #4 of SAVE must be an integer");
         }
 
-        this.program.program_segment ~= to!string(address2);
-        this.program.program_segment ~= to!string(address1);
-        this.program.program_segment ~= to!string(device_no);
-        this.program.program_segment ~= "\tpbyte #" ~ to!string(filename.length) ~ "\n";
-        this.program.program_segment ~= "\tlda #<_S" ~ to!string(Stringliteral.id) ~ "\n";
-        this.program.program_segment ~= "\tpha\n";
-        this.program.program_segment ~= "\tlda #>_S" ~ to!string(Stringliteral.id) ~ "\n";
-        this.program.program_segment ~= "\tpha\n";
-        this.program.program_segment ~= "\tsave\n";
+        this.program.appendProgramSegment(to!string(address2));
+        this.program.appendProgramSegment(to!string(address1));
+        this.program.appendProgramSegment(to!string(device_no));
+        this.program.appendProgramSegment("\tpbyte #" ~ to!string(filename.length) ~ "\n");
+        this.program.appendProgramSegment("\tlda #<_S" ~ to!string(Stringliteral.id) ~ "\n");
+        this.program.appendProgramSegment("\tpha\n");
+        this.program.appendProgramSegment("\tlda #>_S" ~ to!string(Stringliteral.id) ~ "\n");
+        this.program.appendProgramSegment("\tpha\n");
+        this.program.appendProgramSegment("\tsave\n");
     }
 }

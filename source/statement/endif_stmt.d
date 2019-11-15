@@ -11,6 +11,6 @@ class Endif_stmt:Stmt
 
     void process()
     {
-        this.program.program_segment ~= "_EI_"~ to!string(this.program.if_stack.pull()) ~ ":\n";
+        this.program.appendProgramSegment("_EI_"~ to!string(this.program.if_stack.pull()) ~ ":\n");
     }
 }

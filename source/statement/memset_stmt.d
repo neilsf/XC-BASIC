@@ -39,10 +39,10 @@ class Memset_stmt: Stmt
             val.convert('b');
         }
 
-        this.program.program_segment ~= to!string(val);
-        this.program.program_segment ~= to!string(len);
-        this.program.program_segment ~= to!string(source);
-        this.program.program_segment ~= "\tmemset\n";
+        this.program.appendProgramSegment(to!string(val));
+        this.program.appendProgramSegment(to!string(len));
+        this.program.appendProgramSegment(to!string(source));
+        this.program.appendProgramSegment("\tmemset\n");
 
         this.program.use_memlib = true;
     }

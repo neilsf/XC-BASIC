@@ -31,10 +31,10 @@ class Strncpy_stmt:Stmt
             this.program.error("The length param passed to STRNCPY must be a byte");
         }
 
-        this.program.program_segment ~= to!string(Ex1);
-        this.program.program_segment ~= to!string(Ex2);
-        this.program.program_segment ~= to!string(Ex3);
+        this.program.appendProgramSegment(to!string(Ex1));
+        this.program.appendProgramSegment(to!string(Ex2));
+        this.program.appendProgramSegment(to!string(Ex3));
         this.program.use_stringlib = true;
-        this.program.program_segment~="\tstrncpy\n";
+        this.program.appendProgramSegment("\tstrncpy\n");
     }
 }

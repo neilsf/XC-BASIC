@@ -16,7 +16,7 @@ class Sys_stmt:Stmt
         auto Ex1 = new Expression(e1, this.program);
         Ex1.eval();
 
-        this.program.program_segment ~= to!string(Ex1);
-        this.program.program_segment~="\tsys\n";
+        this.program.appendProgramSegment(to!string(Ex1));
+        this.program.appendProgramSegment("\tsys\n");
     }
 }

@@ -31,10 +31,10 @@ class Curpos_stmt:Stmt
             ypos.convert('b');
         }
 
-        this.program.program_segment ~= to!string(ypos);
-        this.program.program_segment ~= to!string(xpos);
+        this.program.appendProgramSegment(to!string(ypos));
+        this.program.appendProgramSegment(to!string(xpos));
+        this.program.appendProgramSegment("\tcurpos\n");
 
         this.program.use_stringlib = true;
-        this.program.program_segment~="\tcurpos\n";
     }
 }

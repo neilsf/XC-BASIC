@@ -12,7 +12,7 @@ class Endwhile_stmt:Stmt
     void process()
     {
         int counter = this.program.while_stack.pull();
-        this.program.program_segment ~= "\tjmp _WH_" ~ to!string(counter) ~ "\n";
-        this.program.program_segment ~= "_EW_" ~ to!string(counter) ~ ":\n";
+        this.program.appendProgramSegment("\tjmp _WH_" ~ to!string(counter) ~ "\n");
+        this.program.appendProgramSegment("_EW_" ~ to!string(counter) ~ ":\n");
     }
 }

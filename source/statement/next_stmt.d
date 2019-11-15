@@ -26,6 +26,6 @@ class Next_stmt:Stmt
             this.program.error("Variable "~varname~" is a float");
         }
 
-        this.program.program_segment ~= "\tnext"~to!string(var.type)~" "~var.getLabel()~"\n";
+        this.program.appendProgramSegment("\tnext"~to!string(var.type)~" "~var.getLabel()~"\n");
     }
 }

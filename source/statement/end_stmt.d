@@ -10,6 +10,6 @@ class End_stmt:Stmt
 
     void process()
     {
-        this.program.program_segment ~= "\thalt\n";
+        this.program.appendProgramSegment("\thalt\n");
     }
 }

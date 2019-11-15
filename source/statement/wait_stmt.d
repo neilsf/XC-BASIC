@@ -39,14 +39,14 @@ class Wait_stmt: Stmt
             else if(trig.type == 'w') {
                 trig.convert('b');
             }
-            this.program.program_segment ~= to!string(trig);
+            this.program.appendProgramSegment(to!string(trig));
         }
         else {
-            this.program.program_segment ~= "\tpzero\n";
+            this.program.appendProgramSegment("\tpzero\n");
         }
 
-        this.program.program_segment ~= to!string(mask);
-        this.program.program_segment ~= to!string(address);
-        this.program.program_segment ~= "\twait\n";
+        this.program.appendProgramSegment(to!string(mask));
+        this.program.appendProgramSegment(to!string(address));
+        this.program.appendProgramSegment("\twait\n");
     }
 }

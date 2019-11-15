@@ -47,14 +47,14 @@ class Textat_stmt:Stmt
             ex.eval();
 
             if(ex.type != 's') {
-                this.program.program_segment ~= offset_code;
-                this.program.program_segment ~= to!string(ex) ~ "\n";
-                this.program.program_segment ~= "\t"~to!string(ex.type)~"at\n";
+                this.program.appendProgramSegment(offset_code);
+                this.program.appendProgramSegment(to!string(ex) ~ "\n");
+                this.program.appendProgramSegment("\t"~to!string(ex.type)~"at\n");
             }
             else {
-                this.program.program_segment ~= to!string(ex) ~ "\n";
-                this.program.program_segment ~= offset_code;
-                this.program.program_segment ~="\tstringat\n";
+                this.program.appendProgramSegment(to!string(ex) ~ "\n");
+                this.program.appendProgramSegment(offset_code);
+                this.program.appendProgramSegment("\tstringat\n");
             }
 
         }
@@ -64,9 +64,9 @@ class Textat_stmt:Stmt
             Stringliteral sl = new Stringliteral(str, this.program);
             sl.register(false, true);
             // text first
-            this.program.program_segment ~= "\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n";
-            this.program.program_segment ~= offset_code;
-            this.program.program_segment ~="\ttextat\n";
+            this.program.appendProgramSegment("\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n");
+            this.program.appendProgramSegment(offset_code);
+            this.program.appendProgramSegment("\ttextat\n");
         }
     }
 }

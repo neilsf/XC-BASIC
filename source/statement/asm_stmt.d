@@ -12,8 +12,8 @@ class Asm_stmt:Stmt
     void process()
     {
         string asm_string = stripLeft(chop(join(this.node.children[0].children[0].matches)), "\"");
-        this.program.program_segment~="\t; Inline ASM start\n";
-        this.program.program_segment~=asm_string~"\n";
-        this.program.program_segment~="\t; Inline ASM end\n";
+        this.program.appendProgramSegment("\t; Inline ASM start\n");
+        this.program.appendProgramSegment(asm_string~"\n");
+        this.program.appendProgramSegment("\t; Inline ASM end\n");
     }
 }

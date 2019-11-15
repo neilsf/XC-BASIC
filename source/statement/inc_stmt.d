@@ -40,6 +40,6 @@ class Inc_stmt:Stmt
             asmcode = "\tinc"~to!string(var.type)~" "~var.getLabel()~"\n";
         }
 
-        this.program.program_segment ~= asmcode;
+        this.program.appendProgramSegment(asmcode);
     }
 }

@@ -31,13 +31,13 @@ class Watch_stmt: Stmt
             mask.convert('b');
         }
 
-        this.program.program_segment ~= to!string(mask);
+        this.program.appendProgramSegment(to!string(mask));
         if(!const_addr) {
-            this.program.program_segment ~= to!string(address);
-            this.program.program_segment ~= "\twatch\n";
+            this.program.appendProgramSegment(to!string(address));
+            this.program.appendProgramSegment("\twatch\n");
         }
         else {
-            this.program.program_segment ~= "\twatchc "~ to!string(address.get_constval()) ~"\n";
+            this.program.appendProgramSegment("\twatchc "~ to!string(address.get_constval()) ~"\n");
         }
 
     }

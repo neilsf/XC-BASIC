@@ -21,8 +21,8 @@ class Endproc_stmt:Stmt
             this.program.error("Not in procedure context. Did you mean ENDFUN?");
         }
 
-        this.program.program_segment ~= "\trts\n";
-        this.program.program_segment ~= current_proc.getLabel() ~"_end:\n";
+        this.program.appendProgramSegment("\trts\n");
+        this.program.appendProgramSegment(current_proc.getLabel() ~"_end:\n");
 
         this.program.in_procedure = false;
         this.program.current_proc_name = "";

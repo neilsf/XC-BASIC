@@ -15,6 +15,6 @@ class Repeat_stmt:Stmt
     {
         counter++;
         this.program.repeat_stack.push(counter);
-        this.program.program_segment ~= "_RP_" ~ to!string(counter) ~ ":\n";
+        this.program.appendProgramSegment("_RP_" ~ to!string(counter) ~ ":\n");
     }
 }

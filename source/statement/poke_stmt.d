@@ -30,9 +30,9 @@ class Poke_stmt:Stmt
 
         Ex2.eval();
 
-        this.program.program_segment ~= to!string(Ex2); // value first
-        this.program.program_segment ~= to!string(Ex1); // address last
+        this.program.appendProgramSegment(to!string(Ex2)); // value first
+        this.program.appendProgramSegment(to!string(Ex1)); // address last
 
-        this.program.program_segment~="\tpoke"~to!string(Ex2.type)~"\n";
+        this.program.appendProgramSegment("\tpoke"~to!string(Ex2.type)~"\n");
     }
 }

@@ -38,10 +38,10 @@ class Call_stmt:Stmt
                 if(proc.arguments[i].type != Ex.detect_type()) {
                     Ex.convert(proc.arguments[i].type);
                 }
-                this.program.program_segment ~= to!string(Ex);
+                this.program.appendProgramSegment(to!string(Ex));
                 char vartype = proc.arguments[i].type;
                 string varlabel = proc.arguments[i].getLabel();
-                this.program.program_segment ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ varlabel ~ "\n";
+                this.program.appendProgramSegment("\tpl" ~ to!string(vartype) ~ "2var " ~ varlabel ~ "\n");
             }
         }
 
@@ -51,31 +51,31 @@ class Call_stmt:Stmt
             // push local vars
             foreach(ref var; this.program.localVariables()) {
                 if(var.dimensions == [1,1]) {
-                    this.program.program_segment ~= "\tp"~to!string(var.type)~"var " ~ var.getLabel() ~ "\n";
+                    this.program.appendProgramSegment("\tp"~to!string(var.type)~"var " ~ var.getLabel() ~ "\n");
                 }
                 else {
                     // an array
                     int length = var.dimensions[0] * var.dimensions[1] * this.program.varlen[var.type];
                     for(int offset = 0; offset < length; offset++) {
-                        this.program.program_segment ~= "\tpbyte " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
+                        this.program.appendProgramSegment("\tpbyte " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n");
                     }
                 }
             }
         }
 
-        this.program.program_segment ~= "\tjsr " ~ proc.getLabel() ~ "\n";
+        this.program.appendProgramSegment("\tjsr " ~ proc.getLabel() ~ "\n");
 
         if(recursive) {
             // pull local vars
             foreach(ref var; this.program.localVariables().reverse) {
                 if(var.dimensions == [1,1]) {
-                    this.program.program_segment ~= "\tpl"~to!string(var.type)~"2var " ~ var.getLabel() ~ "\n";
+                    this.program.appendProgramSegment("\tpl"~to!string(var.type)~"2var " ~ var.getLabel() ~ "\n");
                 }
                 else {
                     // an array
                     int length = var.dimensions[0] * var.dimensions[1] * this.program.varlen[var.type];
                     for(int offset = length -1 ; offset >= 0; offset--) {
-                        this.program.program_segment ~= "\tplb2var " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
+                        this.program.appendProgramSegment("\tplb2var " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n");
                     }
                 }
 

@@ -42,16 +42,15 @@ class Charat_stmt:Stmt
             this.program.error("Screencode must not be a float");
         }
 
-        this.program.program_segment ~= to!string(Ex3); // screencode first
-        this.program.program_segment ~= to!string(Ex2); // rownum second
+        this.program.appendProgramSegment(to!string(Ex3)); // screencode first
+        this.program.appendProgramSegment(to!string(Ex2)); // rownum second
         // multiply by 40
-        this.program.program_segment ~="\tpword #40\n" ~ "\tmulw\n";
+        this.program.appendProgramSegment("\tpword #40\n" ~ "\tmulw\n");
         // add column
-        this.program.program_segment ~= to!string(Ex1); // colnum last
-        this.program.program_segment ~= "\taddw\n";
+        this.program.appendProgramSegment(to!string(Ex1)); // colnum last
+        this.program.appendProgramSegment("\taddw\n");
         // add 1024
-        this.program.program_segment ~="\tpword #1024\n" ~ "\taddw\n";
-
-        this.program.program_segment~="\tpoke"~to!string(Ex3.type)~"\n";
+        this.program.appendProgramSegment("\tpword #1024\n" ~ "\taddw\n");
+        this.program.appendProgramSegment("\tpoke"~to!string(Ex3.type)~"\n");
     }
 }

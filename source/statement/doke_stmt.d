@@ -30,9 +30,8 @@ class Doke_stmt:Stmt
             Ex2.btow();
         }
 
-        this.program.program_segment ~= to!string(Ex2); // value first
-        this.program.program_segment ~= to!string(Ex1); // address last
-
-        this.program.program_segment~="\tdoke\n";
+        this.program.appendProgramSegment(to!string(Ex2)); // value first
+        this.program.appendProgramSegment(to!string(Ex1)); // address last
+        this.program.appendProgramSegment("\tdoke\n");
     }
 }
