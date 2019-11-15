@@ -1,11 +1,8 @@
 import std.stdio, std.array, std.conv, std.string, std.file, std.path;
 import pegged.grammar;
 import core.stdc.stdlib;
-import statements;
-import basicstdlib;
-import nucleus;
-import opt;
-import stringlib, memlib;
+import language.statement;
+import library.stringlib, library.memlib, library.basicstdlib, library.nucleus, library.opt;
 import globals;
 import std.algorithm.mutation;
 
@@ -100,6 +97,7 @@ class Program
 	ushort stringlit_counter = 0;
 	string program_segment;
 	string data_segment;
+    string routines_segment;
 
 	char last_type;
 
@@ -294,16 +292,16 @@ class Program
         asm_code ~= "\tECHO \"===================\"\n";
         asm_code ~= "\tECHO \"BASIC loader: $801 -\", *-1\n";
         asm_code ~= "library_start:\n";
-		asm_code ~= nucleus.code ~ "\n";
-        asm_code ~= opt.code ~ "\n";
-		asm_code ~= basicstdlib.code ~ "\n";
+		asm_code ~= library.nucleus.code ~ "\n";
+        asm_code ~= library.opt.code ~ "\n";
+		asm_code ~= library.basicstdlib.code ~ "\n";
 
         if(this.use_stringlib) {
-            asm_code ~= stringlib.code ~ "\n";
+            asm_code ~= library.stringlib.code ~ "\n";
         }
 
         if(this.use_memlib) {
-            asm_code ~= memlib.code ~ "\n";
+            asm_code ~= library.memlib.code ~ "\n";
         }
         asm_code ~= this.getConstantDefinitions();
         asm_code ~= "\tECHO \"Library     :\",library_start,\"-\", *-1\n";

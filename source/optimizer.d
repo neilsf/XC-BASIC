@@ -2,7 +2,7 @@ module optimizer;
 
 import std.string, std.array, std.uni, std.regex, std.stdio;
 import std.algorithm.mutation;
-import opt;
+import library.opt;
 
 template Optimization_pass_ctor()
 {
@@ -58,7 +58,7 @@ class Replace_sequences: Optimization_pass
 
     private void fetch_sequences()
     {
-        string[] lines = splitLines(opt.code);
+        string[] lines = splitLines(library.opt.code);
         bool fetch = false;
         string macname;
         foreach(line; lines) {

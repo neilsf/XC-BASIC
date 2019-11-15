@@ -1,6 +1,6 @@
 import std.stdio, std.file, std.array, std.string, std.getopt, std.path, std.regex;
 import core.stdc.stdlib;
-import tbgrammar;
+import language.grammar;
 import program;
 import std.conv;
 import globals;

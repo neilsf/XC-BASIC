@@ -47,6 +47,7 @@ BYTETOF		EQU $bc3c
 SQR			EQU $bf71
 SGN			EQU $bc39
 STRVAL		EQU $b7b5
+QINT		EQU $bc9b
 
 ; KERNAL routines
 SETNAM		EQU $ffbd
