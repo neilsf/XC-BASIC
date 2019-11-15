@@ -1584,10 +1584,10 @@ NUCL_DIVU16 SUBROUTINE
 	pha
 	ELSE
 	ldy #$00
-	lda (reserved0),y
+	lda (R0),y
 	tax
 	iny
-	lda (reserved0),y
+	lda (R0),y
 	tay
 	txa
 	ENDIF
