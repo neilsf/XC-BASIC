@@ -95,9 +95,10 @@ class Program
 	Procedure[] procedures;
 
 	ushort stringlit_counter = 0;
+
 	private string program_segment;
-	string data_segment;
-    string routines_segment;
+    private string routines_segment;
+    string data_segment;
 
 	char last_type;
 
@@ -260,14 +261,21 @@ class Program
 	{
 		string codesegment;
 		codesegment ~= "prg_start:\n";
+
         codesegment ~= "FPUSH\tSET 0\n";
         codesegment ~= "FPULL\tSET 0\n";
-		codesegment ~= "\tinit_program\n";
+
+        codesegment ~= "\tinit_program\n";
         codesegment ~= "\t; !!opt_start!!\n";
 		codesegment ~= this.program_segment;
         codesegment ~= "\t; !!opt_end!!\n";
 		codesegment ~= "prg_end:\n";
 		codesegment ~= "\thalt\n";
+
+        codesegment ~= "FPUSH\tSET 0\n";
+        codesegment ~= "FPULL\tSET 0\n";
+
+        codesegment ~= this.routines_segment;
 		return codesegment;
 	}
 
