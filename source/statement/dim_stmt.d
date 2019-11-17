@@ -1,8 +1,9 @@
 module statement.dim_stmt;
 
-import language.statement;
 import program;
+import language.statement;
 import language.number;
+import language.expression;
 import pegged.grammar;
 import std.string, std.conv;
 
@@ -72,7 +73,30 @@ class Dim_stmt:Stmt
             this.program.error("Variable "~varname~" is already defined/used.");
         }
 
-        Variable var = Variable(0, varname, vartype, dimensions);
+        ushort addr = 0;
+
+        if(this.node.children[0].children.length > 1) {
+            Expression e = new Expression(this.node.children[0].children[1], this.program);
+            e.eval();
+            if(!e.is_const()) {
+                this.program.error("Variable address must be a constant");
+            }
+
+            if(e.type != 'w') {
+                this.program.error("Variable address must be an integer, got " ~ this.program.vartype_names[e.type]);
+            }
+
+            if(is_fast) {
+                this.program.error("Can't use FAST together with @");
+            }
+
+            addr = to!ushort(e.get_constval());
+        }
+
+        Variable var = Variable(addr, varname, vartype, dimensions);
+        if(addr > 0) {
+            var.isExplicitAddr = true;
+        }
         this.program.addVariable(var, is_fast);
     }
 }

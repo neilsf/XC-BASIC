@@ -37,7 +37,7 @@ XCBASIC:
     Rem_stmt <      (";" / "'" / "rem"i) (!eol .)*
     For_stmt <      "for"i :WS? Var :WS? "=" :WS    ? Expression :WS? "to"i :WS? Expression
     Next_stmt <     "next"i :WS? Var
-    Dim_stmt <      "dim"i :WS? Var (:WS "fast"i)?
+    Dim_stmt <      "dim"i :WS? Var (:WS "fast"i)? (:WS? :"@" :WS? Expression)?
     Data_stmt <     "data"i :WS? Varname Vartype "[]" :WS? "=" :WS? (Datalist / Incbin_stmt)
     Charat_stmt <   "charat"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
     Textat_stmt <   "textat"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? (String / Expression)

@@ -7,15 +7,18 @@ import globals;
 import std.algorithm.mutation;
 
 struct Variable {
-	ubyte location;
+	ushort location;
 	string name;
 	char type;
 
 	ushort[2] dimensions = [1,1];
-	bool isConst = false;
+
+    bool isConst = false;
 	bool isData = false;
 	bool isGlobal = true;
     bool isFast = false;
+    bool isExplicitAddr = false;
+
 	string procname;
 
 	int constValInt = 0;
@@ -241,7 +244,8 @@ class Program
 		varsegment ~= "\tORG data_end+1\n";
 
 		foreach(ref variable; this.variables) {
-            if(variable.isFast) {
+
+            if(variable.isFast || variable.isExplicitAddr) {
                 varsegment ~= variable.getLabel() ~"\tEQU $" ~ to!string(variable.location, 16) ~ "\n";
                 continue;
             }
@@ -441,7 +445,7 @@ class Program
         if(is_fast) {
             if(Variable.zp_ptr + this.varlen[var.type] * var.dimensions[0] * var.dimensions[1] - 1 <= Variable.zp_high) {
                 var.isFast = true;
-                var.location = Variable.zp_ptr;
+                var.location = ushort(Variable.zp_ptr);
                 Variable.zp_ptr += this.varlen[var.type];
             }
             else {
