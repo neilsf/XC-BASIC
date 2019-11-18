@@ -126,10 +126,12 @@ class Program
 		this.varlen['b'] = 1;
 		this.varlen['w'] = 2;
 		this.varlen['s'] = 2;
+        this.varlen['l'] = 3;
 		this.varlen['f'] = 5;
 
 		this.vartype_names['w'] = "integer";
-		this.vartype_names['s'] = "string";
+        this.vartype_names['l'] = "long integer";
+        this.vartype_names['s'] = "string";
 		this.vartype_names['f'] = "float";
         this.vartype_names['b'] = "byte";
 
@@ -189,15 +191,24 @@ class Program
     char get_higher_type(char type1, char type2)
     {
         ubyte getPrecedence(char type) {
-            if(type == 'b') {
-                return 1;
-            }
+            switch(type) {
+                case 'b':
+                    return 1;
+                    break;
 
-            if(type == 'w' || type == 's') {
-                return 2;
-            }
+                case 'w':
+                case 's':
+                    return 2;
+                    break;
 
-            return 3;
+                case 'l':
+                    return 3;
+                    break;
+
+                default:
+                    return 4;
+                    break;
+            }
         }
 
         if(getPrecedence(type1) > getPrecedence(type2)) {
@@ -214,18 +225,27 @@ class Program
 
 	char resolve_sigil(string sigil)
 	{
-		if(sigil == "" || sigil == "#") {
-			return 'w';
-		}
-		else if(sigil == "$") {
-			return 's';
-		}
-		else if(sigil == "%"){
-			return 'f';
-		}
-		else {
-			return 'b';
-		}
+        final switch(sigil) {
+            case "!":
+                return 'b';
+                break;
+
+            case "":
+                return 'w';
+                break;
+
+            case "$":
+                return 's';
+                break;
+
+            case "#":
+                return 'l';
+                break;
+
+            case "%":
+                return 'f';
+                break;
+        }
 	}
 
 	string getDataSegment()
