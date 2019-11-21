@@ -114,7 +114,7 @@ class Program
 	bool use_stringlib = false;
     bool use_memlib = false;
 
-    int[string] compiler_options;
+    string[string] compiler_options;
 
     Stack if_stack, while_stack, repeat_stack;
 
@@ -134,13 +134,14 @@ class Program
         this.vartype_names['b'] = "byte";
 
         this.compiler_options = [
-            "civars" : 0
+            "civars" : "0",
+            "target" : "c64"
         ];
 	}
 
-    void setCompilerOption(string option_key, int option_value)
+    void setCompilerOption(string option_key, string option_value)
     {
-        int* ptr = (option_key in this.compiler_options);
+        string* ptr = (option_key in this.compiler_options);
         if(ptr !is null) {
             *ptr = option_value;
         }
@@ -314,9 +315,9 @@ class Program
         asm_code ~= "\tECHO \"===================\"\n";
         asm_code ~= "\tECHO \"BASIC loader: $801 -\", *-1\n";
         asm_code ~= "library_start:\n";
-		asm_code ~= library.nucleus.code ~ "\n";
+		asm_code ~= library.nucleus.get_code(this.compiler_options["target"]) ~ "\n";
         asm_code ~= library.opt.code ~ "\n";
-		asm_code ~= library.basicstdlib.code ~ "\n";
+		asm_code ~= library.basicstdlib.get_code(this.compiler_options["target"]) ~ "\n";
 
         if(this.use_stringlib) {
             asm_code ~= library.stringlib.code ~ "\n";
@@ -359,7 +360,7 @@ class Program
 			id = stripLeft(id, "\\");
 		}
 
-        if(this.compiler_options["civars"] == 1) {
+        if(this.compiler_options["civars"] == "1") {
             id = toLower(id);
         }
 
@@ -413,7 +414,7 @@ class Program
 			var.name = stripLeft(var.name, "\\");
 		}
 
-        if(this.compiler_options["civars"] == 1) {
+        if(this.compiler_options["civars"] == "1") {
             var.name = toLower(var.name);
         }
 
@@ -470,7 +471,7 @@ class Program
 			id = stripLeft(id, "\\");
 		}
 
-        if(this.compiler_options["civars"] == 1) {
+        if(this.compiler_options["civars"] == "1") {
             id = toLower(id);
         }
 

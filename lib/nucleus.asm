@@ -24,38 +24,6 @@ RB	EQU $46
 
 stack 		EQU $0100
 
-; Floating point routines
-MOVFM		EQU $bba2
-CONUPK		EQU $ba8c
-MOVMF		EQU $bbd4
-FCOMP		EQU	$bc5b
-FOUT		EQU $bddd
-FOUTDIRECT	EQU $aabc
-GIVAYF		EQU $b391
-FACINX		EQU	$b1bf
-FMULT		EQU $ba28
-FDIV		EQU $bb0f
-FADDT		EQU $b86a
-FSUBT		EQU $b853
-FRAND		EQU $e097
-FABS		EQU $bc58
-FSIN		EQU $e26b
-FCOS		EQU $e264
-FATN		EQU $e30e
-FTAN		EQU $e2b4
-BYTETOF		EQU $bc3c
-SQR			EQU $bf71
-SGN			EQU $bc39
-STRVAL		EQU $b7b5
-QINT		EQU $bc9b
-
-; KERNAL routines
-SETNAM		EQU $ffbd
-SETLFS		EQU $ffba
-LOAD		EQU $ffd5
-SAVE		EQU $ffd8
-PLOT		EQU $fff0
-
 	; Push a zero on the stack
 	; EXAMINE REFS BEFORE CHANGING!
 	MAC pzero
@@ -1595,14 +1563,14 @@ NUCL_DIVU16 SUBROUTINE
 	ENDM
 
 	MAC inkeyb
-	jsr KERNAL_GETIN
+	stdlib_getin
 	IF !FPUSH
 	pha
 	ENDIF
 	ENDM
 	
 	MAC inkeyw
-	inkeyb
+	inkeyb                
 	IF !FPUSH
 	lda #0
 	pha
@@ -1903,8 +1871,28 @@ NUCL_DIVU16 SUBROUTINE
 	sta $01
 	ENDM
 	
+	; print byte as decimal  	
+	MAC printb
+	pla
+	jsr STDLIB_PRINT_BYTE
+	ENDM
+	
+	; print word as decimal  	
+	MAC printw
+	IF !FPULL
+	pla
+	sta R3
+	pla
+	sta R2
+	ELSE
+	sta R2
+	sty R3
+	ENDIF
+	jsr STDLIB_PRINT_WORD
+	ENDM
+	
 	; print float as decimal
-	MAC stdlib_printf
+	MAC printf
 	basicin
 	pullfac
 	jsr FOUT
@@ -1920,85 +1908,25 @@ NUCL_DIVU16 SUBROUTINE
 	; init program: save stack pointer and seed rnd
 	MAC init_program
 	tsx
-	stx RESERVED_STACK_POINTER
-	seed_rnd
+	stx STDLIB_STACK_POINTER
+	jsr STDLIB_SEED_RND
 	basicout
 	ENDM
 
 	; end program: restore stack pointer and exit
 	MAC halt
 	basicin
-	ldx RESERVED_STACK_POINTER
+	ldx STDLIB_STACK_POINTER
 	txs
 	rts
 	ENDM
 
-	; Load routine
-	; load 1: load at address stored in file
-	; load 0: load at a specified address 
-	; arguments on stack: address (if any), device no, filename_length, filename 
 	MAC load
-	; get filename and length
-	pla
-	tay
-	pla
-	tax
-	pla
-	jsr SETNAM
-	; get device no
-	pla ; discard high byte
-	pla
-	tax
-	lda #$01
-	ldy #{1}
-	jsr SETLFS
-	; get address
-	IF {1} == 0
-	pla
-	tay
-	pla
-	tax
-	ENDIF
-	lda #$00
-	jsr LOAD
-	bcs .error
-	lda #$00
-.error
-	sta FILE_ERROR_MSG
+	stdlib_load {1}
 	ENDM
 	
-	; Save routine
-	; arguments on stack: address_end, address_start, device no, filename_length, filename 
 	MAC save
-	; get filename and length
-	pla
-	tay
-	pla
-	tax
-	pla
-	jsr SETNAM
-	; get device no
-	pla ; discard high byte
-	pla
-	tax
-	lda #$00
-	ldy #$00
-	jsr SETLFS
-	; get address
-	pla
-	sta R1
-	pla
-	sta R0
-	pla
-	tay
-	pla
-	tax
-	lda #R0
-	jsr SAVE
-	bcs .error
-	lda #$00
-.error
-	sta FILE_ERROR_MSG
+	stdlib_save {1}
 	ENDM
 	
 	; Get error code after file i/o
@@ -2358,6 +2286,64 @@ NUCL_SQRW	SUBROUTINE
 	pha
 	lda {1}_tmp_retaddr+1
 	pha
+	ENDM
+	
+	; Print a string pointed to
+	; by top 2 bytes on stack
+	MAC prints
+    pla
+    tay
+    pla
+    jsr STDLIB_PRINT
+	ENDM
+	
+	; Print one character
+	MAC printc
+	stdlib_printc {1}
+	ENDM                  
+	
+	; Output integer as decimal at col, row
+	MAC wat
+	IF !FPULL
+	pla
+	sta R3
+	pla
+	sta R2
+	ELSE
+	sta R2
+	sty R3
+	ENDIF
+	pla
+	sta RB
+	pla
+	sta RA
+	jsr STDLIB_OUTPUT_WORD
+	ENDM
+	
+	; Output byte as decimal at col, row
+	MAC bat
+	IF !FPULL
+	pla
+	ENDIF
+	tax
+	pla
+	sta RB
+	pla
+	sta RA
+	txa
+	jsr STDLIB_OUTPUT_BYTE
+	ENDM
+	
+	; Output float as decimal at col, row
+	MAC fat
+	basicin
+	pullfac
+	pla
+	sta RB
+	pla
+	sta RA
+	jsr STDLIB_OUTPUT_FLOAT
+	basicout
 	ENDM
 	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00

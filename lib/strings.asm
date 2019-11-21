@@ -231,63 +231,6 @@ STR_STRPOS	SUBROUTINE
 	pha
 	ENDM
 	
-STR_INPUT	SUBROUTINE
-	; INPUT routine
-	; A/Y pointer to string
-	; R0/R1 pointer to mask
-	; R5 maxlength
-.cnt	EQU R6
-	sta R2
-	sty R3
-	lda #$00
-	sta $cc	; turn on cursor
-	sta .cnt
-.loop
-	jsr KERNAL_GETIN
-	beq .loop
-	cmp #$14
-	beq .delete
-	cmp #$0d
-	beq .end
-	ldy .cnt
-	cpy R5
-	beq .loop
-	jsr .checkmask	
-	jmp .loop	
-.delete 
-	ldx .cnt
-	beq .loop
- 	dec .cnt
- 	jsr KERNAL_PRINTCHR
- 	jmp .loop
-.checkmask
-	ldy #$00
-.checkloop
-	cmp (R0),y
-	beq .ok
-	iny
-	pha
-	lda (R0),y
-	beq .invalid
-	pla
-	jmp .checkloop
-.ok
-	ldy .cnt
-	sta (R2),y
-	jsr KERNAL_PRINTCHR
-	inc .cnt
-	rts
-.invalid
-	pla
-	jmp .loop
-.end
-	ldy .cnt
-	lda #$00
-	sta (R2),y
-	lda #$ff
-	sta $cc
-	rts
-	
 	; Opcode for input
 	MAC input
 	; mask address
@@ -302,7 +245,7 @@ STR_INPUT	SUBROUTINE
 	pla
 	tay
 	pla
-	jsr STR_INPUT
+	jsr STDLIB_STR_INPUT
 	ENDM
 	
 str_default_mask

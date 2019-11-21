@@ -22,12 +22,7 @@ class Print_stmt:Stmt
                     Ex.eval();
                     char type = Ex.detect_type();
                     this.program.appendProgramSegment(to!string(Ex));
-                    if(type == 's') {
-                        this.program.appendProgramSegment("\tstdlib_putstr\n");
-                    }
-                    else {
-                        this.program.appendProgramSegment("\tstdlib_print"~ to!string(type) ~"\n");
-                    }
+                    this.program.appendProgramSegment("\tprint"~ to!string(type) ~"\n");
                 break;
 
                 case "XCBASIC.String":
@@ -35,12 +30,12 @@ class Print_stmt:Stmt
                     Stringliteral sl = new Stringliteral(str, this.program);
                     sl.register();
                     this.program.appendProgramSegment("\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n");
-                    this.program.appendProgramSegment("\tstdlib_putstr\n");
+                    this.program.appendProgramSegment("\tprints\n");
                 break;
             }
         }
 
-        this.program.appendProgramSegment("\tlda #13\n");
-        this.program.appendProgramSegment("\tjsr KERNAL_PRINTCHR\n");
+        // Print line feed
+        this.program.appendProgramSegment("\tprintc #13\n");
     }
 }

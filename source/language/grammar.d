@@ -60,7 +60,7 @@ XCBASIC:
     On_stmt <       "on"i :WS? Expression :WS? Branch_type :WS? Label_ref (:WS? "," :WS? Label_ref)*
     Wait_stmt <     "wait"i :WS? Expression :WS? "," :WS? Expression (:WS? "," :WS? Expression)?
     Watch_stmt <    "watch"i :WS? Expression :WS? "," :WS? Expression
-    Pragma_stmt <   "pragma"i :WS? Id :WS? "=" :WS? Number
+    Pragma_stmt <   "pragma"i :WS? Id :WS? "=" :WS? (Number / String)
     Memset_stmt <   "memset"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
     Memcpy_stmt <   "memcpy"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
     Memshift_stmt < "memshift"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
