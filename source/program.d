@@ -4,7 +4,7 @@ import core.stdc.stdlib;
 import language.statement;
 import library.stringlib, library.memlib, library.basicstdlib, library.nucleus, library.opt;
 import globals;
-import std.algorithm.mutation;
+import std.algorithm.mutation, std.algorithm.searching;
 
 struct Variable {
 	ushort location;
@@ -83,6 +83,10 @@ struct Stack {
     }
 }
 
+struct Compiler_opt_rule {
+    string[] valid_values;
+}
+
 class Program
 {
 	ubyte[char] varlen;
@@ -92,6 +96,8 @@ class Program
 	Variable[] variables;
 	Variable[] external_variables;
 	Variable[] program_data;
+
+    Compiler_opt_rule[string] compiler_opt_rules;
 
 	string[] labels;
 
@@ -135,18 +141,111 @@ class Program
 
         this.compiler_options = [
             "civars" : "0",
-            "target" : "c64"
+            "target" : "c64",
+            "vic20_memsetup" : "default",
+            "c64_screen_memory" : "$0400"
+        ];
+
+        this.compiler_opt_rules = [
+            "civars" : Compiler_opt_rule(["0", "1"]),
+            "target" : Compiler_opt_rule(["c64", "vic20", "cplus4", "c16"]),
+            "vic20_memsetup" : Compiler_opt_rule(["default", "3k", "8k"])
         ];
 	}
+
+    string getScreenAddr()
+    {
+        string target = this.compiler_options["target"];
+        string vic20_opt = this.compiler_options["vic20_memsetup"];
+        string addr;
+
+        switch(target) {
+            // C-64
+            case "c64":
+                addr = this.compiler_options["c64_screen_memory"];
+                break;
+
+            case "vic20":
+                // VIC-20 unexpanded or 3k ram
+                if(vic20_opt == "default" || vic20_opt == "3k") {
+                    addr = "$1e00";
+                }
+                // VIC-20 8k+ RAM
+                else {
+                    addr = "$1000";
+                }
+                break;
+
+            // C16 and Plus/4
+            default:
+                addr = "$0c00";
+                break;
+        }
+
+        return addr;
+    }
+
+    ubyte getColumnCount()
+    {
+        string target = this.compiler_options["target"];
+        if(target == "vic20") {
+            return 22;
+        }
+
+        return 40;
+    }
+
+    string getStartAddr()
+    {
+        string target = this.compiler_options["target"];
+        string vic20_opt = this.compiler_options["vic20_memsetup"];
+        string addr;
+
+        switch(target) {
+            // C-64
+            case "c64":
+                addr = "$0801";
+                break;
+
+            case "vic20":
+                // VIC-20 unexpanded
+                if(vic20_opt == "default") {
+                    addr = "$1001";
+                }
+                // VIC-20 3k RAM
+                else if(vic20_opt == "3k") {
+                    addr = "$0401";
+                }
+                // VIC-20 8k+ RAM
+                else {
+                    addr = "$1201";
+                }
+                break;
+
+            // C16 and Plus/4
+            default:
+                addr = "$1001";
+                break;
+        }
+
+        return addr;
+    }
 
     void setCompilerOption(string option_key, string option_value)
     {
         string* ptr = (option_key in this.compiler_options);
         if(ptr !is null) {
-            *ptr = option_value;
+            Compiler_opt_rule rule = this.compiler_opt_rules[option_key];
+            if(rule.valid_values.find(option_value).empty) {
+                this.warning("'" ~ option_value ~ "' is not valid for compiler option '" ~ option_key ~ "', ignoring directive");
+            }
+            else {
+                *ptr = option_value;
+            }
+
         }
         else {
-            this.warning("Compiler option '" ~ option_key ~ "' not recognized");
+            this.warning("Compiler option '" ~ option_key ~ "' not recognized, ignoring directive");
         }
     }
 
@@ -301,7 +400,7 @@ class Program
 		asm_code ~= "\tPROCESSOR 6502\n\n";
         asm_code ~= "\tINCDIR \""~this.source_path~"\"\n";
 		asm_code ~= "\tSEG UPSTART\n";
-		asm_code ~= "\tORG $0801\n";
+		asm_code ~= "\tORG "~ this.getStartAddr() ~"\n";
 		asm_code ~= "\tDC.W next_line\n";
 		asm_code ~= "\tDC.W 2018\n";
 		asm_code ~= "\tHEX 9e\n";
@@ -315,6 +414,8 @@ class Program
         asm_code ~= "\tECHO \"===================\"\n";
         asm_code ~= "\tECHO \"BASIC loader: $801 -\", *-1\n";
         asm_code ~= "library_start:\n";
+        asm_code ~= "STDLIB_SCREEN_ADDR EQU " ~ this.getScreenAddr() ~ "\n";
+
 		asm_code ~= library.nucleus.get_code(this.compiler_options["target"]) ~ "\n";
         asm_code ~= library.opt.code ~ "\n";
 		asm_code ~= library.basicstdlib.get_code(this.compiler_options["target"]) ~ "\n";

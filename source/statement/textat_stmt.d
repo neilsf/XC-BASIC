@@ -33,13 +33,13 @@ class Textat_stmt:Stmt
         string offset_code = "";
 
         offset_code ~= to!string(row); // rownum second
-        // multiply by 40
-        offset_code ~="\tpword #40\n" ~ "\tmulw\n";
+        // multiply by column count
+        offset_code ~="\tpword "~to!string(this.program.getColumnCount())~"\n" ~ "\tmulw\n";
         // add column
         offset_code ~= to!string(col); // colnum last
         offset_code ~= "\taddw\n";
-        // add 1024
-        offset_code ~="\tpword #1024\n" ~ "\taddw\n";
+        // add screen address
+        offset_code ~="\tpword #STDLIB_SCREEN_ADDR\n" ~ "\taddw\n";
 
         if(exlist.children[2].name == "XCBASIC.Expression") {
 
