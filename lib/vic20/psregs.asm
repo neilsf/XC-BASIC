@@ -2,7 +2,7 @@
 ; XC=BASIC
 ; Pseudo-registers
 ;
-; ZP locations reserved
+; ZP locations reserved for VIC20
 ; ------------------------------------------
 
 R0	EQU $fb
