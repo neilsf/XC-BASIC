@@ -1910,6 +1910,7 @@ NUCL_DIVU16 SUBROUTINE
 	tsx
 	stx STDLIB_STACK_POINTER
 	jsr STDLIB_SEED_RND
+	jsr STDLIB_MEMSETUP
 	basicout
 	ENDM
 
@@ -2344,6 +2345,24 @@ NUCL_SQRW	SUBROUTINE
 	sta RA
 	jsr STDLIB_OUTPUT_FLOAT
 	basicout
+	ENDM
+	
+	; TEXTAT - output string at col, row
+	; args on stack:
+	; top 2 - string addr
+	; then COL, ROW
+	MAC textat
+	IF !FPULL
+	pla
+	ENDIF
+	sta RB
+	pla
+	sta RA
+	pla
+	sta R9
+	pla
+	sta R8
+	jsr STDLIB_TEXTAT
 	ENDM
 	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00

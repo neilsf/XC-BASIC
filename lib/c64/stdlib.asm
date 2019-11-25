@@ -14,6 +14,7 @@ KERNAL_SAVE			EQU $ffd8
 KERNAL_PLOT			EQU $fff0
 KERNAL_PRINTCHR		EQU $e716
 KERNAL_GETIN 		EQU $ffe4	
+KERNAL_SCREEN		EQU $ffed
 
 ; Storage space to save SP 
 STDLIB_STACK_POINTER DC.B 0
@@ -23,6 +24,9 @@ FILE_ERROR_MSG		 DC.B 0
 temp1:   DC.B $5a
 ; Random number
 random:  DC.B %10011101,%01011011
+
+STDLIB_SCREEN_COLS DC.B 0
+STDLIB_SCREEN_ROWS DC.B 0
 
 ; ---------------------------------------------------------
 ; Store stack pointer to memory
@@ -47,8 +51,43 @@ random:  DC.B %10011101,%01011011
 ; ---------------------------------------------------------
 
 STDLIB_MEMSETUP SUBROUTINE
+	; Set memory layout
 	lda #$36
 	sta $01
+	; Set VIC-II bank
+	lda #STDLIB_C64_VIC_BANK
+	eor #%11111111
+	and #%00000011
+	sta R0
+	lda $dd00
+	and #%11111100
+	ora R0
+	sta $dd00
+	; Set screen address
+	lda #STDLIB_C64_VIDEO_MATRIX
+	asl
+	asl
+	sta R0
+	asl
+	asl
+	ora $d018
+	sta $d018
+	; Calculate absolute screen address
+	; and notify KERNAL about the change
+	lda #STDLIB_C64_VIC_BANK
+	asl
+	asl
+	asl
+	asl
+	asl
+	asl
+	ora R0
+	sta $0288
+	; Get screen cols and rows and
+	; Store them
+	jsr KERNAL_SCREEN
+	stx STDLIB_SCREEN_COLS
+	sty STDLIB_SCREEN_ROWS
 	rts
 	
 ; ---------------------------------------------------------
@@ -293,29 +332,61 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 .end
 	rts
 		
-	MAC textat
-	IF !FPULL
+; ---------------------------------------------------------
+; Output string pointed to by (RA)
+; To screen at 
+; Row in R8
+; Col in R9
+; TODO optimize
+; ---------------------------------------------------------
+		
+STDLIB_TEXTAT	SUBROUTINE
+	; Multiply Row by 40
+	lda R8
+	REPEAT 3
+	asl
+	REPEND
+	pha
+	sta R6
+	lda #$00
+	sta R7
+	REPEAT 2
+	asl R6
+	rol R7
+	REPEND
+	; Now we have Row * 32
+	; Now get Row * 8
 	pla
-	sta R3
-	pla
-	sta R2
-	ELSE
-	sta R2
-	sty R3
-	ENDIF
-	pla
-	sta R1
-	pla
-	sta R0
+	; And add them
+	clc
+	adc R6
+	sta R6
+	lda #$00
+	adc R7
+	sta R7
+	; Add Column
+	lda R9
+	clc
+	adc R6
+	sta R6
+	lda #$00
+	adc R7
+	sta R7
+	; Add screen pointer
+	clc
+	lda $0288
+	adc R7
+	sta R7
+	; Now we have a pointer in R6
 	ldy #$00
 .loop:
-	lda (R0),y
+	lda (RA),y
 	beq .end
-	sta (R2),y
+	sta (R6),y
 	iny
 	jmp .loop
 .end:
-	ENDM
+	rts
 	
 ; ---------------------------------------------------------	
 ; Ouput one character	

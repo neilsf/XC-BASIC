@@ -143,7 +143,8 @@ class Program
             "civars" : "0",
             "target" : "c64",
             "vic20_memsetup" : "default",
-            "c64_screen_memory" : "$0400"
+            "c64_vic_bank" : "0",
+            "c64_video_matrix" : "1"
         ];
 
         this.compiler_opt_rules = [
@@ -162,7 +163,7 @@ class Program
         switch(target) {
             // C-64
             case "c64":
-                addr = this.compiler_options["c64_screen_memory"];
+                addr = this.compiler_options["c64_video_matrix"];
                 break;
 
             case "vic20":
@@ -235,9 +236,14 @@ class Program
     {
         string* ptr = (option_key in this.compiler_options);
         if(ptr !is null) {
-            Compiler_opt_rule rule = this.compiler_opt_rules[option_key];
-            if(rule.valid_values.find(option_value).empty) {
-                this.warning("'" ~ option_value ~ "' is not valid for compiler option '" ~ option_key ~ "', ignoring directive");
+            if(option_key in this.compiler_opt_rules) {
+                Compiler_opt_rule rule = this.compiler_opt_rules[option_key];
+                if(rule.valid_values.find(option_value).empty) {
+                    this.warning("'" ~ option_value ~ "' is not valid for compiler option '" ~ option_key ~ "', ignoring directive");
+                }
+                else {
+                    *ptr = option_value;
+                }
             }
             else {
                 *ptr = option_value;
@@ -414,6 +420,8 @@ class Program
         asm_code ~= "\tECHO \"===================\"\n";
         asm_code ~= "\tECHO \"BASIC loader: $801 -\", *-1\n";
         asm_code ~= "library_start:\n";
+        asm_code ~= "STDLIB_C64_VIC_BANK EQU " ~ this.compiler_options["c64_vic_bank"] ~ "\n";
+        asm_code ~= "STDLIB_C64_VIDEO_MATRIX EQU " ~ this.compiler_options["c64_video_matrix"] ~ "\n";
         asm_code ~= "STDLIB_SCREEN_ADDR EQU " ~ this.getScreenAddr() ~ "\n";
 
 		asm_code ~= library.nucleus.get_code(this.compiler_options["target"]) ~ "\n";

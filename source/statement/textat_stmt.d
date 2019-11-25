@@ -22,24 +22,18 @@ class Textat_stmt:Stmt
         }
 
         col.eval();
-        if(col.type == 'b') {
-            col.btow();
+        if(col.type == 'w') {
+            col.convert('b');
         }
         row.eval();
-        if(row.type == 'b') {
-            row.btow();
+        if(row.type == 'w') {
+            row.convert('b');
         }
 
         string offset_code = "";
 
-        offset_code ~= to!string(row); // rownum second
-        // multiply by column count
-        offset_code ~="\tpword "~to!string(this.program.getColumnCount())~"\n" ~ "\tmulw\n";
-        // add column
-        offset_code ~= to!string(col); // colnum last
-        offset_code ~= "\taddw\n";
-        // add screen address
-        offset_code ~="\tpword #STDLIB_SCREEN_ADDR\n" ~ "\taddw\n";
+        offset_code ~= to!string(row);
+        offset_code ~= to!string(col);
 
         if(exlist.children[2].name == "XCBASIC.Expression") {
 
@@ -64,8 +58,8 @@ class Textat_stmt:Stmt
             Stringliteral sl = new Stringliteral(str, this.program);
             sl.register(false, true);
             // text first
-            this.program.appendProgramSegment("\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n");
             this.program.appendProgramSegment(offset_code);
+            this.program.appendProgramSegment("\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n");
             this.program.appendProgramSegment("\ttextat\n");
         }
     }
