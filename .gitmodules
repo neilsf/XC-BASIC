@@ -1,3 +1,6 @@
 [submodule "tools/xcbasiclanguagevscodeext"]
 	path = tools/xcbasiclanguagevscodeext
 	url = https://github.com/Viza74/xcbasiclanguagevscodeext
+[submodule "extensions/xcb-ext-sprite"]
+	path = extensions/xcb-ext-sprite
+	url = https://github.com/neilsf/xcb-ext-sprite.git
