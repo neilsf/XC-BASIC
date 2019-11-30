@@ -4,3 +4,6 @@
 [submodule "extensions/xcb-ext-sprite"]
 	path = extensions/xcb-ext-sprite
 	url = https://github.com/neilsf/xcb-ext-sprite.git
+[submodule "extensions/xcb-ext-joystick"]
+	path = extensions/xcb-ext-joystick
+	url = https://github.com/neilsf/xcb-ext-joystick.git
