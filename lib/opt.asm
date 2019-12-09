@@ -506,7 +506,6 @@
 	lda {2}
 	cmp {1}
 	bcc *+7	; true
-	beq *+5	; true
 	IFCONST {4}
 	jmp {4}
 	ELSE
