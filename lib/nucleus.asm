@@ -2360,6 +2360,67 @@ NUCL_SQRW	SUBROUTINE
 	pha
 	ENDM
 	
+	; Swap byte and word on top of stack
+	MAC swapb
+	tsx
+	lda.wx stack+1
+	tay
+	lda.wx stack+2
+	sta.wx stack+1
+	lda.wx stack+3
+	sta.wx stack+2
+	tya
+	sta.wx stack+1
+	ENDM
+	
+	; Swap two words on top of stack
+	; sp H L H L
+	MAC swapw
+	tsx
+	lda.wx stack+1
+	tay
+	lda.wx stack+3
+	sta.wx stack+1
+	tya
+	sta.wx stack+3
+	
+	lda.wx stack+2
+	tay
+	lda.wx stack+4
+	sta.wx stack+2
+	tya
+	sta.wx stack+4
+	ENDM
+	
+	MAC swaps
+	swapw
+	ENDM
+	
+	; Swap float and word on stack
+	; sp f1 f2 f3 f4 f5 H L
+	MAC swapf
+	tsx
+	lda.wx stack+7
+	tay
+	lda.wx stack+6
+	sta R0
+	lda.wx stack+5
+	lda.wx stack+7
+	lda.wx stack+4
+	lda.wx stack+6
+	lda.wx stack+3
+	lda.wx stack+5
+	lda.wx stack+2
+	lda.wx stack+4
+	lda.wx stack+1
+	lda.wx stack+3
+	lda R0
+	sta.wx stack+1
+	tya
+	sta.wx stack+2
+	ENDM
+	
+	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
 err_illegal_quantity HEX 49 4C 4C 45 47 41 4C 20 51 55 41 4E 54 49 54 59 00
 

@@ -395,6 +395,55 @@ class Program
         return ret;
     }
 
+    /**
+     * Push local variables (including input params)
+     * onto the stack
+     */
+
+    string push_locals()
+    {
+        string asmcode = "";
+        foreach(ref var; this.localVariables()) {
+            if(var.dimensions == [1,1]) {
+                asmcode ~= "\tp"~to!string(var.type)~"var " ~ var.getLabel() ~ "\n";
+            }
+            else {
+                // an array
+                int length = var.dimensions[0] * var.dimensions[1] * this.varlen[var.type];
+                for(int offset = 0; offset < length; offset++) {
+                    asmcode ~= "\tpbyte " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
+                }
+            }
+        }
+
+        return asmcode;
+    }
+
+    /**
+     * Pull local variables (including input params)
+     * off of the stack
+     */
+
+    string pull_locals()
+    {
+        string asmcode = "";
+        foreach(ref var; this.localVariables().reverse) {
+            if(var.dimensions == [1,1]) {
+                asmcode ~= "\tpl"~to!string(var.type)~"2var " ~ var.getLabel() ~ "\n";
+            }
+            else {
+                // an array
+                int length = var.dimensions[0] * var.dimensions[1] * this.varlen[var.type];
+                for(int offset = length -1 ; offset >= 0; offset--) {
+                    asmcode ~= "\tplb2var " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
+                }
+            }
+        }
+
+        return asmcode;
+    }
+
+
     Procedure findProcedure(string name)
 	{
 		foreach(ref elem; this.procedures) {

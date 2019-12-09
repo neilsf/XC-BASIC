@@ -48,38 +48,13 @@ class Call_stmt:Stmt
         bool recursive = false;
         if(lbl == this.program.current_proc_name) {
             recursive = true;
-            // push local vars
-            foreach(ref var; this.program.localVariables()) {
-                if(var.dimensions == [1,1]) {
-                    this.program.appendProgramSegment("\tp"~to!string(var.type)~"var " ~ var.getLabel() ~ "\n");
-                }
-                else {
-                    // an array
-                    int length = var.dimensions[0] * var.dimensions[1] * this.program.varlen[var.type];
-                    for(int offset = 0; offset < length; offset++) {
-                        this.program.appendProgramSegment("\tpbyte " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n");
-                    }
-                }
-            }
+            this.program.appendProgramSegment(this.program.push_locals());
         }
 
         this.program.appendProgramSegment("\tjsr " ~ proc.getLabel() ~ "\n");
 
         if(recursive) {
-            // pull local vars
-            foreach(ref var; this.program.localVariables().reverse) {
-                if(var.dimensions == [1,1]) {
-                    this.program.appendProgramSegment("\tpl"~to!string(var.type)~"2var " ~ var.getLabel() ~ "\n");
-                }
-                else {
-                    // an array
-                    int length = var.dimensions[0] * var.dimensions[1] * this.program.varlen[var.type];
-                    for(int offset = length -1 ; offset >= 0; offset--) {
-                        this.program.appendProgramSegment("\tplb2var " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n");
-                    }
-                }
-
-            }
+            this.program.appendProgramSegment(this.program.pull_locals());
         }
     }
 }

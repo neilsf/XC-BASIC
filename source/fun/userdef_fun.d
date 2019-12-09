@@ -48,6 +48,9 @@ class UserDef_fun : Fun
     override string toString()
     {
         string asmcode;
+
+        bool recursive = (this.proc.name == this.program.current_proc_name);
+
         for(ubyte i = 0; i < this.proc.arguments.length; i++) {
             asmcode ~= to!string(this.arglist[i]);
             char vartype = this.proc.arguments[i].type;
@@ -55,7 +58,16 @@ class UserDef_fun : Fun
             asmcode ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ varlabel ~ "\n";
         }
 
+        if(recursive) {
+            asmcode ~= this.program.push_locals();
+        }
+
         asmcode ~= fncode;
+
+        if(recursive) {
+            asmcode ~= this.program.pull_locals();
+        }
+
         return asmcode;
     }
 }
