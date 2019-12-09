@@ -51,6 +51,10 @@ class UserDef_fun : Fun
 
         bool recursive = (this.proc.name == this.program.current_proc_name);
 
+        if(recursive) {
+            this.program.warning("Recursive functions are not supported in this version");
+        }
+
         for(ubyte i = 0; i < this.proc.arguments.length; i++) {
             asmcode ~= to!string(this.arglist[i]);
             char vartype = this.proc.arguments[i].type;
@@ -58,15 +62,7 @@ class UserDef_fun : Fun
             asmcode ~= "\tpl" ~ to!string(vartype) ~ "2var " ~ varlabel ~ "\n";
         }
 
-        if(recursive) {
-            asmcode ~= this.program.push_locals();
-        }
-
         asmcode ~= fncode;
-
-        if(recursive) {
-            asmcode ~= this.program.pull_locals();
-        }
 
         return asmcode;
     }

@@ -2370,7 +2370,7 @@ NUCL_SQRW	SUBROUTINE
 	lda.wx stack+3
 	sta.wx stack+2
 	tya
-	sta.wx stack+1
+	sta.wx stack+3
 	ENDM
 	
 	; Swap two words on top of stack
@@ -2405,15 +2405,15 @@ NUCL_SQRW	SUBROUTINE
 	lda.wx stack+6
 	sta R0
 	lda.wx stack+5
-	lda.wx stack+7
+	sta.wx stack+7
 	lda.wx stack+4
-	lda.wx stack+6
+	sta.wx stack+6
 	lda.wx stack+3
-	lda.wx stack+5
+	sta.wx stack+5
 	lda.wx stack+2
-	lda.wx stack+4
+	sta.wx stack+4
 	lda.wx stack+1
-	lda.wx stack+3
+	sta.wx stack+3
 	lda R0
 	sta.wx stack+1
 	tya

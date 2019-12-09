@@ -47,7 +47,7 @@ XCBASIC:
     Inc_stmt <      "inc"i :WS? Var
     Dec_stmt <      "dec"i :WS? Var
     Proc_stmt <     "proc"i :WS Label_ref eps :WS? (:"(" :WS? VarList :WS? :")")?
-    Fun_stmt <      "fun"i :WS Varname Vartype :WS? (:"(" :WS? VarList :WS? :")")?
+    Fun_stmt <      "fun"i :WS Varname Vartype :WS? :"(" :WS? VarList? :WS? :")"
     Endproc_stmt <  "endproc"i
     Endfun_stmt <   "endfun"i
     Sys_stmt <      "sys"i :WS? Expression
