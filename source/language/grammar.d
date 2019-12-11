@@ -17,7 +17,7 @@ XCBASIC:
                 Fun_stmt / Endfun_stmt / End_stmt / Return_fn_stmt / Return_stmt / Userdef_cmd
     Const_stmt <    "const"i :WS? Var :WS? "=" :WS? Number
     Let_stmt <      ("let"i / eps) :WS? Var :WS? "=" :WS? Expression
-    Print_stmt <    "print"i :WS? ExprList
+    Print_stmt <    "print"i :WS? ExprList :WS? ";"?
     If_stmt <       "if"i :WS? Condition :WS? "then"i :WS? Statements :WS? ("else"i :WS? Statements)?
     If_sa_stmt <    "if"i :WS? Condition :WS? "then"i
     Else_stmt <     "else"i

@@ -40,7 +40,10 @@ class Print_stmt:Stmt
             }
         }
 
-        this.program.appendProgramSegment("\tlda #13\n");
-        this.program.appendProgramSegment("\tjsr KERNAL_PRINTCHR\n");
+        string statement = join(this.node.matches);
+        if(statement[$-1] != ';') {
+            this.program.appendProgramSegment("\tlda #13\n");
+            this.program.appendProgramSegment("\tjsr KERNAL_PRINTCHR\n");
+        }
     }
 }
