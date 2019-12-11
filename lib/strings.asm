@@ -284,8 +284,15 @@ STR_INPUT	SUBROUTINE
 	ldy .cnt
 	lda #$00
 	sta (R2),y
+	
+	; turn off cursor 
+	ldy $d3
+	lda ($d1),y
+	ora #%01111111
+	sta ($d1),y
 	lda #$ff
 	sta $cc
+	
 	rts
 	
 	; Opcode for input

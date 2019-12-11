@@ -18,7 +18,7 @@ class Call_stmt:Stmt
         if(!this.program.procExists(lbl)) {
             string error;
             if(is_cmd) {
-                error = "Unknown command: " ~ lbl;
+                error = "Syntax error";
             }
             else {
                 error = "Unknown procedure: " ~ lbl;

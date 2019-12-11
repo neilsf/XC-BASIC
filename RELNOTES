@@ -1,9 +1,20 @@
 XC=BASIC Release Notes
 
 Current Release Number:
-   v2.1
+   v2.2-beta1
 Release Date:
-  04/11/2019
+  15/12/2019
+
+What's new in version 2.2?
+==========================
+
+(1) Implicit variable address
+
+(2) User defined functions
+
+(3)
+
+(4) Bugfixes
 
 What's new in version 2.1?
 ==========================
