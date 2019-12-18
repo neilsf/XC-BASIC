@@ -272,14 +272,15 @@ class Program
         codesegment ~= "\tinit_program\n";
         codesegment ~= "\t; !!opt_start!!\n";
 		codesegment ~= this.program_segment;
-        codesegment ~= "\t; !!opt_end!!\n";
+
 		codesegment ~= "prg_end:\n";
 		codesegment ~= "\thalt\n";
 
+        codesegment ~= this.routines_segment;
+        codesegment ~= "\t; !!opt_end!!\n";
+
         codesegment ~= "FPUSH\tSET 0\n";
         codesegment ~= "FPULL\tSET 0\n";
-
-        codesegment ~= this.routines_segment;
 		return codesegment;
 	}
 
@@ -615,13 +616,14 @@ class Program
 				case "XCBASIC.Unsigned":
 				string line_no = join(line_id.children[0].matches);
 				line_no = this.in_procedure ? this.current_proc_name ~ "." ~ line_no : line_no;
-				this.program_segment ~= "_L" ~ line_no ~ ":\n";
+                this.appendProgramSegment("_L" ~ line_no ~ ":\n");
+
 				break;
 
 				case "XCBASIC.Label":
 				string label = join(line_id.children[0].matches[0..$-1]);
 				label = this.in_procedure ? this.current_proc_name ~ "." ~ label : label;
-				this.program_segment ~= "_L" ~ label ~ ":\n";
+				this.appendProgramSegment("_L" ~ label ~ ":\n");
 				break;
 
 				default:
