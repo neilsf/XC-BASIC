@@ -134,7 +134,9 @@ class Program
         this.vartype_names['b'] = "byte";
 
         this.compiler_options = [
-            "civars" : 0
+            "civars" : 0,
+            "basic_loader" : 1,
+            "start_address" : 0x0800
         ];
 	}
 
@@ -297,23 +299,35 @@ class Program
 	string getAsmCode()
 	{
 		string asm_code;
+        string start_addr = to!string(this.compiler_options["start_address"], 16);
 
 		asm_code ~= "\tPROCESSOR 6502\n\n";
         asm_code ~= "\tINCDIR \""~this.source_path~"\"\n";
 		asm_code ~= "\tSEG UPSTART\n";
-		asm_code ~= "\tORG $0801\n";
-		asm_code ~= "\tDC.W next_line\n";
-		asm_code ~= "\tDC.W 2018\n";
-		asm_code ~= "\tHEX 9e\n";
-		asm_code ~= "\tIF prg_start\n";
-		asm_code ~= "\tDC.B [prg_start]d\n";
-		asm_code ~= "\tENDIF\n";
-		asm_code ~= "\tHEX 00\n";
-		asm_code ~= "next_line:\n\tHEX 00 00\n";
-		asm_code ~= "\t;------------    --------\n";
-        asm_code ~= "\tECHO \"Memory information:\"\n";
-        asm_code ~= "\tECHO \"===================\"\n";
-        asm_code ~= "\tECHO \"BASIC loader: $801 -\", *-1\n";
+		asm_code ~= "\tORG $" ~ start_addr ~ "\n";
+
+        if(this.compiler_options["basic_loader"] == 1) {
+            asm_code ~= "\tHEX 00\n";
+            asm_code ~= "\tDC.W next_line\n";
+            asm_code ~= "\tDC.W 2018\n";
+            asm_code ~= "\tHEX 9e\n";
+            asm_code ~= "\tIF prg_start\n";
+            asm_code ~= "\tDC.B [prg_start]d\n";
+            asm_code ~= "\tENDIF\n";
+            asm_code ~= "\tHEX 00\n";
+            asm_code ~= "next_line:\n\tHEX 00 00\n";
+            asm_code ~= "\t;------------    --------\n";
+            asm_code ~= "\tECHO \"Memory information:\"\n";
+            asm_code ~= "\tECHO \"===================\"\n";
+            asm_code ~= "\tECHO \"BASIC loader: $" ~ start_addr ~ " -\", *-1\n";
+        }
+        else {
+            asm_code ~= "\tjmp prg_start\n";
+            asm_code ~= "\tECHO \"Memory information:\"\n";
+            asm_code ~= "\tECHO \"===================\"\n";
+            asm_code ~= "\tECHO \"Startup:      $" ~ start_addr ~ " -\", *-1\n";
+        }
+
         asm_code ~= "library_start:\n";
 		asm_code ~= library.nucleus.code ~ "\n";
         asm_code ~= library.opt.code ~ "\n";
