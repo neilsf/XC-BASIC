@@ -14,7 +14,7 @@ KERNAL_SAVE			EQU $ffd8
 KERNAL_PLOT			EQU $fff0
 KERNAL_PRINTCHR		EQU $e716
 KERNAL_GETIN 		EQU $ffe4	
-KERNAL_SCREEN		EQU $ffed
+KERNAL_SCREEN		EQU $ffed                       
 
 ; Storage space to save SP 
 STDLIB_STACK_POINTER DC.B 0
@@ -579,6 +579,13 @@ STDLIB_STR_INPUT	SUBROUTINE
 	ldy .cnt
 	lda #$00
 	sta (R2),y
+	
+	; turn off cursor 
+	ldy $d3
+	lda ($d1),y
+	ora #%01111111
+	sta ($d1),y
 	lda #$ff
 	sta $cc
+	
 	rts

@@ -1,9 +1,24 @@
 XC=BASIC Release Notes
 
 Current Release Number:
-   v2.1
+   v2.2-beta1
 Release Date:
-  04/11/2019
+  12/12/2019
+
+What's new in version 2.2?
+==========================
+
+(1) Define implicit address for variables
+
+(2) User defined functions with FUN ... ENDFUN
+
+(3) The CALL keyword may be omitted when calling procedures
+
+(4) Joystick and sprite extensions
+
+(5) Use ; to suppress NL in PRINT
+
+(6) Bugfixes
 
 What's new in version 2.1?
 ==========================

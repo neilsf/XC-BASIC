@@ -87,11 +87,18 @@ string build_source(string filename)
         string line = strip(infile.readln(), "\n");
         source = source ~ line ~ "\n";
 
-        auto m = matchFirst(line, regex(`\s*(include|INCLUDE)\s*"([^"]+)"\s*`));
-        if(m) {
-            string fname = m[2];
-            string path = absolutePath(dirName(filename)) ~ "/" ~ fname;
-            source ~= build_source(path);
+        auto ast = XCBASIC(line);
+        auto bline = ast.children[0].children[0];
+        foreach(ref node; bline.children) {
+            if(node.name == "XCBASIC.Statements") {
+                foreach(ref statement; node.children) {
+                    if(statement.children[0].name == "XCBASIC.Include_stmt") {
+                        string fname = join(statement.children[0].children[0].matches[1..$-1]);
+                        string path = absolutePath(dirName(filename)) ~ "/" ~ fname;
+                        source ~= build_source(path);
+                    }
+                }
+            }
         }
     }
 

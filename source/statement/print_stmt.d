@@ -35,7 +35,10 @@ class Print_stmt:Stmt
             }
         }
 
-        // Print line feed
-        this.program.appendProgramSegment("\tprintc #13\n");
+        string statement = join(this.node.matches);
+        if(statement[$-1] != ';') {
+            this.program.appendProgramSegment("\tlda #13\n");
+            this.program.appendProgramSegment("\tjsr KERNAL_PRINTCHR\n");
+        }
     }
 }

@@ -11,5 +11,5 @@ if test "$1" = "-h"; then
     echo ""
     exit
 fi
-bin/macos_x86_64/xcbasic64 "$1" > /tmp/xcbtmp.asm && third_party/dasm-2.20.11/dasm.Darwin.x86 /tmp/xcbtmp.asm -o"$2"
+bin/macos_x86_64/xcbasic64 "$1" > /tmp/xcbtmp.asm && third_party/dasm-2.20.11/dasm.OSX.x86_64 /tmp/xcbtmp.asm -o"$2"
 rm /tmp/xcbtmp.asm
