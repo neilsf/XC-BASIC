@@ -11,5 +11,11 @@ if test "$1" = "-h"; then
     echo ""
     exit
 fi
-bin/linux_x86_64/xcbasic64 "$1" > /tmp/xcbtmp.asm && third_party/dasm-2.20.11/dasm.Linux.x86 /tmp/xcbtmp.asm -o"$2"
+MACHINE_TYPE=`uname -m`
+if [ ${MACHINE_TYPE} == 'x86_64' ]; then
+  bindir="linux_x86_64"
+else
+  bindir="linux_x86"
+fi
+bin/$bindir/xcbasic64 "$1" > /tmp/xcbtmp.asm && third_party/dasm-2.20.11/dasm.Linux.x86 /tmp/xcbtmp.asm -o"$2"
 rm /tmp/xcbtmp.asm
