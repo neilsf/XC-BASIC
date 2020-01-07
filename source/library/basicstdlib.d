@@ -20,6 +20,10 @@ string get_code(string platform)
             code = import("vic20/stdlib.asm");
             break;
 
+        case "c128":
+            code = import("c128/stdlib.asm");
+            break;
+
         default:
             assert(0);
     }

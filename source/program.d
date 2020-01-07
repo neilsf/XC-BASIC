@@ -145,8 +145,8 @@ class Program
             "start_address" : "$0800",
             "target" : "c64",
             "vic20_memsetup" : "default",
-            "c64_vic_bank" : "0",
-            "c64_video_matrix" : "1"
+            "vic_bank" : "0",
+            "vic_video_matrix" : "1"
         ];
 
         this.compiler_opt_rules = [
@@ -164,9 +164,10 @@ class Program
         string addr;
 
         switch(target) {
-            // C-64
+            // C-64 and C-128
             case "c64":
-                addr = this.compiler_options["c64_video_matrix"];
+            case "c128":
+                addr = "$0400";
                 break;
 
             case "vic20":
@@ -224,6 +225,10 @@ class Program
                 else {
                     addr = "$1201";
                 }
+                break;
+
+            case "c128":
+                addr = "$1c00";
                 break;
 
             // C16 and Plus/4
@@ -426,18 +431,18 @@ class Program
             asm_code ~= "\t;------------    --------\n";
             asm_code ~= "\tECHO \"Memory information:\"\n";
             asm_code ~= "\tECHO \"===================\"\n";
-            asm_code ~= "\tECHO \"BASIC loader: $" ~ this.getStartAddr() ~ " -\", *-1\n";
+            asm_code ~= "\tECHO \"BASIC loader: " ~ this.getStartAddr() ~ " -\", *-1\n";
         }
         else {
             asm_code ~= "\tjmp prg_start\n";
             asm_code ~= "\tECHO \"Memory information:\"\n";
             asm_code ~= "\tECHO \"===================\"\n";
-            asm_code ~= "\tECHO \"Startup:      $" ~ this.getStartAddr() ~ " -\", *-1\n";
+            asm_code ~= "\tECHO \"Startup:      " ~ this.getStartAddr() ~ " -\", *-1\n";
         }
 
         asm_code ~= "library_start:\n";
-        asm_code ~= "STDLIB_C64_VIC_BANK EQU " ~ this.compiler_options["c64_vic_bank"] ~ "\n";
-        asm_code ~= "STDLIB_C64_VIDEO_MATRIX EQU " ~ this.compiler_options["c64_video_matrix"] ~ "\n";
+        asm_code ~= "STDLIB_VIC_BANK EQU " ~ this.compiler_options["vic_bank"] ~ "\n";
+        asm_code ~= "STDLIB_VIC_VIDEO_MATRIX EQU " ~ this.compiler_options["vic_video_matrix"] ~ "\n";
         asm_code ~= "STDLIB_SCREEN_ADDR EQU " ~ this.getScreenAddr() ~ "\n";
 
 		asm_code ~= library.nucleus.get_code(this.compiler_options["target"]) ~ "\n";

@@ -20,6 +20,10 @@ string get_code(string platform)
             code = import("vic20/psregs.asm") ~ "\n" ~ import("vic20/fpaddr.asm");
             break;
 
+        case "c128":
+            code = import("c128/psregs.asm") ~ "\n" ~ import("c128/fpaddr.asm");
+            break;
+
         default:
             assert(0);
     }

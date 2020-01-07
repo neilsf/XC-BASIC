@@ -55,7 +55,7 @@ STDLIB_MEMSETUP SUBROUTINE
 	lda #$36
 	sta $01
 	; Set VIC-II bank
-	lda #STDLIB_C64_VIC_BANK
+	lda #STDLIB_VIC_BANK
 	eor #%11111111
 	and #%00000011
 	sta R0
@@ -64,7 +64,7 @@ STDLIB_MEMSETUP SUBROUTINE
 	ora R0
 	sta $dd00
 	; Set screen address
-	lda #STDLIB_C64_VIDEO_MATRIX
+	lda #STDLIB_VIC_VIDEO_MATRIX
 	asl
 	asl
 	sta R0
@@ -74,7 +74,7 @@ STDLIB_MEMSETUP SUBROUTINE
 	sta $d018
 	; Calculate absolute screen address
 	; and notify KERNAL about the change
-	lda #STDLIB_C64_VIC_BANK
+	lda #STDLIB_VIC_BANK                                                  
 	asl
 	asl
 	asl
