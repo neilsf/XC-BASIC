@@ -283,6 +283,11 @@ PLOT		EQU $fff0
 	ENDIF
 	ENDM
 	
+	; Pull string pointer to variable
+	MAC pls2var
+	plw2var {1}
+	ENDM
+	
 	; Pull float to variable
 	MAC plf2var
 	pla
