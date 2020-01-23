@@ -15,7 +15,7 @@ int line_count = 0;
 
 bool noopt = false;
 string output_type = "prg";
-string compiler_version = "v2.2.03";
+string compiler_version = "v2.3.0";
 
 
 void main(string[] args)
