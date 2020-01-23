@@ -15,17 +15,12 @@ int line_count = 0;
 
 bool noopt = false;
 string output_type = "prg";
-string compiler_version = "v2.2.02";
+string compiler_version = "v2.2.03";
 
 
 void main(string[] args)
 {
     Ini conf = get_conf();
-
-    if(args.length < 2) {
-        stderr.writeln("Error: input file not specified");
-        exit(1);
-    }
 
     auto helpInformation = getopt(args,
         "noopt|n", &noopt,
@@ -33,12 +28,16 @@ void main(string[] args)
     );
 
     if(helpInformation.helpWanted) {
-        display_help();
+        display_help(0);
     }
 
     if(output_type != "prg" && output_type != "asm") {
-        stderr.writeln("Invalid value for option -o");
+        stderr.writeln("** ERROR ** Invalid value for option -o");
         exit(1);
+    }
+
+    if(args.length < 3) {
+        display_help(1, "** ERROR ** Too few command line arguments.\n");
     }
 
     string filename = args[1];
@@ -50,12 +49,9 @@ void main(string[] args)
     if(!ast.successful) {
         auto lines = splitLines(to!string(ast));
         string line = lines[$-1];
-        stderr.writeln("Parser error: " ~ strip(line, " +-"));
-        //stderr.writeln(ast);
+        stderr.writeln("** ERROR ** Parser error: " ~ strip(line, " +-"));
         exit(1);
     }
-
-    //stderr.writeln(ast); exit(1);
 
     auto program = new Program();
     program.source_path = absolutePath(dirName(filename));
@@ -85,7 +81,7 @@ void main(string[] args)
         // Assemble!
         auto dasm = executeShell(dasm_bin ~ " " ~ asm_filename ~ " -o" ~ outname);
         if(dasm.status != 0) {
-            stderr.writeln("There has been an error while trying to execute DASM, please see the bellow message.");
+            stderr.writeln("** ERROR ** There has been an error while trying to execute DASM, please see the bellow message.");
             stderr.writeln(dasm.output);
 
             // Remove temp file and exit
@@ -124,7 +120,7 @@ string build_source(string filename)
         infile = File(filename, "r");
     }
     catch(Exception e) {
-        stderr.writeln("Failed to open source file (" ~ filename ~ ")");
+        stderr.writeln("** ERROR ** Failed to open source file (" ~ filename ~ ")");
         exit(1);
     }
 
@@ -164,9 +160,9 @@ string build_source(string filename)
  * Display help message and exit
  */
 
-void display_help()
+void display_help(int exit_code, string error_msg = "")
 {
-    stdout.writeln(
+    stdout.writeln(error_msg ~
 `
 XC=BASIC compiler version ` ~ compiler_version ~ `
 Copyright (c) 2019-2020 by Csaba Fekete
@@ -177,7 +173,7 @@ Options:
   --help or -h           Show this help
 `
     );
-    exit(0);
+    exit(exit_code);
 }
 
 /**
