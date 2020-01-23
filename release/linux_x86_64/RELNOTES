@@ -1,9 +1,18 @@
 XC=BASIC Release Notes
 
 Current Release Number:
-   v2.2
+   v2.3
 Release Date:
-  29/12/2019
+  23/01/2020
+
+What's new in version 2.3?
+=========================
+
+(1) New installers for Linux, Windows and Mac OS
+
+(2) The xcbasic64 executable now invokes DASM automatically, no need for batch scripts
+
+(3) Added the -h command line option and better command line argument parsing
 
 What's new in version 2.2?
 ==========================
