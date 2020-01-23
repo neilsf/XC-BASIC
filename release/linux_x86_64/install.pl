@@ -77,7 +77,7 @@ if(not -w $target) {
 `chmod +x $target/xcbasic64/dasm/dasm.Linux.x86`;
 if($choice eq "1" or $choice eq "3") {
     `PATH="${PATH:+"$PATH:"}$target/xcbasic64"`;
-    print "NOTE: the directory $target/xcbasic64 has been added to PATH.\n";
+    print "NOTE: the directory $target/xcbasic64 has been added to PATH. You may want to make this permanent by editing ~/.bashrc\n";
 }
 else {
     $cmd = `ln -sf $target/xcbasic64/xcbasic64 /usr/local/bin/xcbasic64`;
