@@ -8,7 +8,7 @@
 
 [Setup]
 AppName="XC=BASIC"
-AppVersion=2.2.03
+AppVersion=2.3.0
 WizardStyle=modern
 DefaultDirName={autopf}\xcbasic64
 DisableDirPage=yes
