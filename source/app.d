@@ -69,7 +69,16 @@ void main(string[] args)
         string tmpDir = tempDir();
         auto rnd = Random(42);
         auto u = uniform!uint(rnd);
-        string asm_filename = tempDir() ~ "/xcbtmp_" ~ to!string(u, 16) ~ ".asm";
+        string tmpdir;
+
+        version(Windows) {
+            tmpdir = tempDir();
+        }
+        else {
+            tmpdir = tempDir() ~ dirSeparator;
+        }
+
+        string asm_filename = tmpdir ~ "xcbtmp_" ~ to!string(u, 16) ~ ".asm";
         File outfile = File(asm_filename, "w");
         outfile.write(code);
         outfile.close();
@@ -78,20 +87,22 @@ void main(string[] args)
         string path = dirName(thisExePath());
         string dasm_bin = path ~ dirSeparator ~ conf["assembler"].getKey("dasm_bin");
 
+        version(Windows) {
+            dasm_bin = `"` ~ dasm_bin ~ `"`;
+            asm_filename = `"` ~ asm_filename ~ `"`;
+            outname = `"` ~ outname ~ `"`;
+        }
+
         // Assemble!
-        auto dasm = executeShell(dasm_bin ~ " " ~ asm_filename ~ " -o" ~ outname);
+        string cmd = dasm_bin ~ " " ~ asm_filename ~ " -o" ~ outname;
+        auto dasm = executeShell(cmd);
         if(dasm.status != 0) {
             stderr.writeln("** ERROR ** There has been an error while trying to execute DASM, please see the bellow message.");
+            stderr.writeln("Tried to execute: " ~ cmd);
             stderr.writeln(dasm.output);
-
-            // Remove temp file and exit
-            remove(asm_filename);
             exit(1);
         }
         else {
-
-            // Remove temp file and exit
-            remove(asm_filename);
             stdout.write(dasm.output);
             exit(0);
         }
