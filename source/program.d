@@ -63,6 +63,9 @@ struct Procedure {
 }
 
 struct Stack {
+    Program program;
+    string error_msg;
+
     int[] elements;
 
     void push(int value)
@@ -72,6 +75,9 @@ struct Stack {
 
     int pull()
     {
+        if(elements.length == 0) {
+            program.error(error_msg);
+        }
         int last_value = this.elements[elements.length - 1];
         this.elements = this.elements.remove(elements.length - 1);
         return last_value;
@@ -138,6 +144,10 @@ class Program
             "basic_loader" : 1,
             "start_address" : 0x0800
         ];
+
+        this.if_stack = Stack(this, "ENDIF without IF");
+        this.while_stack = Stack(this, "ENDWHILE without WHILE");
+        this.repeat_stack = Stack(this, "UNTIL without REPEAT");
 	}
 
     void setCompilerOption(string option_key, int option_value)
