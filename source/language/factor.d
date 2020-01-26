@@ -157,7 +157,12 @@ class Factor
 
                 string lbl = "";
 
-                if(this.program.labelExists(varname)) {
+                if(this.program.procExists(varname)) {
+                    // a procedure
+                    lbl = this.program.findProcedure(varname).getLabel();
+                    this.asmcode ~= "\tpaddr " ~ lbl ~ "\n";
+                }
+                else if(this.program.labelExists(varname)) {
                     // a label
                     lbl = this.program.getLabelForCurrentScope(varname);
                     this.asmcode ~= "\tpaddr " ~ lbl ~ "\n";
