@@ -18,6 +18,7 @@ struct Variable {
 	bool isGlobal = true;
     bool isFast = false;
     bool isExplicitAddr = false;
+    bool isPrivate = false;
 
 	string procname;
 
@@ -30,11 +31,13 @@ struct Variable {
 
 	string getLabel()
 	{
+        string prefix = this.isPrivate ? "X" : "_";
+
 		if(this.isGlobal) {
-			return "_" ~ this.name;
+			return prefix ~ this.name;
 		}
 		else {
-			return "_" ~ this.procname ~ "." ~ this.name;
+			return prefix ~ this.procname ~ "." ~ this.name;
 		}
 	}
 }
@@ -122,7 +125,7 @@ class Program
 
     int[string] compiler_options;
 
-    Stack if_stack, while_stack, repeat_stack;
+    Stack if_stack, while_stack, repeat_stack, for_stack;
 
     /**
      * Constructor
@@ -148,6 +151,7 @@ class Program
         this.if_stack = Stack(this, "ENDIF without IF");
         this.while_stack = Stack(this, "ENDWHILE without WHILE");
         this.repeat_stack = Stack(this, "UNTIL without REPEAT");
+        this.for_stack = Stack(this, "NEXT without FOR");
 	}
 
     void setCompilerOption(string option_key, int option_value)

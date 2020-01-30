@@ -1458,79 +1458,83 @@ NUCL_DIVU16 SUBROUTINE
 	sta (R0),y
 	ENDM
 
-	MAC for
-	; max value already pushed
-	; push address
-.addr
-	lda #<.addr
-	pha
-	lda #>.addr
-	pha
-	ENDM
-
-	; NEXT routine (integer index)
-	; usage next variable
+	; Improved NEXT routine (integer index)
+	; Usage: nextw <for identifier>, <index_var>
 	MAC nextw
-	; increment variable
+	; increment index variable
+	IFCONST XFOR_step_{1}
+	; increment with step
 	clc
-	inc {1}
+	lda XFOR_step_{1}
+	adc {2}
+	sta {2}
+	lda XFOR_step_{1}+1
+	adc {2}+1
+	sta {2}+1
+	ELSE
+	; increment with 1
+	inc {2}
 	bne .skip
-	inc {1}+1
+	inc {2}+1
+	ENDIF
 .skip
-	; pull address
-	pla
-	sta .selfmod_code+2
-	pla
-	sta .selfmod_code+1
-	; pull max_value
-	pla
-	sta R1
-	pla
-	sta R0
-	; compare them
-	lda R0
-	cmp {1}
-	lda R1
-	sbc {1}+1
+	IFCONST XFOR_step_{1}
+	; need to check if step is negative
+	lda XFOR_step_{1} + 1
+	bmi .neg
+	; it is positive: do the regular comparison
+	bpl .cmp
+.neg
+	; compare index to max
+	lda {2}
+	cmp XFOR_max_{1}
+	lda {2}+1
+	sbc XFOR_max_{1}+1
 	bcs .jump_back
-	jmp .end ;variable is higher, exit loop
+	bcc .end ;max is gte, exit loop
+	ENDIF
+.cmp
+	; compare index to max
+	lda XFOR_max_{1}
+	cmp {2}
+	lda XFOR_max_{1}+1
+	sbc {2}+1
+	bcs .jump_back
+	bcc .end ;index is gte, exit loop
 .jump_back
-	; push max_value back
-	lda R0
-	pha
-	lda R1
-	pha
-.selfmod_code
-	jmp $0000;                                          
+	jmp _FOR_{1}
 .end
 	ENDM
 	
-	; NEXT routine (byte index)
-	; usage next variable
+	; Improved NEXT routine (byte index)
+	; Usage: nextb <for identifier>, <index_var>
 	MAC nextb
-	; increment variable
-	inc {1}
+	; increment index variable
+	IFCONST XFOR_step_{1}
+	; increment with step
+	clc
+	lda XFOR_step_{1}
+	adc {2}
+	sta {2}
+	; don't roll over
+	bcs .end
+	ELSE
+	; increment with one
+	inc {2}
 	; don't roll over
 	beq .end
-.skip
-    ; pull address
-    pla
-    sta .selfmod_code+2
-    pla
-    sta .selfmod_code+1
-    ; pull max_value
-    pla
-    cmp {1}
-    bcs .jump_back
-    jmp .end
+	ENDIF
+.cmp
+	; compare index to max
+	lda XFOR_max_{1}
+	cmp {2}
+	bcs .jump_back
+	bcc .end ;index is gte, exit loop
 .jump_back
-    ; push max_value back
-    pha
-.selfmod_code
-    jmp $0000;
+	jmp _FOR_{1}
 .end
-    ENDM
-
+	ENDM
+	
 	; Opcode for PEEK! (byte)
 	MAC peekb
 	IF !FPULL

@@ -35,8 +35,8 @@ XCBASIC:
     Repeat_stmt <   "repeat"i
     Until_stmt <    "until"i :WS? Condition
     Rem_stmt <      (";" / "'" / "rem"i) (!eol .)*
-    For_stmt <      "for"i :WS? Var :WS? "=" :WS    ? Expression :WS? "to"i :WS? Expression
-    Next_stmt <     "next"i :WS? Var
+    For_stmt <      "for"i :WS? Var :WS? "=" :WS? Expression :WS? "to"i :WS? Expression (:WS? "step"i :WS? Expression)?
+    Next_stmt <     "next"i :WS? Var?
     Dim_stmt <      "dim"i :WS? Var (:WS "fast"i)? (:WS? :"@" :WS? Expression)?
     Data_stmt <     "data"i :WS? Varname Vartype "[]" :WS? "=" :WS? (Datalist / Incbin_stmt)
     Charat_stmt <   "charat"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
@@ -119,7 +119,7 @@ XCBASIC:
                   "or"i / "load"i / "save"i / "ferr"i / "deek"i / "doke"i /
                  "abs"i / "cast"i / "sin"i / "cos"i / "tan"i / "atn"i / "asm"i / "strcpy"i / "strncpy"i / "strlen"i / "strcmp"i / "curpos"i /
                  "strpos"i / "val"i / "sqr"i / "sgn"i / "wait"i / "watch"i / "pragma"i / "memset"i / "memcpy"i / "memshift"i /
-                 "while"i / "endwhile"i / "repeat"i / "until"i / "lshift"i / "rshift"i / "disableirq"i / "enableirq"i / "fun"i)
+                 "while"i / "endwhile"i / "repeat"i / "until"i / "lshift"i / "rshift"i / "disableirq"i / "enableirq"i / "fun"i / "step"i)
     WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 
