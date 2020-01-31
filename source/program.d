@@ -18,6 +18,7 @@ struct Variable {
 	bool isGlobal = true;
     bool isFast = false;
     bool isExplicitAddr = false;
+    bool isPrivate = false;
 
 	string procname;
 
@@ -30,11 +31,13 @@ struct Variable {
 
 	string getLabel()
 	{
+        string prefix = this.isPrivate ? "X" : "_";
+
 		if(this.isGlobal) {
-			return "_" ~ this.name;
+			return prefix ~ this.name;
 		}
 		else {
-			return "_" ~ this.procname ~ "." ~ this.name;
+			return prefix ~ this.procname ~ "." ~ this.name;
 		}
 	}
 }
@@ -63,6 +66,9 @@ struct Procedure {
 }
 
 struct Stack {
+    Program program;
+    string error_msg;
+
     int[] elements;
 
     void push(int value)
@@ -72,6 +78,9 @@ struct Stack {
 
     int pull()
     {
+        if(elements.length == 0) {
+            program.error(error_msg);
+        }
         int last_value = this.elements[elements.length - 1];
         this.elements = this.elements.remove(elements.length - 1);
         return last_value;
@@ -116,7 +125,7 @@ class Program
 
     int[string] compiler_options;
 
-    Stack if_stack, while_stack, repeat_stack;
+    Stack if_stack, while_stack, repeat_stack, for_stack;
 
     /**
      * Constructor
@@ -136,8 +145,15 @@ class Program
         this.vartype_names['b'] = "byte";
 
         this.compiler_options = [
-            "civars" : 0
+            "civars" : 0,
+            "basic_loader" : 1,
+            "start_address" : 0x0800
         ];
+
+        this.if_stack = Stack(this, "ENDIF without IF");
+        this.while_stack = Stack(this, "ENDWHILE without WHILE");
+        this.repeat_stack = Stack(this, "UNTIL without REPEAT");
+        this.for_stack = Stack(this, "NEXT without FOR");
 	}
 
     void setCompilerOption(string option_key, int option_value)
@@ -292,14 +308,15 @@ class Program
         codesegment ~= "\tinit_program\n";
         codesegment ~= "\t; !!opt_start!!\n";
 		codesegment ~= this.program_segment;
-        codesegment ~= "\t; !!opt_end!!\n";
+
 		codesegment ~= "prg_end:\n";
 		codesegment ~= "\thalt\n";
 
+        codesegment ~= this.routines_segment;
+        codesegment ~= "\t; !!opt_end!!\n";
+
         codesegment ~= "FPUSH\tSET 0\n";
         codesegment ~= "FPULL\tSET 0\n";
-
-        codesegment ~= this.routines_segment;
 		return codesegment;
 	}
 
@@ -316,23 +333,35 @@ class Program
 	string getAsmCode()
 	{
 		string asm_code;
+        string start_addr = to!string(this.compiler_options["start_address"], 16);
 
 		asm_code ~= "\tPROCESSOR 6502\n\n";
         asm_code ~= "\tINCDIR \""~this.source_path~"\"\n";
 		asm_code ~= "\tSEG UPSTART\n";
-		asm_code ~= "\tORG $0801\n";
-		asm_code ~= "\tDC.W next_line\n";
-		asm_code ~= "\tDC.W 2018\n";
-		asm_code ~= "\tHEX 9e\n";
-		asm_code ~= "\tIF prg_start\n";
-		asm_code ~= "\tDC.B [prg_start]d\n";
-		asm_code ~= "\tENDIF\n";
-		asm_code ~= "\tHEX 00\n";
-		asm_code ~= "next_line:\n\tHEX 00 00\n";
-		asm_code ~= "\t;------------    --------\n";
-        asm_code ~= "\tECHO \"Memory information:\"\n";
-        asm_code ~= "\tECHO \"===================\"\n";
-        asm_code ~= "\tECHO \"BASIC loader: $801 -\", *-1\n";
+		asm_code ~= "\tORG $" ~ start_addr ~ "\n";
+
+        if(this.compiler_options["basic_loader"] == 1) {
+            asm_code ~= "\tHEX 00\n";
+            asm_code ~= "\tDC.W next_line\n";
+            asm_code ~= "\tDC.W 2018\n";
+            asm_code ~= "\tHEX 9e\n";
+            asm_code ~= "\tIF prg_start\n";
+            asm_code ~= "\tDC.B [prg_start]d\n";
+            asm_code ~= "\tENDIF\n";
+            asm_code ~= "\tHEX 00\n";
+            asm_code ~= "next_line:\n\tHEX 00 00\n";
+            asm_code ~= "\t;------------    --------\n";
+            asm_code ~= "\tECHO \"Memory information:\"\n";
+            asm_code ~= "\tECHO \"===================\"\n";
+            asm_code ~= "\tECHO \"BASIC loader: $" ~ start_addr ~ " -\", *-1\n";
+        }
+        else {
+            asm_code ~= "\tjmp prg_start\n";
+            asm_code ~= "\tECHO \"Memory information:\"\n";
+            asm_code ~= "\tECHO \"===================\"\n";
+            asm_code ~= "\tECHO \"Startup:      $" ~ start_addr ~ " -\", *-1\n";
+        }
+
         asm_code ~= "library_start:\n";
 		asm_code ~= library.nucleus.code ~ "\n";
         asm_code ~= library.opt.code ~ "\n";
@@ -414,6 +443,55 @@ class Program
 
         return ret;
     }
+
+    /**
+     * Push local variables (including input params)
+     * onto the stack
+     */
+
+    string push_locals()
+    {
+        string asmcode = "";
+        foreach(ref var; this.localVariables()) {
+            if(var.dimensions == [1,1]) {
+                asmcode ~= "\tp"~to!string(var.type)~"var " ~ var.getLabel() ~ "\n";
+            }
+            else {
+                // an array
+                int length = var.dimensions[0] * var.dimensions[1] * this.varlen[var.type];
+                for(int offset = 0; offset < length; offset++) {
+                    asmcode ~= "\tpbyte " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
+                }
+            }
+        }
+
+        return asmcode;
+    }
+
+    /**
+     * Pull local variables (including input params)
+     * off of the stack
+     */
+
+    string pull_locals()
+    {
+        string asmcode = "";
+        foreach(ref var; this.localVariables().reverse) {
+            if(var.dimensions == [1,1]) {
+                asmcode ~= "\tpl"~to!string(var.type)~"2var " ~ var.getLabel() ~ "\n";
+            }
+            else {
+                // an array
+                int length = var.dimensions[0] * var.dimensions[1] * this.varlen[var.type];
+                for(int offset = length -1 ; offset >= 0; offset--) {
+                    asmcode ~= "\tplb2var " ~ var.getLabel() ~ "+" ~to!string(offset)~ "\n";
+                }
+            }
+        }
+
+        return asmcode;
+    }
+
 
     Procedure findProcedure(string name)
 	{
@@ -586,13 +664,14 @@ class Program
 				case "XCBASIC.Unsigned":
 				string line_no = join(line_id.children[0].matches);
 				line_no = this.in_procedure ? this.current_proc_name ~ "." ~ line_no : line_no;
-				this.program_segment ~= "_L" ~ line_no ~ ":\n";
+                this.appendProgramSegment("_L" ~ line_no ~ ":\n");
+
 				break;
 
 				case "XCBASIC.Label":
 				string label = join(line_id.children[0].matches[0..$-1]);
 				label = this.in_procedure ? this.current_proc_name ~ "." ~ label : label;
-				this.program_segment ~= "_L" ~ label ~ ":\n";
+				this.appendProgramSegment("_L" ~ label ~ ":\n");
 				break;
 
 				default:

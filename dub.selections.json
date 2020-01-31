@@ -1,6 +1,7 @@
 {
 	"fileVersion": 1,
 	"versions": {
+		"dini": "1.0.1",
 		"pegged": "0.4.4"
 	}
 }

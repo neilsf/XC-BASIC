@@ -1,0 +1,165 @@
+XC=BASIC Release Notes
+
+Current Release Number:
+   v2.3
+Release Date:
+  23/01/2020
+
+What's new in version 2.3?
+=========================
+
+(1) New installers for Linux, Windows and Mac OS
+
+(2) The xcbasic64 executable now invokes DASM automatically, no need for batch scripts
+
+(3) Added the -h command line option and better command line argument parsing
+
+What's new in version 2.2?
+==========================
+
+(1) Define implicit address for variables
+
+(2) User defined functions with FUN ... ENDFUN
+
+(3) The CALL keyword may be omitted when calling procedures
+
+(4) Joystick and sprite extensions
+
+(5) Use ; to suppress NL in PRINT
+
+(6) Bugfixes
+
+What's new in version 2.1?
+==========================
+
+(1) Improved optimizer
+
+(2) Multiline IF .. ELSE .. ENDIF statement
+
+(3) WHILE .. ENDWHILE statement
+
+(4) REPEAT .. UNTIL statement
+
+(5) Fast variables
+
+(6) PRAGMA statement to set compiler options
+
+(7) LSHIFT and RSHIFT functions
+
+(8) MEMCPY, MEMSET, MEMSHIFT commands
+
+(9) WATCH and WAIT commands
+
+(10) Semicolon and single quote are now aliases for REM
+
+(11) PETSCII literals
+
+(12) Character literals
+
+(13) Support for arrays of strings
+
+(14) ENABLEIRQ and DISABLEIRQ commands
+
+(15) XCB Invaders - a new game is added
+
+(16) Bugfixes as always
+
+What's new in version 2.0?
+==========================
+
+(1) Loads of bugfixes
+
+(2) New type: byte
+
+(3) New type: float
+
+(4) New type: string pointer
+
+(5) Support for binary and hexadecimal numeric literals
+
+(6) Inline assembly through the ASM directive
+
+(7) Floating point functions like SIN(), COS() etc.
+
+(8) String functions and commands
+
+(9) CAST() function
+
+(10) DEEK() function and DOKE command
+
+(11) Support for source inclusion through the
+    INCLUDE directive
+
+(12) Direct recursion
+
+(13) Better documentation
+
+(14) Keywords are now case-insensitive
+
+(15) CURPOS command
+
+(16) A full-feature game, Puralax! is added to the examples
+
+(17) Code optimizer
+
+What's new in version 1.2-beta?
+===============================
+
+(1) Multiple statements can be written in one line using
+    the statement separator character (:)
+
+(2) Added ORIGIN statement
+
+(3) Added INCBIN statement
+
+What's new in version 1.1?
+==========================
+
+(1) Line concatenation character (~)
+
+(2) New PETSCII escape sequences
+
+(3) Fixed parenthesis support and many parser bugfixes
+
+(4) New example program: Maze Generator
+
+Whats new in version 1.1-beta2?
+===============================
+
+(1) New LOAD statement
+
+(2) New SAVE statement
+
+(3) New FERR function
+
+Whats new in version 1.1-beta?
+==============================
+
+(1) New bitwise operators: & | ^
+
+(2) New unary operator: @ (address of)
+
+(3) Memory information is displayed after successful compilation 
+
+Whats new in version 1.0?
+=========================
+
+(1) Bugifx: programs with DATA statements now compile fine
+
+(2) Bugfix: compiler errors now go to stdout
+
+Whats new in version 1.0-beta?
+==============================
+
+(1) The DASM binaries are now included in the project + batch/sh scripts
+    are added in order to compile XC-BASIC source to machine code in a
+    single command.
+
+(2) IF ... THEN now supports simple logical expressions
+
+(3) The LET keyword can now be omitted
+
+(4) Parser errors are truncated to a single line instead of dumping the
+    whole AST.
+
+(5) New statements: SYS command and USR function

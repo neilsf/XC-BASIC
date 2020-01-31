@@ -29,6 +29,12 @@ class Dim_stmt:Stmt
 
             ubyte i = 0;
             foreach(ref expr; subscript.children) {
+
+                //Expression e = ;
+                if(!((new Expression(expr, this.program)).is_const())) {
+                    this.program.error("Array dimensions must be constant");
+                }
+
                 string dim = join(expr.matches);
                 int dimlen = 0;
 
@@ -36,7 +42,7 @@ class Dim_stmt:Stmt
                 if(this.program.is_variable(dim, "")) {
                     Variable var = this.program.findVariable(dim, "");
                     if(!var.isConst) {
-                        this.program.error("Only numeric constants are accepted as array dimensions");
+                        this.program.error("Array dimensions must be constant");
                     }
                     if(var.type != 'w') {
                         this.program.error("Array dimensions must be integers");
@@ -47,7 +53,7 @@ class Dim_stmt:Stmt
                 // Case 2: test for numeric literal
                 else {
                     if(expr.children.length > 1) {
-                        this.program.error("Only numeric constants are accepted as array dimensions");
+                        this.program.error("Array dimensions must be constant");
                     }
                     Number num = new Number(expr.children[0].children[0].children[0].children[0], this.program);
                     if(num.type == 'f') {

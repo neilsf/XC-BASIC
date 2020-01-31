@@ -17,7 +17,7 @@ XCBASIC:
                 Fun_stmt / Endfun_stmt / End_stmt / Return_fn_stmt / Return_stmt / Userdef_cmd
     Const_stmt <    "const"i :WS? Var :WS? "=" :WS? Number
     Let_stmt <      ("let"i / eps) :WS? Var :WS? "=" :WS? Expression
-    Print_stmt <    "print"i :WS? ExprList
+    Print_stmt <    "print"i :WS? ExprList :WS? ";"?
     If_stmt <       "if"i :WS? Condition :WS? "then"i :WS? Statements :WS? ("else"i :WS? Statements)?
     If_sa_stmt <    "if"i :WS? Condition :WS? "then"i
     Else_stmt <     "else"i
@@ -35,8 +35,8 @@ XCBASIC:
     Repeat_stmt <   "repeat"i
     Until_stmt <    "until"i :WS? Condition
     Rem_stmt <      (";" / "'" / "rem"i) (!eol .)*
-    For_stmt <      "for"i :WS? Var :WS? "=" :WS    ? Expression :WS? "to"i :WS? Expression
-    Next_stmt <     "next"i :WS? Var
+    For_stmt <      "for"i :WS? Var :WS? "=" :WS? Expression :WS? "to"i :WS? Expression (:WS? "step"i :WS? Expression)?
+    Next_stmt <     "next"i :WS? Var?
     Dim_stmt <      "dim"i :WS? Var (:WS "fast"i)? (:WS? :"@" :WS? Expression)?
     Data_stmt <     "data"i :WS? Varname Vartype "[]" :WS? "=" :WS? (Datalist / Incbin_stmt)
     Charat_stmt <   "charat"i :WS? Expression :WS? "," :WS? Expression :WS? "," :WS? Expression
@@ -47,7 +47,7 @@ XCBASIC:
     Inc_stmt <      "inc"i :WS? Var
     Dec_stmt <      "dec"i :WS? Var
     Proc_stmt <     "proc"i :WS Label_ref eps :WS? (:"(" :WS? VarList :WS? :")")?
-    Fun_stmt <      "fun"i :WS Varname Vartype :WS? (:"(" :WS? VarList :WS? :")")?
+    Fun_stmt <      "fun"i :WS Varname Vartype :WS? :"(" :WS? VarList? :WS? :")"
     Endproc_stmt <  "endproc"i
     Endfun_stmt <   "endfun"i
     Sys_stmt <      "sys"i :WS? Expression
@@ -119,7 +119,7 @@ XCBASIC:
                   "or"i / "load"i / "save"i / "ferr"i / "deek"i / "doke"i /
                  "abs"i / "cast"i / "sin"i / "cos"i / "tan"i / "atn"i / "asm"i / "strcpy"i / "strncpy"i / "strlen"i / "strcmp"i / "curpos"i /
                  "strpos"i / "val"i / "sqr"i / "sgn"i / "wait"i / "watch"i / "pragma"i / "memset"i / "memcpy"i / "memshift"i /
-                 "while"i / "endwhile"i / "repeat"i / "until"i / "lshift"i / "rshift"i / "disableirq"i / "enableirq"i / "fun"i)
+                 "while"i / "endwhile"i / "repeat"i / "until"i / "lshift"i / "rshift"i / "disableirq"i / "enableirq"i / "fun"i / "step"i)
     WS < (space / "~" ('\r' / '\n' / '\r\n')+ )*
     EOI < !.
 
