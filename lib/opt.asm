@@ -233,7 +233,7 @@
 	; Optimized sequences for ARRAY ACCESS
 	; ------------------------------------
 	
-	; [OPT_MACRO]
+	; [OPT_MACRO]	
 	MAC opt_pbyte_pbarray_fast
 	; > pbyte+pbarray_fast
 	; > pbvar+pbarray_fast
@@ -260,25 +260,12 @@
 	; ----------------------------
 	
 	; [OPT_MACRO]
-	MAC pokeb_const_addr
-	; > pword+pokeb
-	; > paddr+pokeb
-	; [/OPT_MACRO]
-.ad EQU {1}
-	IF !FPULL
-	pla
-	ENDIF
-	sta .ad
-	ENDM
-	
-	; [OPT_MACRO]
 	MAC poke_const_addr
 	; > pword+poke
 	; > paddr+poke
 	; [/OPT_MACRO]
 .ad EQU {1}
 	IF !FPULL
-	pla
 	pla
 	ENDIF
 	sta .ad

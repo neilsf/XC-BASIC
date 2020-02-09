@@ -32,8 +32,11 @@ class Load_stmt:Stmt
         if(this.node.children[0].children.length > 2) {
             auto address = new Expression(this.node.children[0].children[2], this.program);
             address.eval();
+            if(address.type == 'f') {
+                this.program.error("Argument #3 of LOAD must not be a float");
+            }
             if(address.type != 'w') {
-                this.program.error("Argument #3 of LOAD must be an integer");
+                address.convert('w');
             }
             this.program.appendProgramSegment(to!string(address));
             fixed_address = true;

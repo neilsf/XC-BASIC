@@ -1386,7 +1386,7 @@ NUCL_DIVU16 SUBROUTINE
 
 	; poke pseudo-op (byte type)
 	; requires that arguments are pushed backwards (value first)
-	MAC pokeb
+	MAC poke
 	IF !FPULL
 	pla
 	sta .selfmod_code+2
@@ -1403,41 +1403,13 @@ NUCL_DIVU16 SUBROUTINE
 	
 	; poke pseudo-op (byte type)
 	; used when the address is constant
-	MAC pokeb_c
+	MAC pokec
 	IF !FPULL
 	pla
 	ENDIF
 	sta.w {1}
 	ENDM
 
-	; poke pseudo.op (word type)
-	; requires that arguments are pushed backwards (value first)
-	MAC pokew
-	IF !FPULL
-	pla
-	sta .selfmod_code+2
-	pla
-	sta .selfmod_code+1
-	ELSE
-	sta .selfmod_code+1
-	sty .selfmod_code+2
-	ENDIF
-	pla ; discard HB
-	pla
-.selfmod_code:
-	sta.w $0000
-	ENDM
-	
-	; poke pseudo-op (word type)
-	; used when the address is constant
-	MAC pokew_c
-	IF !FPULL
-	pla
-	pla
-	ENDIF
-	sta.w {1}
-	ENDM
-	
 	; doke routine
 	; requires that arguments are pushed backwards (value first)
 	MAC doke
@@ -1528,6 +1500,63 @@ NUCL_DIVU16 SUBROUTINE
 	; compare index to max
 	lda XFOR_max_{1}
 	cmp {2}
+	bcs .jump_back
+	bcc .end ;index is gte, exit loop
+.jump_back
+	jmp _FOR_{1}
+.end
+	ENDM
+	
+	; Improved NEXT routine (long index)
+	; Usage: nextl <for identifier>, <index_var>
+	MAC nextl
+	; increment index variable
+	IFCONST XFOR_step_{1}
+	; increment with step
+	clc
+	lda XFOR_step_{1}
+	adc {2}
+	sta {2}
+	lda XFOR_step_{1}+1
+	adc {2}+1
+	sta {2}+1
+	lda XFOR_step_{1}+2
+	adc {2}+2
+	sta {2}+2
+	ELSE
+	; increment with 1
+	inc {2}
+	bne .skip
+	inc {2}+1
+	bne .skip
+	inc {2}+2
+	ENDIF
+.skip
+	IFCONST XFOR_step_{1}
+	; need to check if step is negative
+	lda XFOR_step_{1} + 2
+	bmi .neg
+	; it is positive: do the regular comparison
+	bpl .cmp
+.neg
+	; compare index to max
+	lda {2}
+	cmp XFOR_max_{1}
+	lda {2}+1
+	sbc XFOR_max_{1}+1
+	lda {2}+2
+	sbc XFOR_max_{1}+2
+	bcs .jump_back
+	bcc .end ;max is gte, exit loop
+	ENDIF
+.cmp
+	; compare index to max
+	lda XFOR_max_{1}
+	cmp {2}
+	lda XFOR_max_{1}+1
+	sbc {2}+1
+	lda XFOR_max_{1}+2
+	sbc {2}+2
 	bcs .jump_back
 	bcc .end ;index is gte, exit loop
 .jump_back
@@ -1756,6 +1785,27 @@ NUCL_DIVU16 SUBROUTINE
 .skip
 	ENDM
 
+	MAC incl
+	inc {1}
+	bne .end
+	inc {1}+1
+	bne .end
+	inc {1}+2
+.end
+	ENDM
+
+	MAC decl
+	lda #$ff
+	dec {1}
+	cmp {1}
+	bne .end
+	dec {1}+1
+	cmp {1}+1
+	bne .end
+	dec {1}+2
+.end
+	ENDM
+
     MAC sys
     IF !FPULL
     pla
@@ -1811,6 +1861,23 @@ NUCL_DIVU16 SUBROUTINE
 	ldy random+1
 	ENDIF
 	ENDM
+
+    ; Push random long on stack
+    MAC rndl
+	jsr STDLIB_RND24
+	IF !FPUSH
+	lda random
+	pha
+	lda random+1
+	pha
+	lda random+2
+	pha
+	ELSE
+	lda random
+	ldy random+1
+	ldx random+2
+	ENDIF
+	ENDM
 	
 	; Push random float on stack
 	MAC rndf
@@ -1832,6 +1899,27 @@ NUCL_DIVU16 SUBROUTINE
 	clc
 	adc #$01
 	sta.wx stack+2
+	bne .skip
+	inc.wx stack+1
+.skip
+	ENDM
+	
+	; Absolute value of long
+	MAC absl
+	tsx
+	lda.wx stack+1
+	bpl .skip
+	eor #$ff
+	sta.wx stack+1
+	lda.wx stack+2
+	eor #$ff
+	lda.wx stack+3
+	eor #$ff
+	clc
+	adc #$01
+	sta.wx stack+3
+	bne .skip
+	inc.wx stack+2
 	bne .skip
 	inc.wx stack+1
 .skip
@@ -2078,6 +2166,87 @@ NUCL_SQRW	SUBROUTINE
 	ENDIF
 	ENDM
 	
+; Square Root of a 24bit number
+; by Verz - Jul2019
+NUCL_SQRL	SUBROUTINE
+.square    EQU R0    ; input number
+.storage   EQU R4    ; temporary data
+.sqrt      EQU R8    ; result
+.remainder EQU RA    ; result remainder
+
+	lda R2
+	bpl .ok
+	lda #<err_illegal_quantity
+	pha
+	lda #>err_illegal_quantity
+	pha
+	jmp RUNTIME_ERROR
+.ok
+    ldy #$01        ; lsby of first odd number = 1
+    sty .storage
+    dey
+    sty .storage+1   ; msby of first odd number (sqrt = 0)
+    sty .storage+2
+    sty .sqrt
+    sty .sqrt+1
+.again
+    sec
+    lda .square     ; save remainder
+    sta .remainder             
+    sbc .storage    ; subtract odd lo from integer lo
+    sta .square
+    lda .square+1
+    sta .remainder+1
+    sbc .storage+1   ; subtract odd mid from integer mid
+    sta .square+1
+    lda .square+2
+    sbc .storage+2   ; subtract odd hi from integer hi
+    sta .square+2
+    bcc .nomore    ; is subtract result negative?
+    inc .sqrt      ; no. increment square root
+    bne .sqnxt
+    inc .sqrt+1
+.sqnxt
+	lda .storage     ; calculate next odd number
+    adc #$01        ; +1+C(=1)        
+    sta .storage
+    bcc .again
+    lda .storage+1
+    adc #$00
+    sta .storage+1
+    bcc .again
+    inc .storage+2
+    jmp .again
+.nomore
+    rts
+    
+    MAC sqrl
+    IF !FPULL
+	pla
+	sta R0+2
+	pla
+	sta R0+1
+	pla
+	sta R0
+	ELSE
+	sta R0
+	sty R0+1
+	stx R0+2
+	ENDIF
+	jsr NUCL_SQRL
+	IF !FPUSH
+	lda R0
+	pha
+	lda R1
+	pha
+	pzero
+	ELSE
+	lda R0
+	ldy R0+1
+	ldx #$00
+	ENDIF
+    ENDM
+	
 	MAC sgnw
 	pla
 	bmi .neg
@@ -2093,6 +2262,27 @@ NUCL_SQRW	SUBROUTINE
 	jmp .end
 .neg
 	pla
+	pword #65535
+.end	
+	ENDM
+	
+	MAC sgnl
+	pla
+	bmi .neg
+	beq .plz
+	pla
+.pos
+	pword #1
+	jmp .end
+.plz
+	pla
+	bne .pos
+	pla
+	bne .pos
+	pword #0
+	jmp .end
+.neg
+	pla                
 	pword #65535
 .end	
 	ENDM
@@ -2201,6 +2391,34 @@ NUCL_SQRW	SUBROUTINE
 .loop
 	lsr.wx stack+1
 	ror.wx stack+2
+	dey
+	bne .loop
+	ENDM
+	
+	MAC lshiftl
+	IF !FPULL
+	pla
+	ENDIF
+	tay
+	tsx
+.loop
+	asl.wx stack+3
+	rol.wx stack+2
+	rol.wx stack+1
+	dey
+	bne .loop
+	ENDM
+	
+	MAC rshiftl
+	IF !FPULL
+	pla
+	ENDIF
+	tay
+	tsx
+.loop
+	lsr.wx stack+1
+	ror.wx stack+2
+	ror.wx stack+3
 	dey
 	bne .loop
 	ENDM
@@ -2428,7 +2646,678 @@ NUCL_SQRW	SUBROUTINE
 	tya
 	sta.wx stack+2
 	ENDM
+
+	; Push a long int onto the stack
+	MAC plong
+	IF !FPUSH
+	lda #<{1}
+	pha
+	lda #>{1}
+	pha
+	lda #[{1} >> 16]
+	pha
+	ELSE
+	lda #<{1}
+	ldy #>{1}
+	ldx #[{1} >> 16]
+	ENDIF
+	ENDM
 	
+	; Push a long int variable on the stack
+	MAC plvar
+	IF !FPUSH
+	lda {1}
+	pha
+	lda {1}+1
+	pha
+	lda {1}+2
+	pha
+	ELSE
+	lda {1}
+	ldy {1}+1
+	ldx {1}+2
+	ENDIF
+	ENDM
+	
+	;Push one long int variable (indexed) on the stack
+	;Expects array index being on top of stack
+	MAC plarray
+	IF !FPULL
+	pla
+	tay
+	sta R1
+	pla
+	sta R0
+	ELSE
+	sta R0
+	sty R1
+	ENDIF
+	; x3
+	asl R0
+	rol R1
+	clc
+	adc R0
+	sta R0
+	tya
+	adc R1
+	sta R1
+	; add zero index
+	lda #<{1}
+	clc
+	adc R0
+	sta R0
+	lda #>{1}
+	adc R1
+	sta R1
+	IF !FPUSH
+	ldy #$00
+	lda (R0),y
+	pha
+	iny
+	lda (R0),y
+	pha
+	iny
+	lda (R0),y
+	pha
+	ELSE
+	ldy #$02
+	lda (R0),y
+	pha
+	dey
+	lda (R0),y
+	pha
+	dey
+	lda (R0),y
+	pla
+	tay
+	pla
+	tax
+	ENDIF
+	ENDM
+	
+	; Pull long int to variable
+	MAC pll2var
+	IF !FPULL
+	pla
+	sta {1}+2
+	pla
+	sta {1}+1
+	pla
+	sta {1}
+	ELSE
+	sta {1}
+	sty {1}+1
+	stx {1}+2
+	ENDIF
+	ENDM
+	
+	;Pull a long int variable (indexed)
+	;Expects array index on top of stack
+	MAC pllarray
+	IF !FPULL
+	pla
+	sta R1
+	pla
+	sta R0
+	ELSE
+	sta R0
+	sty R1
+	ENDIF
+	; x3
+	asl R0
+	rol R1
+	clc
+	adc R0                    
+	sta R0
+	tya
+	adc R1
+	sta R1
+	; add zero index
+	lda #<{1}
+	clc
+	adc R0
+	sta R0
+	lda #>{1}
+	adc R1
+	sta R1
+	ldy #$02
+	pla
+	sta (R0),y
+	dey
+	pla
+	sta (R0),y
+	dey
+	pla
+	sta (R0),y
+	ENDM
+	
+	; Compare two long ints on stack for equality
+	MAC cmpleq
+	tsx
+	lda.wx stack+6
+	cmp.wx stack+3
+	bne .false
+	lda.wx stack+5
+	cmp.wx stack+2
+	bne .false
+	lda.wx stack+4
+	cmp.wx stack+1
+	bne .false
+	DS.B 6, $e8 ; 6x inx
+	txs
+	pone
+	IF !FPUSH
+	jmp *+13
+	ELSE
+	jmp *+12
+	ENDIF
+.false:
+	DS.B 6, $e8	; 6x inx	
+	txs
+	pzero
+	ENDM
+	
+	; Compare two long ints on stack for inequality
+	MAC cmplneq
+	tsx
+	lda.wx stack+6
+	cmp.wx stack+3
+	bne .true
+	lda.wx stack+5
+	cmp.wx stack+2
+	bne .true
+	lda.wx stack+4
+	cmp.wx stack+1
+	bne .true
+	DS.B 6, $e8 ; 6x inx
+	txs
+	pzero
+	IF !FPUSH
+	jmp *+13
+	ELSE
+	jmp *+12
+	ENDIF
+.true:
+	DS.B 6, $e8	; 6x inx	
+	txs
+	pone
+	ENDM
+	
+	; Helper macro for long int comparisons
+	MAC _lcomparison
+	tsx
+	lda.wx stack+6
+    cmp.wx stack+3
+    lda.wx stack+5
+    sbc.wx stack+2
+    lda.wx stack+4
+    sbc.wx stack+1
+    bvc *+4
+    eor #80
+	ENDM
+
+	; Compare two long ints on stack for less than
+	MAC cmpllt
+	_lcomparison
+	bmi .true
+	DS.B 6, $e8 ; 6x inx
+	txs
+	pzero
+	IF !FPUSH
+	jmp *+13
+	ELSE
+	jmp *+12
+	ENDIF
+.true:
+	DS.B 6, $e8 ; 6x inx	
+	txs
+	pone
+	ENDM
+	
+	; Compare two long ints on stack for greater than or equal
+	MAC cmplgte
+	_lcomparison
+	bpl .true
+	DS.B 6, $e8 ; 6x inx
+	txs
+	pzero
+	IF !FPUSH
+	jmp *+13
+	ELSE
+	jmp *+12
+	ENDIF
+.true:
+	DS.B 6, $e8 ; 6x inx	
+	txs
+	pone
+	ENDM
+
+	; Compare two long ints on stack for less than or equal
+	MAC cmpllte
+	tsx
+	lda.wx stack+4
+	cmp.wx stack+1
+	beq .1
+	bpl .false
+.1:	lda.wx stack+5
+	cmp.wx stack+2
+	beq .2
+	bpl .false
+.2:	lda.wx stack+6
+	cmp.wx stack+3
+	beq .3
+	bpl .false
+.3:	DS.B 6, $e8 ; 6x inx
+	txs
+	pone
+	IF !FPUSH
+	jmp *+13
+	ELSE
+	jmp *+12
+	ENDIF
+.false:	
+	DS.B 6, $e8 ; 6x inx	
+	txs
+	pzero
+	ENDM
+	
+	; Compare two long ints on stack for greater than
+	MAC cmplgt
+	tsx
+	lda.wx stack+4
+	cmp.wx stack+1
+	beq .1
+	bpl .true
+.1:	lda.wx stack+5
+	cmp.wx stack+2
+	beq .2
+	bpl .true
+.2:	lda.wx stack+6
+	cmp.wx stack+3
+	beq .3
+	bpl .true
+.3:	DS.B 6, $e8 ; 6x inx
+	txs
+	pzero
+	IF !FPUSH
+	jmp *+13
+	ELSE
+	jmp *+12
+	ENDIF
+.true:	
+	DS.B 6, $e8 ; 6x inx	
+	txs
+	pone
+	ENDM
+
+	; Perform OR on top 2 long ints of stack
+    MAC orl
+    tsx
+    lda.wx stack+4
+    ora.wx stack+1
+    sta.wx stack+1
+    lda.wx stack+5
+    ora.wx stack+2
+    sta.wx stack+2
+    lda.wx stack+6
+    ora.wx stack+3
+    sta.wx stack+3
+    inx
+    inx
+    inx
+    txs
+    ENDM
+
+    ; Perform AND on top 2 long ints of stack
+    MAC andl
+    tsx
+    lda.wx stack+4
+    and.wx stack+1
+    sta.wx stack+1
+    lda.wx stack+5
+    and.wx stack+2
+    sta.wx stack+2
+    lda.wx stack+6
+    and.wx stack+3
+    sta.wx stack+3
+    inx
+    inx
+    inx
+    txs
+    ENDM
+
+    ; Perform XOR on top 2 long ints of stack
+    MAC xorl
+    tsx
+    lda.wx stack+4
+    eor.wx stack+1
+    sta.wx stack+1
+    lda.wx stack+5
+    eor.wx stack+2
+    sta.wx stack+2
+    lda.wx stack+6
+    eor.wx stack+3
+    sta.wx stack+3
+    inx
+    inx
+    inx
+    txs
+    ENDM
+
+	; Add long ints on stack
+	MAC addl
+	tsx
+	lda.wx stack+3
+	clc
+	adc.wx stack+6
+	sta.wx stack+6
+	lda.wx stack+2
+	adc.wx stack+5
+	sta.wx stack+5
+	pla
+	adc.wx stack+4
+	sta.wx stack+4
+	pla
+	pla
+	ENDM
+	
+	; Substract long ints on stack
+	MAC subl
+	tsx
+	sec
+	lda.wx stack+6
+	sbc.wx stack+3
+	sta.wx stack+6
+	lda.wx stack+5
+	sbc.wx stack+2
+	sta.wx stack+5
+	lda.wx stack+4
+	sbc.wx stack+1
+	sta.wx stack+4
+	inx
+	inx
+	inx
+	txs
+	ENDM
+		
+	; Convert byte on stack to long int
+	MAC btol
+	lda #$00
+	pha
+	pha
+	ENDM
+	
+	; Convert int on stack to long int
+	MAC wtol
+	pla
+	bmi .neg
+	pha
+	lda #$00
+	pha
+.neg
+	pha
+	lda #$ff
+	pha
+	ENDM
+	
+	; Convert float on stack to long int
+	MAC ftol
+	basicin
+	pullfac
+	jsr QINT
+	lda $65
+	pha
+	lda $64
+	pha
+	lda $63
+	pha
+	basicout
+	ENDM
+	
+	; Convert long int on stack to byte
+	MAC ltob
+	pla
+	pla
+	ENDM
+	
+	; Convert long int on stack to int
+	MAC ltow
+	pla
+	ENDM
+	
+	; Convert long int on stack to float
+	MAC ltof
+	basicin
+	pla
+	sta R0
+	pla
+	tax
+	pla
+	tay
+	txa
+	jsr GIVAYF
+	pushfac
+	
+	; TODO convert signed byte to signed int in YA
+	lda R0
+	beq .end
+	tay
+	lda #$00
+	
+	jsr GIVAYF
+	pushfac
+	mulf
+.end
+	basicout
+	ENDM
+	
+	; Switch sign of long integer
+	MAC twoscomplementl
+	lda {1}+2
+	eor #$ff
+	sta {1}+2
+	lda {1}+1
+	eor #$ff
+	sta {1}+1
+	lda {1}
+	eor #$ff
+	clc
+	adc #$01
+	sta {1}
+	bne .1
+	inc {1}+1
+	bne .1
+	inc {1}+2
+.1
+	ENDM
+		
+	; Signed 24-bit multiply routine
+NUCL_SMUL24	SUBROUTINE
+
+	ldx #$00
+	lda R4 + 2
+	bpl .skip
+	twoscomplementl R4
+	inx
+.skip
+	lda R7 + 2				
+	bpl .skip2
+	twoscomplementl R7
+	inx
+.skip2
+	jsr NUCL_MUL24
+	txa
+	and #$01
+	beq .q
+	twoscomplementl R0
+.q	rts
+
+	; Unsigned 24-bit multiply routine	
+NUCL_MUL24	SUBROUTINE	
+
+	lda #$00
+	sta R0
+	sta R0+1
+	sta R0+2
+
+.loop
+	lda R7
+	bne .nz
+	lda R7 + 1
+	bne .nz
+	lda R7 + 2
+	bne .nz
+	rts
+.nz
+	lda R7
+	and #$01
+	beq .skip
+	
+	lda R4
+	clc
+	adc R0
+	sta R0
+	
+	lda R4 + 1
+	adc R0 + 1
+	sta R0 + 1
+	
+	lda R4 + 2
+	adc R0 + 2
+	sta R0 + 2
+
+.skip
+	asl R4 
+	rol R4 + 1
+	rol R4 + 2
+	lsr R7 + 2
+	ror R7 + 1
+	ror R7
+	jmp .loop		
+	
+	; Multiply long ints on stack
+	MAC mull
+	IF !FPULL
+	pla
+	sta R6
+	pla
+	sta R5
+	pla
+	sta R4
+	ELSE
+	sta R4
+	sty R5
+	stx R6
+	ENDIF
+	pla
+	sta R9
+	pla
+	sta R8
+	pla
+	sta R7
+	jsr NUCL_SMUL24
+	IF !FPUSH
+	lda R0
+	pha
+	lda R1
+	pha
+	lda R2
+	pha
+	ELSE
+	lda R0
+	ldy R1
+	ldx R2
+	ENDIF
+	ENDM
+	
+	; Unsigned 24 integer division
+	; the result goes to dividend and remainder variables
+	; https://codebase64.org/doku.php?id=base:24bit_division_24-bit_result
+NUCL_DIVU24	SUBROUTINE
+.dividend 		EQU R4
+.divisor 		EQU R7
+.remainder 		EQU R0
+.pztemp 	 	EQU R3
+	lda #0
+	sta .remainder
+	sta .remainder + 1
+	sta .remainder + 2
+	ldx #24	        ;repeat for each bit: ...
+
+.divloop
+	asl .dividend
+	rol .dividend + 1	
+	rol .dividend + 2
+	rol .remainder
+	rol .remainder + 1
+	rol .remainder + 2
+	lda .remainder
+	sec
+	sbc .divisor
+	tay
+	lda .remainder + 1
+	sbc .divisor + 1
+	sta .pztemp
+	lda .remainder + 2
+	sbc .divisor + 2
+	bcc .skip
+
+	sta .remainder + 2
+	lda .pztemp
+	sta .remainder + 1
+	sty .remainder	
+	inc .dividend
+
+.skip
+	dex
+	bne .divloop	
+	rts
+	
+	; Absolute value of long integer
+	MAC absl
+	tsx
+	lda.wx stack+1
+	bpl .skip
+	eor #$ff
+	sta.wx stack+1
+	lda.wx stack+2
+	eor #$ff
+	sta.wx stack+2
+	lda.wx stack+3
+	eor #$ff
+	clc
+	adc #$01
+	sta.wx stack+3
+	bne .skip
+	inc.wx stack+1
+.skip
+	ENDM
+	
+	; TODO
+	MAC sqrl
+	ENDM
+	
+	MAC lshiftl
+	IF !FPULL
+	pla
+	ENDIF
+	tay
+	tsx
+.loop
+	asl.wx stack+3
+	rol.wx stack+2
+	rol.wx stack+1
+	dey
+	bne .loop
+	ENDM
+	
+	MAC rshiftl
+
+	ENDM
+
+	MAC swapl	
+		
+	ENDM	
 	
 err_divzero HEX 44 49 56 49 53 49 4F 4E 20 42 59 20 5A 45 52 4F 00
 err_illegal_quantity HEX 49 4C 4C 45 47 41 4C 20 51 55 41 4E 54 49 54 59 00

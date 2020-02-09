@@ -28,7 +28,7 @@ class Strncpy_stmt:Stmt
         Ex3.eval();
 
         if(Ex3.type != 'b') {
-            this.program.error("The length param passed to STRNCPY must be a byte");
+            Ex3.convert('b');
         }
 
         this.program.appendProgramSegment(to!string(Ex1));

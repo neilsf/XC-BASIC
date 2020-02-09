@@ -15,6 +15,9 @@ class Sys_stmt:Stmt
 
         auto Ex1 = new Expression(e1, this.program);
         Ex1.eval();
+        if(Ex1.type != 'w') {
+            Ex1.convert('w');
+        }
 
         this.program.appendProgramSegment(to!string(Ex1));
         this.program.appendProgramSegment("\tsys\n");

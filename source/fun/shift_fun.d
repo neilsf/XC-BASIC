@@ -14,7 +14,7 @@ class Shift_fun:Fun
 
     override protected char[] getPossibleTypes()
     {
-        return ['b', 'w'];
+        return ['b', 'w', 'l'];
     }
 
     void process()

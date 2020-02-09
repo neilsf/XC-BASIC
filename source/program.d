@@ -127,6 +127,8 @@ class Program
 
     Stack if_stack, while_stack, repeat_stack, for_stack;
 
+    const string type_precedence = "bswlf";
+
     /**
      * Constructor
      */
@@ -138,11 +140,11 @@ class Program
         this.varlen['l'] = 3;
 		this.varlen['f'] = 5;
 
-		this.vartype_names['w'] = "integer";
-        this.vartype_names['l'] = "long integer";
-        this.vartype_names['s'] = "string";
-		this.vartype_names['f'] = "float";
         this.vartype_names['b'] = "byte";
+		this.vartype_names['w'] = "integer";
+        this.vartype_names['s'] = "string";
+        this.vartype_names['l'] = "long";
+		this.vartype_names['f'] = "float";
 
         this.compiler_options = [
             "civars" : 0,
@@ -210,20 +212,16 @@ class Program
             switch(type) {
                 case 'b':
                     return 1;
-                    break;
 
                 case 'w':
                 case 's':
                     return 2;
-                    break;
 
                 case 'l':
                     return 3;
-                    break;
 
                 default:
                     return 4;
-                    break;
             }
         }
 
@@ -244,23 +242,18 @@ class Program
         final switch(sigil) {
             case "!":
                 return 'b';
-                break;
 
             case "":
                 return 'w';
-                break;
 
             case "$":
                 return 's';
-                break;
 
             case "#":
                 return 'l';
-                break;
 
             case "%":
                 return 'f';
-                break;
         }
 	}
 

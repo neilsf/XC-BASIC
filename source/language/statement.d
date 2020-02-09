@@ -327,7 +327,7 @@ abstract class Memmove_stmt: Stmt
             if(e.type == 'f') {
                 this.program.error("Argument #" ~to!string(i+1)~ " of " ~this.getName()~ " must not be a float");
             }
-            else if(e.type == 'b') {
+            else if(e.type != 'w') {
                 e.convert('w');
             }
 

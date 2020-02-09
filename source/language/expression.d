@@ -48,31 +48,22 @@ class Expression
 
     /**
      * Pre-parses the expression to find out
-     * the final result type (byte, int or float)
+     * the final type (byte, int, long or float)
      */
 
     char detect_type()
     {
         this.type = 'b';
         Simplexp tmpSimplexp;
+        long current_pos = 0;
         foreach(ref child; this.node.children) {
             if(child.name == "XCBASIC.Simplexp") {
                 tmpSimplexp = new Simplexp(child, this.program);
                 char tmpSimplexpType = tmpSimplexp.detect_type();
-                if(tmpSimplexpType == 'f') {
-                    // if only one term is a float,
-                    // the whole expr will be of type float
-                    this.type = 'f';
-                    break;
-                }
-                else if(tmpSimplexpType == 's') {
-                    // if only one term is an sp,
-                    // the whole expr will be of type sp
-                    this.type = 's';
-                    break;
-                }
-                else if(tmpSimplexpType == 'w' && this.type == 'b') {
-                   this.type = 'w';
+                long pos = this.program.type_precedence.indexOf(tmpSimplexpType);
+                if(pos > current_pos) {
+                    this.type = tmpSimplexpType;
+                    current_pos = pos;
                 }
             }
         }
@@ -137,24 +128,19 @@ class Expression
     void convert(char to_type)
     {
         int[char] type_prec;
-        type_prec['b'] = 0;
-        type_prec['w'] = 1;
-        type_prec['s'] = 2;
-        type_prec['f'] = 3;
         if(indexOf("sw", this.type) > -1 && indexOf("sw", to_type) > -1) {
             // Nothing to do!
         }
         else {
             to_type = (to_type == 's' ? 'w' : to_type);
             this.asmcode ~= "\t"~to!string(this.type)~"to"~to!string(to_type)~"\n";
-            if(!(indexOf("sw", to_type) && this.type == 'b') && type_prec[to_type] > type_prec[this.type]) {
+            if(this.program.type_precedence.indexOf(to_type) > this.program.type_precedence.indexOf(this.type)) {
                 this.program.warning("Implicit type conversion");
             }
-            else if(type_prec[to_type] < type_prec[this.type]) {
+            else {
                 this.program.warning("Implicit type conversion with truncation or possible loss of precision");
             }
         }
-
     }
    
     void _type_error()

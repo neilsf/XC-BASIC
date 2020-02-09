@@ -17,7 +17,7 @@ class Wait_stmt: Stmt
         if(address.type == 'f') {
             this.program.error("Argument #1 of WAIT must not be a float");
         }
-        else if(address.type == 'b') {
+        else if(address.type != 'w') {
             address.convert('w');
         }
 
@@ -26,7 +26,7 @@ class Wait_stmt: Stmt
         if(mask.type == 'f') {
             this.program.error("Argument #2 of WAIT must not be a float");
         }
-        else if(mask.type == 'w') {
+        else if(mask.type != 'b') {
             mask.convert('b');
         }
 
@@ -36,7 +36,7 @@ class Wait_stmt: Stmt
             if(trig.type == 'f') {
                 this.program.error("Argument #3 of WAIT must not be a float");
             }
-            else if(trig.type == 'w') {
+            else if(trig.type != 'b') {
                 trig.convert('b');
             }
             this.program.appendProgramSegment(to!string(trig));

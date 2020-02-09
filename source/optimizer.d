@@ -237,8 +237,8 @@ class Remove_stack_ops: Optimization_pass
     mixin Optimization_pass_ctor;
 
     const string[] pushers = [
-        "pzero",  "pone", "pbyte", "pbvar", "pword", "paddr",
-        "pwvar", "psvar", "pbarray", "pbarray_fast", "pwarray", "cmpblt",
+        "pzero",  "pone", "pbyte", "pbvar", "pword", "plong", "paddr",
+        "pwvar", "plvar", "psvar", "pbarray", "pbarray_fast", "pwarray", "plarray", "cmpblt",
         "cmpblte", "cmpbgte", "cmpbeq", "cmpbneq",
         "cmpbgt", "cmpweq", "cmpwneq", "cmpwlt",
         "cmpwgte", "cmpwgt", "cmpwlte", "addb",

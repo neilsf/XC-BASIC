@@ -5,6 +5,7 @@ import program;
 import language.factor;
 import std.conv;
 import std.stdio;
+import std.string;
 import core.stdc.stdlib;
 
 class Term
@@ -34,27 +35,18 @@ class Term
     {
         Factor tmpFact;
         char tmptype = 'b';
+        long current_pos = 0;
         foreach(ref child; this.node.children) {
             if(child.name == "XCBASIC.Factor") {
                 tmpFact = new Factor(child, this.program);
                 char tmpFactType = tmpFact.detect_type();
-                if(tmpFactType == 'f') {
-                    // if only one factor is a float,
-                    // the whole term will be of type float
-                    tmptype = 'f';
-                    break;
-                }
-                else if(tmpFactType == 's') {
-                    // if only one factor is a sp,
-                    // the whole term will be of type sp
-                    tmptype = 's';
-                }
-                else if(tmpFactType == 'w' && tmptype == 'b') {
-                    tmptype = 'w';
+                long pos = this.program.type_precedence.indexOf(tmpFactType);
+                if(pos > current_pos) {
+                    tmptype = tmpFactType;
+                    current_pos = pos;
                 }
             }
         }
-
         return tmptype;
     }
 
@@ -84,11 +76,6 @@ class Term
                 }
             }
         }
-    }
-
-    void _type_error()
-    {
-
     }
 
     override string toString()

@@ -26,8 +26,8 @@ class Doke_stmt:Stmt
         }
 
         Ex2.eval();
-        if(Ex2.type == 'b') {
-            Ex2.btow();
+        if(Ex2.type != 'w') {
+            Ex2.convert('w');
         }
 
         this.program.appendProgramSegment(to!string(Ex2)); // value first

@@ -43,17 +43,12 @@ class Let_stmt:Stmt
         }
 
         Ex.eval();
-        this.program.appendProgramSegment(to!string(Ex));
 
-        if(extype == 'b' && vartype == 'w') {
-            this.program.appendProgramSegment("\tbtow\n");
-            // bytes should be silently promoted to integers
-            //this.program.warning("Implicit type conversion");
+        if(extype != vartype) {
+            Ex.convert(vartype);
         }
-        else if(extype == 'w' && vartype == 'b') {
-            this.program.appendProgramSegment("\twtob\n");
-            this.program.warning("Integer truncated to byte");
-        }
+
+        this.program.appendProgramSegment(to!string(Ex));
 
         if(v.children.length > 2) {
             /* any variable can be accessed as an array

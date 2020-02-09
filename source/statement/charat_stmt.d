@@ -21,25 +21,18 @@ class Charat_stmt:Stmt
 
         auto Ex1 = new Expression(e1, this.program);
         Ex1.eval();
-        if(Ex1.type == 'b') {
-            Ex1.btow();
+        if(Ex1.type != 'b') {
+            Ex1.convert('b');
         }
-        else if(Ex1.type == 'f') {
-            this.program.error("Row and column must not be floats");
-        }
-
         auto Ex2 = new Expression(e2, this.program);
         Ex2.eval();
-        if(Ex2.type == 'b') {
-            Ex2.btow();
-        }
-        else if(Ex2.type == 'f') {
-            this.program.error("Row and column must not be floats");
+        if(Ex2.type != 'b') {
+            Ex2.convert('b');
         }
         auto Ex3 = new Expression(e3, this.program);
         Ex3.eval();
-        if(Ex3.type == 'f') {
-            this.program.error("Screencode must not be a float");
+        if(Ex3.type != 'b') {
+            Ex3.convert('b');
         }
 
         this.program.appendProgramSegment(to!string(Ex3)); // screencode first

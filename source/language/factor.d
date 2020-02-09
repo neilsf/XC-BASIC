@@ -196,7 +196,10 @@ class Factor
             case "XCBASIC.Number":
                 ParseTree v = this.node.children[0];
                 Number num = new Number(v, this.program);
-                if(num.type == 'w') {
+                if(num.type == 'l') {
+                    this.asmcode ~= "\tplong #" ~ to!string(num.intval) ~ "\n";
+                }
+                else if(num.type == 'w') {
                     this.asmcode ~= "\tpword #" ~ to!string(num.intval) ~ "\n";
                 }
                 else if(num.type == 'b') {
@@ -244,8 +247,8 @@ class Factor
             else {
                 char to_type = (this.expected_type == 's' ? 'w' : this.expected_type);
                 this.asmcode ~= "\t" ~ to!string(this.type) ~ "to" ~ to!string(to_type) ~"\n";
-                // Don't warn about b->w conversion
-                if(!(this.type == 'b' && this.expected_type == 'w')) {
+                // Don't warn about b->w or w->l conversion
+                if(!((this.type == 'b' && this.expected_type == 'w') || (this.type == 'w' && this.expected_type == 'l'))) {
                     this.program.warning("Implicit type conversion");
                 }
             }

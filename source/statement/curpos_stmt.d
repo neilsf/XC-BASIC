@@ -19,15 +19,11 @@ class Curpos_stmt:Stmt
         auto ypos = new Expression(e2, this.program);
         ypos.eval();
 
-        if(indexOf("bw", xpos.type) == -1 || indexOf("bw", ypos.type) == -1) {
-            this.program.error("CURPOS accepts arguments of type byte or int");
-        }
-
-        if(xpos.type == 'w') {
+        if(xpos.type != 'b') {
             xpos.convert('b');
         }
 
-        if(ypos.type == 'w') {
+        if(ypos.type != 'b') {
             ypos.convert('b');
         }
 

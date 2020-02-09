@@ -32,7 +32,11 @@ class Const_stmt:Stmt
             this.program.error("Type mismatch");
         }
 
-        if(vartype == 'b' && (number.intval < 0 || number.intval > 255)) {
+        if(
+            (vartype == 'b' && (number.intval < 0 || number.intval > 255))
+            ||
+            (vartype == 'w' && (number.intval < 32768 || number.intval > 32767))
+        ) {
             this.program.error("Number out of range");
         }
 

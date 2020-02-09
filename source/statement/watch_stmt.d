@@ -18,7 +18,7 @@ class Watch_stmt: Stmt
         if(address.type == 'f') {
             this.program.error("Argument #1 of WATCH must not be a float");
         }
-        else if(address.type == 'b') {
+        else if(address.type != 'w') {
             address.convert('w');
         }
 
@@ -27,7 +27,7 @@ class Watch_stmt: Stmt
         if(mask.type == 'f') {
             this.program.error("Argument #2 of WATCH must not be a float");
         }
-        else if(mask.type == 'w') {
+        else if(mask.type != 'b') {
             mask.convert('b');
         }
 

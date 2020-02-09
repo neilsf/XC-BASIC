@@ -17,7 +17,7 @@ class Memset_stmt: Stmt
         if(source.type == 'f') {
             this.program.error("Argument #1 of MEMSET must not be a float");
         }
-        else if(source.type == 'b') {
+        else if(source.type != 'w') {
             source.convert('w');
         }
 
@@ -26,7 +26,7 @@ class Memset_stmt: Stmt
         if(len.type == 'f') {
             this.program.error("Argument #2 of MEMSET must not be a float");
         }
-        else if(len.type == 'b') {
+        else if(len.type != 'w') {
             len.convert('w');
         }
 
@@ -35,8 +35,8 @@ class Memset_stmt: Stmt
         if(val.type == 'f') {
             this.program.error("Argument #3 of MEMSET must not be a float");
         }
-        else if(val.type == 'w') {
-            val.convert('b');
+        else if(val.type != 'w') {
+            val.convert('w');
         }
 
         this.program.appendProgramSegment(to!string(val));

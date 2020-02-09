@@ -3,6 +3,7 @@ module language.number;
 import std.stdio;
 import std.conv;
 import std.string;
+import std.range;
 import pegged.grammar;
 import program;
 import language.petscii;
@@ -42,7 +43,7 @@ class Number
 
             case "XCBASIC.Integer":
                 int num = to!int(num_str);
-                if(num < -32768 || num > 65535) {
+                if(num < -8388608 || num > 8388607) {
                     this.program.error("Number out of range");
                 }
                 this.intval = num;
@@ -51,7 +52,7 @@ class Number
             case "XCBASIC.Hexa":
                 num_str = num_str[1..$];
                 int num = to!int(num_str, 16);
-                if(num > 65535) {
+                if(num > 0xffffff) {
                     this.program.error("Number out of range");
                 }
                 this.intval = num;
@@ -60,7 +61,7 @@ class Number
             case "XCBASIC.Binary":
                 num_str = num_str[1..$];
                 int num = to!int(num_str, 2);
-                if(num > 65535) {
+                if(num > 0xffffff) {
                     this.program.error("Number out of range");
                 }
                 this.intval = num;
@@ -86,9 +87,24 @@ class Number
             if(this.intval >= 0 && this.intval < 256) {
                 this.type = 'b';
             }
-            else {
+            else if(this.intval >= -32768 && this.intval <= 65536) {
                 this.type = 'w';
             }
+            else {
+                this.type = 'l';
+            }
         }
+    }
+
+    public string get_hex_of_long()
+    {
+        int val = this.intval;
+        if(val < 0) {
+            val = 16777216 + val;
+        }
+
+        string strvalue = to!string(val, 16);
+        strvalue = to!string(strvalue.padLeft('0', 6));
+        return strvalue[4..6] ~ strvalue[2..4] ~ strvalue[0..2];
     }
 }

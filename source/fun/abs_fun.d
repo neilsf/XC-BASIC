@@ -13,7 +13,7 @@ class Abs_fun:Fun
 
     override protected char[] getPossibleTypes()
     {
-        return ['w', 'f'];
+        return ['w', 'f', 'l'];
     }
 
     void process()

@@ -55,11 +55,11 @@ class For_stmt: Stmt
         ParseTree ex2 = this.node.children[0].children[2];
         Expression Ex2 = new Expression(ex2, this.program);
         Ex2.eval();
-        if(Ex2.type == 'f' || (Ex2.type == 'w' && vartype == 'b')) {
-            this.program.error("Type mismatch. When counter is a(n) " ~ this.program.vartype_names[vartype] ~ ", max value and step must also be " ~ this.program.vartype_names[vartype] ~ "s");
+        if(Ex2.type == 'f') {
+             this.program.error("Limit must not be a float");
         }
-        else if(Ex2.type == 'b' && vartype == 'w') {
-            Ex2.btow();
+        else if(Ex2.type != vartype) {
+            Ex2.convert(vartype);
         }
 
         Variable max_var = Variable(0, "FOR_max_" ~ to!string(counter), vartype);
@@ -73,11 +73,11 @@ class For_stmt: Stmt
             ParseTree ex3 = this.node.children[0].children[3];
             Expression Ex3 = new Expression(ex3, this.program);
             Ex3.eval();
-            if(Ex3.type == 'f' || (Ex3.type == 'w' && vartype == 'b')) {
-                this.program.error("Type mismatch. When counter is a(n) " ~ this.program.vartype_names[vartype] ~ ", max value and step must also be " ~ this.program.vartype_names[vartype] ~ "s");
+            if(Ex3.type == 'f') {
+                this.program.error("Step must not be a float");
             }
-            else if(Ex3.type == 'b' && vartype == 'w') {
-                Ex3.btow();
+            else if(Ex3.type != vartype) {
+                Ex3.convert(vartype);
             }
 
             Variable step_var = Variable(0, "FOR_step_" ~ to!string(counter), vartype);

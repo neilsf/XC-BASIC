@@ -34,31 +34,21 @@ class Simplexp
 
     char detect_type()
     {
-        char type = 'b';
         Term tmpTerm;
+        char tmptype = 'b';
+        long current_pos = 0;
         foreach(ref child; this.node.children) {
             if(child.name == "XCBASIC.Term") {
                 tmpTerm = new Term(child, this.program);
                 char tmpTermType = tmpTerm.detect_type();
-                if(tmpTermType == 'f') {
-                    // if only one term is a float,
-                    // the whole expr will be of type float
-                    type = 'f';
-                    break;
-                }
-                else if(tmpTermType == 's') {
-                    // if only one term is an sp,
-                    // the whole expr will be of type sp
-                    type = 's';
-                    break;
-                }
-                else if(tmpTermType == 'w' && type == 'b') {
-                    type = 'w';
+                long pos = this.program.type_precedence.indexOf(tmpTermType);
+                if(pos > current_pos) {
+                    tmptype = tmpTermType;
+                    current_pos = pos;
                 }
             }
         }
-
-        return type;
+        return tmptype;
     }
 
     void eval()

@@ -13,7 +13,7 @@ class Sqr_fun:Fun
 
     override protected char[] getPossibleTypes()
     {
-        return ['w', 'f'];
+        return ['w', 'l', 'f'];
     }
 
     void process()

@@ -12,7 +12,7 @@ class Rnd_fun:Fun
 
     override protected char[] getPossibleTypes()
     {
-        return ['w', 'f', 'b'];
+        return ['w', 'f', 'b', 'l'];
     }
 
     void process()

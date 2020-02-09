@@ -36,11 +36,11 @@ class Data_stmt:Stmt
         if(list.name == "XCBASIC.Datalist") {
             string seg = "";
             seg ~= var.getLabel();
-            if(vartype == 'b' || vartype == 'f') {
-                seg ~= "\tDC.B ";
+            if(vartype == 'w' || vartype == 's') {
+                seg ~= "\tDC.W ";
             }
             else {
-                seg ~= "\tDC.W ";
+                seg ~= "\tDC.B ";
             }
 
             string value;
@@ -55,18 +55,25 @@ class Data_stmt:Stmt
                     case "XCBASIC.Number":
 
                         Number num = new Number(v, this.program);
-
+                        // Strings not allowed here
+                        // Floats and other types may not be mixed
                         if(vartype == 's' || (vartype == 'f' && num.type !='f') || (num.type == 'f' && vartype != 'f')) {
                             this.program.error("Type mismatch");
                         }
 
-                        if(vartype == 'b' && num.type == 'w') {
+                        if(vartype == 'b' && num.type == 'w' || vartype == 'w' && num.type == 'l') {
                             this.program.error("Number out of range");
                         }
 
                         if(vartype == 'b' || vartype == 'w') {
                             value = to!string(num.intval);
                             seg ~= "#" ~value;
+                        }
+                        else if(vartype == 'l') {
+                            value = num.get_hex_of_long();
+                            seg ~=  "#$" ~ value[0..2] ~
+                                    ", #$" ~ value[2..4] ~
+                                    ", #$" ~ value[4..6];
                         }
                         else {
                             floatbytes = language.excess.float_to_hex(num.floatval);
@@ -93,11 +100,11 @@ class Data_stmt:Stmt
                 counter++;
                 if(counter == 16 && i < list.children.length-1) {
                     seg ~= "\n";
-                    if(vartype == 'b' || vartype == 'f') {
-                        seg ~= "\tDC.B ";
+                    if(vartype == 'w' || vartype == 's') {
+                        seg ~= "\tDC.W ";
                     }
                     else {
-                        seg ~= "\tDC.W ";
+                        seg ~= "\tDC.B ";
                     }
                     counter = 0;
                 }

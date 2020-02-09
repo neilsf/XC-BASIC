@@ -19,11 +19,11 @@ class On_stmt:Stmt
         auto index = new Expression(e1, this.program);
         index.eval();
 
-        if(indexOf("bw", index.type) == -1 || indexOf("bw", index.type) == -1) {
-            this.program.error("ON accepts argument of type byte or int");
+        if(index.type == 'f') {
+            this.program.error("Index must not be a float");
         }
 
-        if(index.type == 'w') {
+        if(index.type != 'b') {
             index.convert('b');
         }
 

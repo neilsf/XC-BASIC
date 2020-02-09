@@ -323,7 +323,7 @@ str_default_mask
 	HEX D0 D1 D2 D3 D4 D5 D6 D7 D8 D9 DA DB DC DD DE DF
 	HEX FF 00
 	
-	; Numeric value of a byte
+	; Numeric value of a string (byte)
 	;
 STR_VALB	SUBROUTINE
 	; A/X: pointer to string
@@ -394,7 +394,7 @@ STR_CHARISNUMERIC	SUBROUTINE
 	clc
 	rts
 
-	; Numeric value of a signed word	
+	; Numeric value of a string (signed word)
 STR_VALW	SUBROUTINE
 	; A/X: pointer to string
 .ret	EQU	RA		

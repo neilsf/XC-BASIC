@@ -1,4 +1,3 @@
-	LIST OFF
 
 KERNAL_PRINTCHR	EQU $e716
 KERNAL_GETIN EQU $ffe4	
@@ -71,22 +70,21 @@ STDLIB_PRINT_BYTE SUBROUTINE
 		
 ; converts word to string
 ; input in R2
-; output on stack
-; last char has 7. bit ON
-	MAC word_to_string
-.number			EQU R2
-.negative 	 	EQU R8
-.numchars		EQU R9
+; output on stdlib_string_workspace (backwards)
+; number of chars in X
+word_to_string SUBROUTINE
+;.number		EQU R2
+;.negative 	 	EQU R8
+;.numchars		EQU R9
 	lda #$00
-	sta .negative ; is it negative?
-	sta .numchars
+	sta R8 ; is it negative?
+	sta R9
 	
-	lda .number+1
+	lda R2+1
 	bpl .skip1
 	; negate number remember it's negative
 	twoscomplement R2
-	lda #$01
-	sta .negative
+	inc R8
 .skip1
 	lda #10
 	sta R0
@@ -95,43 +93,94 @@ STDLIB_PRINT_BYTE SUBROUTINE
 .loop
 	jsr NUCL_DIVU16
 	lda R4 ; remainder
-	pha
-	inc .numchars
-	lda .number
-	ora .number+1
+	ldx R9
+	sta.wx stdlib_string_workspace
+	inc R9
+	lda R2
+	ora R2+1
 	bne .loop
-	lda .negative		
+	lda R8		
 	beq .skip2	
 	lda #$fd
-	pha
-	inc .numchars
+	inx
+	sta.wx stdlib_string_workspace
 .skip2
-	ENDM
+	rts
 		
-; print word as petscii decimal
-STDLIB_PRINT_WORD SUBROUTINE
-	word_to_string
-	ldx R9
+; print string workspace using KERNAL
+; in number of chars in X
+stdlib_print_string_workspace SUBROUTINE
 .loop
-	pla
+	lda.wx stdlib_string_workspace
 	clc
 	adc #$30
 	jsr KERNAL_PRINTCHR
 	dex
-	bne .loop
+	bpl .loop
+	rts
+		
+; print word as petscii decimal
+STDLIB_PRINT_WORD SUBROUTINE
+	jsr word_to_string
+	jsr stdlib_print_string_workspace
 	rts
 	
 STDLIB_OUTPUT_WORD SUBROUTINE
-	word_to_string	
+	jsr word_to_string	
 	ldy #$00
 .loop
-	pla
+	lda.wx stdlib_string_workspace
 	clc
 	adc #$30
 	sta (RA),y
 	iny
-	cpy R9
+	dex
+	bpl .loop
+	rts
+	
+; converts word to string
+; input in R2
+; output on stdlib_string_workspace (backwards)
+; number of chars in X
+long_to_string SUBROUTINE
+;.number		EQU R4
+;.negative 	 	EQU RA
+;.numchars		EQU RB
+	lda #10
+	sta R7
+	lda #$00
+	sta R7+1
+	sta R7+2
+	sta RA
+	sta RB
+	
+	lda R4 + 2
+	bpl .loop
+	; negate number and remember it's negative
+	twoscomplementl R4
+	inc RA
+.loop
+	jsr NUCL_DIVU24
+	lda R0 ; remainder
+	ldx RB
+	sta.wx stdlib_string_workspace
+	inc RB
+	lda R4
+	ora R4+1
+	ora R4+2
 	bne .loop
+	lda RA		
+	beq .skip2	
+	lda #$fd
+	inx
+	sta.wx stdlib_string_workspace
+.skip2
+	rts
+	
+; print word as petscii decimal
+STDLIB_PRINT_LONG SUBROUTINE
+	jsr long_to_string
+	jsr stdlib_print_string_workspace
 	rts
 	
 STDLIB_OUTPUT_BYTE SUBROUTINE
@@ -191,6 +240,23 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	sty R3
 	ENDIF
 	jsr STDLIB_PRINT_WORD
+	ENDM
+	
+	; opcode for print word as decimal  	
+	MAC stdlib_printl
+	IF !FPULL
+	pla
+	sta R4+2
+	pla
+	sta R4+1
+	pla
+	sta R4
+	ELSE
+	sta R4
+	sty R4+1
+	stx R4+2
+	ENDIF
+	jsr STDLIB_PRINT_LONG
 	ENDM
 
 	MAC stdlib_putstr
@@ -294,15 +360,50 @@ STDLIB_RND SUBROUTINE
 	adc #$36
 	sta random+1
 	rts
+	
+	; LFSR 24-bit pseudo-random generator
+	; by Brad Smith
+	; 
+STDLIB_RND24 SUBROUTINE
+	; rotate the middle byte left
+	ldy random+1 ; will move to seed+2 at the end
+	; compute seed+1 ($1B>>1 = %1101)
+	lda random+2
+	lsr
+	lsr
+	lsr
+	lsr
+	sta random+1 ; reverse: %1011
+	lsr
+	lsr
+	eor random+1
+	lsr
+	eor random+1
+	eor random+0
+	sta random+1
+	; compute seed+0 ($1B = %00011011)
+	lda random+2
+	asl
+	eor random+2
+	asl
+	asl
+	eor random+2
+	asl
+	eor random+2
+	sty random+2 ; finish rotating byte 1 into 2
+	sta random+0
+	rts
 
 temp1:   DC.B $5a
-random:  DC.B %10011101,%01011011
+random:  DS.B 3
+
+stdlib_string_workspace: DS.B 8
 
 	MAC seed_rnd
-	lda $a1
+	lda $a0
 	sta random
-	lda $a2
+	lda $a1
 	sta random+1
+	lda $a2
+	sta random+2
 	ENDM
-
-	LIST ON
