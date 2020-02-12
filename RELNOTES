@@ -1,11 +1,11 @@
 XC=BASIC Release Notes
 
 Current Release Number:
-   v2.2.04
+   v2.2.05
 Release Date:
-  26/01/2020
+  12/02/2020
 
-What's new in version 2.2.04?
+What's new in version 2.2.05?
 =============================
 
 (1) The @ operator can be used to resolve procedure address

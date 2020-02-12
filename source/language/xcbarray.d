@@ -129,7 +129,7 @@ class XCBArray
 
             if(i == 1) {
                 // must multiply with first dimension length
-                asmcode ~= "\tpword #" ~ to!string(var.dimensions[1]) ~ "\n"
+                asmcode ~= "\tpword #" ~ to!string(var.dimensions[0]) ~ "\n"
                          ~ "\tmulw\n"
                          ~ "\taddw\n";
             }
