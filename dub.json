@@ -10,5 +10,5 @@
 	"description": "A cross compiler for XC-BASIC",
 	"copyright": "Copyright © 2019, Csaba Fekete",
 	"license": "MIT",
-	"dflags-dmd": ["-Jlib/", "-lowmem"]
+	"dflags-dmd": ["-Jlib/", "-lowmem", "-m64"]
 }
