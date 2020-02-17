@@ -10,11 +10,6 @@
 - If you've found a bug, please post a GitHub issue.
 - If you have any suggestions, ideas, critics or would like to develop the project, feel free to email me. Any feedback is warmly appreciated.
 
-
-# XC=BASIC language support for Visual Studio Code
-
-[Viza74](https://github.com/Viza74) created a **XC=BASIC** language support extension for Visual Studio Code. [Grab it from here](https://marketplace.visualstudio.com/items?itemName=viza.xcbasiclanguagevscodeext).
-	
 # Credits
 
 - XC=BASIC is using Philippe Sigaud's fantastic [Pegged library](https://github.com/PhilippeSigaud/Pegged) for grammar parsing

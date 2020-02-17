@@ -1,6 +1,7 @@
 XC=BASIC Release Notes
 
 Current Release Number:
+<<<<<<< HEAD
    v2.3
 Release Date:
   23/01/2020
@@ -14,7 +15,7 @@ What's new in version 2.3?
 
 (3) Added the -h command line option and better command line argument parsing
 
-What's new in version 2.2.04?
+What's new in version 2.2.05?
 =============================
 
 (1) The @ operator can be used to resolve procedure address
