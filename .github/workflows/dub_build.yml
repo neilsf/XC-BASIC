@@ -19,4 +19,4 @@ jobs:
                   compiler: ${{ matrix.dc }}
 
             - name: Build
-              run: dub build --force -v
+              run: dub build --force --build-mode=singleFile -v
