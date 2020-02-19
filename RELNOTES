@@ -1,19 +1,22 @@
 XC=BASIC Release Notes
 
 Current Release Number:
-<<<<<<< HEAD
    v2.3
 Release Date:
-  23/01/2020
+  19/02/2020
 
 What's new in version 2.3?
 =========================
 
-(1) New installers for Linux, Windows and Mac OS
+This is release does not add any new feature to the language but
+rather changes the way the compiler is built, released and used.
+The source repository does not contain the executable binaries
+any more and DASM is no longer included in the downloads. The
+shell scripts that used to invoke xcbasic64 along with dasm are
+removed. The xcbasic64 executable binary is the only file in
+the release. Please refer to this page for usage instructions:
 
-(2) The xcbasic64 executable now invokes DASM automatically, no need for batch scripts
-
-(3) Added the -h command line option and better command line argument parsing
+https://xc-basic.net/doku.php?id=usage
 
 What's new in version 2.2.05?
 =============================
