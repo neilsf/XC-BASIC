@@ -7,3 +7,6 @@
 [submodule "extensions/xcb-ext-joystick"]
 	path = extensions/xcb-ext-joystick
 	url = https://github.com/neilsf/xcb-ext-joystick.git
+[submodule "modules/xcb-module-grammar"]
+	path = modules/xcb-module-grammar
+	url = https://github.com/neilsf/xcb-module-grammar
