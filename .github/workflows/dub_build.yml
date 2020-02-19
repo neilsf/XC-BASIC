@@ -23,13 +23,13 @@ jobs:
 
             - name: Zip_windows
               uses: montudor/action-zip@v0.1.0
-              if: runner.os == "Windows"
+              if: runner.os == 'Windows'
               with:
                  args: zip -qq -r ./xcb.zip ./xcbasic64.exe
 
             - name: Zip_non-windows
               uses: montudor/action-zip@v0.1.0
-              if: runner.os != "Windows"
+              if: runner.os != 'Windows'
               with:
                  args: zip -qq -r ./xcb.zip ./xcbasic64
 
