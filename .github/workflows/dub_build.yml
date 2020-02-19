@@ -8,7 +8,7 @@ jobs:
         strategy:
             matrix:
                 os: [ubuntu-latest, windows-latest, macOS-latest]
-                dc: [dmd-latest]
+                dc: [dmd-2.083.1]
         runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v1
@@ -19,4 +19,4 @@ jobs:
                   compiler: ${{ matrix.dc }}
 
             - name: Build
-              run: dub build --force -v
+              run: dub build --force --build-mode=singleFile -v
