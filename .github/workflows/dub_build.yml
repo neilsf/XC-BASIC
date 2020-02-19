@@ -8,7 +8,7 @@ jobs:
         strategy:
             matrix:
                 os: [ubuntu-latest, windows-latest, macOS-latest]
-                dc: [dmd-2.0.83.1]
+                dc: [dmd-2.083.1]
         runs-on: ${{ matrix.os }}
         steps:
             - uses: actions/checkout@v1
