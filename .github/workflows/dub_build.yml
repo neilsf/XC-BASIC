@@ -34,13 +34,12 @@ jobs:
               run: mv xcbasic64.exe bin/${{runner.os}}/xcbasic64.exe
               shell: bash
               
-            - name: Commit files
-              run: |
-                 git config --local user.email "action@github.com"
-                 git config --local user.name "GitHub Action"
-                 git commit -m "Added latest binaries" -a
-
-            - name: Push changes
-              uses: ad-m/github-push-action@master
+            - name: push
+              uses: github-actions-x/commit@v2.3
               with:
-                 github_token: ${{ secrets.GITHUB_TOKEN }}
+                 github-token: ${{ secrets.GITHUB_TOKEN }}
+                 commit-message: 'Added compiled executable'
+                 rebase: 'true'
+                 files: bin/*
+                 name: Csaba Fekete
+                 email: feketecsaba@gmail.com
