@@ -5,7 +5,6 @@
 	],
 	"dependencies": {
 		"pegged": "~>0.4.4",
-		 "dini": "~>1.0.1"
 	},
 	"description": "A cross compiler for XC-BASIC",
 	"copyright": "Copyright © 2019, Csaba Fekete",

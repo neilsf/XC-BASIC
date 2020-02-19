@@ -20,3 +20,22 @@ jobs:
 
             - name: Build
               run: dub build --force --build-mode=singleFile -v
+
+	    - name: Zip (windows)
+	      if:   runner.os == "Windows"
+	      uses: montudor/action-zip@v0.1.0
+	      with:
+	    	  args: zip -qq -r ./xcb.zip ./xcbasic64.exe
+
+	    - name: Zip (non-windows)
+	      uses: montudor/action-zip@v0.1.0
+	      if:   runner.os != "Windows"
+	      with:
+	        args: zip -qq -r ./xcb.zip ./xcbasic64
+
+	    - name: Upload
+	      uses: Shopify/upload-to-release
+	      with:
+    	    	  name: xcbasic64_${{runner.os}}.zip
+            	  path: ./xcb.zip
+        	  repo-token: ${{ secrets.GITHUB_TOKEN }}
