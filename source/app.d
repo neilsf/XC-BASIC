@@ -5,24 +5,40 @@ import program;
 import std.conv;
 import globals;
 import optimizer;
-import dini;
 
 int line_count = 0;
+
+/**
+ * Variables that hold command-line options
+ */
+
+bool noopt = false;
+string output_type = "prg";
+version(Windows) {
+    string dasm = "dasm.exe";
+}
+else {
+    string dasm = "dasm";
+}
+string symbolfile="";
+string listfile="";
+
+/**
+ * Version
+ */
+
+string compiler_version = "v2.3.0";
 
 /**
  * Application entry point
  */
 
-bool noopt = false;
-string output_type = "prg";
-string compiler_version = "v2.3.0";
-
-
 void main(string[] args)
 {
-    Ini conf = get_conf();
-
     auto helpInformation = getopt(args,
+        "dasm|d", &dasm,
+        "symbol|s", &symbolfile,
+        "list|l", &listfile,
         "noopt|n", &noopt,
         "output|o", &output_type
     );
@@ -83,31 +99,36 @@ void main(string[] args)
         outfile.write(code);
         outfile.close();
 
-        // Get DASM executable path
-        string path = dirName(thisExePath());
-        string dasm_bin = path ~ dirSeparator ~ conf["assembler"].getKey("dasm_bin");
-
         version(Windows) {
-            dasm_bin = `"` ~ dasm_bin ~ `"`;
+            dasm = `"` ~ dasm ~ `"`;
             asm_filename = `"` ~ asm_filename ~ `"`;
             outname = `"` ~ outname ~ `"`;
+            if(symbolfile != "") {
+                symbolfile = `"` ~ symbolfile ~ `"`;
+            }
+            if(listfile != "") {
+                listfile = `"` ~ listfile ~ `"`;
+            }
         }
 
-        // Assemble!
-        string cmd = dasm_bin ~ " " ~ asm_filename ~ " -o" ~ outname;
-        auto dasm = executeShell(cmd);
-        if(dasm.status != 0) {
+        string cmd = dasm ~ " " ~ asm_filename ~ " -o" ~ outname;
+        if(symbolfile != "") {
+            cmd ~= " -s" ~ symbolfile;
+        }
+        if(listfile != "") {
+            cmd ~= " -l" ~ listfile;
+        }
+        auto dasm_cmd = executeShell(cmd);
+        if(dasm_cmd.status != 0) {
             stderr.writeln("** ERROR ** There has been an error while trying to execute DASM, please see the bellow message.");
             stderr.writeln("Tried to execute: " ~ cmd);
-            stderr.writeln(dasm.output);
+            stderr.writeln(dasm_cmd.output);
             exit(1);
         }
         else {
-            stdout.write(dasm.output);
+            stdout.write(dasm_cmd.output);
             exit(0);
         }
-
-
     }
     else {
         File outfile = File(outname, "w");
@@ -179,29 +200,25 @@ XC=BASIC compiler version ` ~ compiler_version ~ `
 Copyright (c) 2019-2020 by Csaba Fekete
 Usage: xcbasic64 [options] <inputfile> <outputfile> [options]
 Options:
-  --output=<x> or -o<x>  Output type: "prg" (default) or "asm"
-  --noopt or -n          Do not run the optimizer (defaults to false)
-  --help or -h           Show this help
+   -o
+  --output=     Output type: "prg" (default) or "asm"
+
+   -d
+  --dasm=       Path to the DASM executable.
+                Defaults to "dasm.exe" (Windows) or "dasm" (Linux/Mac)
+
+   -s
+  --symbol=     Symbol dump file name. This is passed to DASM as it is.
+
+   -l
+  --list=       List file name. This is passed to DASM as it is.
+
+   -n
+  --noopt       Do NOT run the optimizer
+
+   -h
+  --help        Show this help
 `
     );
     exit(exit_code);
-}
-
-/**
- * Fetch configuration file
- */
-
-Ini get_conf()
-{
-    string path = dirName(thisExePath());
-    string filename = path ~ dirSeparator ~ "xcbasic.conf";
-    try {
-        return Ini.Parse(filename);
-    }
-    catch(Exception e) {
-        stderr.writeln("Could not find configuration file in " ~ filename);
-        exit(1);
-    }
-
-    assert(0);
 }
