@@ -7,7 +7,7 @@ jobs:
         name: DUB Build
         strategy:
             matrix:
-                os: [ubuntu-latest, windows-latest]
+                os: [ubuntu-latest, windows-latest, macos-latest]
                 dc: [dmd-latest]
         runs-on: ${{ matrix.os }}
         steps:
@@ -21,25 +21,8 @@ jobs:
             - name: Build
               run: dub build --force --build-mode=singleFile -v
 
-            - name: Create bin dir
-              run: mkdir -p bin/${{runner.os}}
-
-            - name: Move executable
-              if: runner.os != 'Windows'
-              run: mv xcbasic64 bin/${{runner.os}}/xcbasic64
-              shell: bash
-              
-            - name: Move executable (win)
-              if: runner.os == 'Windows'
-              run: mv xcbasic64.exe bin/${{runner.os}}/xcbasic64.exe
-              shell: bash
-              
-            - name: push
-              uses: github-actions-x/commit@v2.3
+            - name: Upload
+              uses: actions/upload-artifact@v1
               with:
-                 github-token: ${{ secrets.GITHUB_TOKEN }}
-                 commit-message: 'Added compiled executable'
-                 rebase: 'true'
-                 files: bin/*
-                 name: Csaba Fekete
-                 email: feketecsaba@gmail.com
+                 name: compiled_${{ matrix.os }}
+                 path: ./xcbasic64*
