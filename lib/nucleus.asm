@@ -1481,26 +1481,24 @@ NUCL_DIVU16 SUBROUTINE
 	IFCONST XFOR_step_{1}
 	; need to check if step is negative
 	lda XFOR_step_{1} + 1
-	bmi .neg
 	; it is positive: do the regular comparison
 	bpl .cmp
 .neg
-	; compare index to max
-	lda {2}
-	cmp XFOR_max_{1}
-	lda {2}+1
-	sbc XFOR_max_{1}+1
-	bcs .jump_back
-	bcc .end ;max is gte, exit loop
-	ENDIF
-.cmp
 	; compare index to max
 	lda XFOR_max_{1}
 	cmp {2}
 	lda XFOR_max_{1}+1
 	sbc {2}+1
-	bcs .jump_back
-	bcc .end ;index is gte, exit loop
+	bmi .jump_back
+	bpl .end ; index is gte
+	ENDIF
+.cmp
+	; compare index to max
+	lda {2}
+	cmp XFOR_max_{1}
+	lda {2}+1
+	sbc XFOR_max_{1}+1
+	bpl .end ; max is gte
 .jump_back
 	jmp _FOR_{1}
 .end

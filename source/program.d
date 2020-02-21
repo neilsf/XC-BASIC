@@ -16,6 +16,7 @@ struct Variable {
     bool isConst = false;
 	bool isData = false;
 	bool isGlobal = true;
+    bool force_global = false;
     bool isFast = false;
     bool isExplicitAddr = false;
     bool isPrivate = false;
@@ -29,11 +30,11 @@ struct Variable {
     static const ubyte zp_high = 0x10;
     static ubyte zp_ptr = zp_low;
 
-	string getLabel()
+	string getLabel(bool force_global = false)
 	{
         string prefix = this.isPrivate ? "X" : "_";
 
-		if(this.isGlobal) {
+		if(this.isGlobal || force_global) {
 			return prefix ~ this.name;
 		}
 		else {
@@ -486,7 +487,7 @@ class Program
 
 	void addVariable(Variable var, bool is_fast = false)
 	{
-		bool global_mod = var.name[0] == '\\';
+		bool global_mod = var.force_global || var.name[0] == '\\';
 		if(global_mod) {
 			var.name = stripLeft(var.name, "\\");
 		}

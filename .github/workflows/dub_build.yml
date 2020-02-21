@@ -19,7 +19,7 @@ jobs:
                   compiler: ${{ matrix.dc }}
 
             - name: Build
-              run: dub build --force --build-mode=singleFile -v
+              run: dub build --force -v
 
             - name: Create bin dir
               run: mkdir -p bin/${{runner.os}}

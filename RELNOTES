@@ -3,20 +3,22 @@ XC=BASIC Release Notes
 Current Release Number:
    v2.3
 Release Date:
-  20/02/2020
+  21/02/2020
 
 What's new in version 2.3?
 =========================
 
-This is release does not add any new feature to the language but
-rather changes the way the compiler is built, released and used.
-The source repository does not contain the executable binaries
-any more and DASM is no longer included in the downloads. The
-shell scripts that used to invoke xcbasic64 along with dasm are
-removed. The xcbasic64 executable binary is the only file in
-the release. Please refer to this page for usage instructions:
+(1) New GitHub action for automatic build
 
-https://xc-basic.net/doku.php?id=usage
+(2) Removed binaries from source repository
+
+(3) The executable now calls DASM - no more bash scripts
+
+(4) Added some command line options
+
+(5) FOR now supports STEP and became a little faster
+
+(6) Bugfixes
 
 What's new in version 2.2.05?
 =============================

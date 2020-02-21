@@ -64,6 +64,7 @@ class For_stmt: Stmt
 
         Variable max_var = Variable(0, "FOR_max_" ~ to!string(counter), vartype);
         max_var.isPrivate = true;
+        max_var.force_global = true;
         this.program.addVariable(max_var);
         this.program.appendProgramSegment(to!string(Ex2));
         this.program.appendProgramSegment("\tpl" ~ vartype ~ "2var " ~ max_var.getLabel() ~ "\n");
@@ -82,6 +83,7 @@ class For_stmt: Stmt
 
             Variable step_var = Variable(0, "FOR_step_" ~ to!string(counter), vartype);
             step_var.isPrivate = true;
+            step_var.force_global = true;
             this.program.addVariable(step_var);
             this.program.appendProgramSegment(to!string(Ex3));
             this.program.appendProgramSegment("\tpl" ~ vartype ~ "2var " ~ step_var.getLabel() ~ "\n");
