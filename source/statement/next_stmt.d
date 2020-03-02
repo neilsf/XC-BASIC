@@ -32,6 +32,7 @@ class Next_stmt:Stmt
             }
         }
         // push index var's current value
-        this.program.appendProgramSegment("\tnext"~to!string(index_var.type)~" "~to!string(counter)~", "~index_var.getLabel()~"\n");
+        this.program.appendProgramSegment("\tnext"~to!string(index_var.type)~" "~to!string(counter)~", "~index_var.getLabel()~"\n" ~
+                                          "_ENDFOR_" ~ to!string(counter) ~ ":\n");
     }
 }

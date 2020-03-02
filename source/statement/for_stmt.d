@@ -89,6 +89,7 @@ class For_stmt: Stmt
             this.program.appendProgramSegment("\tpl" ~ vartype ~ "2var " ~ step_var.getLabel() ~ "\n");
         }
 
-        this.program.appendProgramSegment("_FOR_" ~ to!string(counter) ~ ":\n");
+        this.program.appendProgramSegment("_FOR_" ~ to!string(counter) ~ ":\n" ~
+                                          "\tfor" ~ to!string(vartype) ~ " " ~ to!string(counter) ~ ", " ~ var.getLabel() ~ "\n");
     }
 }

@@ -1458,7 +1458,35 @@ NUCL_DIVU16 SUBROUTINE
 	sta (R0),y
 	ENDM
 
-	; Improved NEXT routine (integer index)
+	; Entry of FOR loop (integer index)
+	; Usage: forw <for identifier>, <index_var>
+	MAC forw
+	IFCONST XFOR_step_{1}
+	; need to check if step is negative
+	lda XFOR_step_{1} + 1
+	; it is positive: do the regular comparison
+	bpl .cmp
+.neg
+	; compare index to max
+	lda {2}
+	cmp XFOR_max_{1}
+	lda {2}+1
+	sbc XFOR_max_{1}+1
+	bpl .enter					; Enter the code block
+	jmp _ENDFOR_{1}				; Exit loop
+	ENDIF
+.cmp
+	; compare index to max
+	lda XFOR_max_{1}
+	cmp {2}
+	lda XFOR_max_{1}+1
+	sbc {2}+1
+	bpl .enter					; Enter the code block
+	jmp _ENDFOR_{1}				; Exit loop
+.enter
+	ENDM
+
+	; NEXT routine (integer index)
 	; Usage: nextw <for identifier>, <index_var>
 	MAC nextw
 	; increment index variable
@@ -1478,33 +1506,23 @@ NUCL_DIVU16 SUBROUTINE
 	inc {2}+1
 	ENDIF
 .skip
-	IFCONST XFOR_step_{1}
-	; need to check if step is negative
-	lda XFOR_step_{1} + 1
-	; it is positive: do the regular comparison
-	bpl .cmp
-.neg
+	; Jump back to loop entry
+	jmp _FOR_{1}
+	ENDM
+	
+	; Entry of FOR loop (byte index)
+	; Usage: forb <for identifier>, <index_var>
+	MAC forb
 	; compare index to max
 	lda XFOR_max_{1}
 	cmp {2}
-	lda XFOR_max_{1}+1
-	sbc {2}+1
-	bmi .jump_back
-	bpl .end ; index is gte
-	ENDIF
-.cmp
-	; compare index to max
-	lda {2}
-	cmp XFOR_max_{1}
-	lda {2}+1
-	sbc XFOR_max_{1}+1
-	bpl .end ; max is gte
-.jump_back
-	jmp _FOR_{1}
-.end
+	bcs .enter
+	;index is gte, exit loop
+	jmp _ENDFOR_{1}
+.enter
 	ENDM
 	
-	; Improved NEXT routine (byte index)
+	; NEXT routine (byte index)
 	; Usage: nextb <for identifier>, <index_var>
 	MAC nextb
 	; increment index variable
@@ -1515,22 +1533,14 @@ NUCL_DIVU16 SUBROUTINE
 	adc {2}
 	sta {2}
 	; don't roll over
-	bcs .end
+	bcs _ENDFOR_{1}
 	ELSE
 	; increment with one
 	inc {2}
 	; don't roll over
-	beq .end
+	beq _ENDFOR_{1}
 	ENDIF
-.cmp
-	; compare index to max
-	lda XFOR_max_{1}
-	cmp {2}
-	bcs .jump_back
-	bcc .end ;index is gte, exit loop
-.jump_back
 	jmp _FOR_{1}
-.end
 	ENDM
 	
 	; Opcode for PEEK! (byte)
