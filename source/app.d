@@ -22,7 +22,7 @@ else {
 }
 string symbolfile="";
 string listfile="";
-
+bool dumpast = false;
 /**
  * Version
  */
@@ -40,7 +40,8 @@ void main(string[] args)
         "symbol|s", &symbolfile,
         "list|l", &listfile,
         "noopt|n", &noopt,
-        "output|o", &output_type
+        "output|o", &output_type,
+        "dump-ast|a", &dumpast
     );
 
     if(helpInformation.helpWanted) {
@@ -67,6 +68,11 @@ void main(string[] args)
         string line = lines[$-1];
         stderr.writeln("** ERROR ** Parser error: " ~ strip(line, " +-"));
         exit(1);
+    }
+
+    if(dumpast) {
+        stdout.writeln(ast);
+        exit(0);
     }
 
     auto program = new Program();
@@ -215,6 +221,9 @@ Options:
 
    -n
   --noopt       Do NOT run the optimizer
+
+   -a
+  --dump-ast    Do not compile, just dump the Abstract Syntax Tree
 
    -h
   --help        Show this help
