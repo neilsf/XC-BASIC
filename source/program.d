@@ -16,8 +16,10 @@ struct Variable {
     bool isConst = false;
 	bool isData = false;
 	bool isGlobal = true;
+    bool force_global = false;
     bool isFast = false;
     bool isExplicitAddr = false;
+    bool isPrivate = false;
 
 	string procname;
 
@@ -28,13 +30,15 @@ struct Variable {
     static const ubyte zp_high = 0x10;
     static ubyte zp_ptr = zp_low;
 
-	string getLabel()
+	string getLabel(bool force_global = false)
 	{
-		if(this.isGlobal) {
-			return "_" ~ this.name;
+        string prefix = this.isPrivate ? "X" : "_";
+
+		if(this.isGlobal || force_global) {
+			return prefix ~ this.name;
 		}
 		else {
-			return "_" ~ this.procname ~ "." ~ this.name;
+			return prefix ~ this.procname ~ "." ~ this.name;
 		}
 	}
 }
@@ -63,6 +67,9 @@ struct Procedure {
 }
 
 struct Stack {
+    Program program;
+    string error_msg;
+
     int[] elements;
 
     void push(int value)
@@ -72,6 +79,9 @@ struct Stack {
 
     int pull()
     {
+        if(elements.length == 0) {
+            program.error(error_msg);
+        }
         int last_value = this.elements[elements.length - 1];
         this.elements = this.elements.remove(elements.length - 1);
         return last_value;
@@ -122,7 +132,7 @@ class Program
 
     string[string] compiler_options;
 
-    Stack if_stack, while_stack, repeat_stack;
+    Stack if_stack, while_stack, repeat_stack, for_stack;
 
     /**
      * Constructor
@@ -155,6 +165,11 @@ class Program
             "target" : Compiler_opt_rule(["c64", "c128", "vic20", "cplus4", "c16"]),
             "vic20_memsetup" : Compiler_opt_rule(["default", "3k", "8k"])
         ];
+
+        this.if_stack = Stack(this, "ENDIF without IF");
+        this.while_stack = Stack(this, "ENDWHILE without WHILE");
+        this.repeat_stack = Stack(this, "UNTIL without REPEAT");
+        this.for_stack = Stack(this, "NEXT without FOR");
 	}
 
     string getScreenAddr()
@@ -588,7 +603,7 @@ class Program
 
 	void addVariable(Variable var, bool is_fast = false)
 	{
-		bool global_mod = var.name[0] == '\\';
+		bool global_mod = var.force_global || var.name[0] == '\\';
 		if(global_mod) {
 			var.name = stripLeft(var.name, "\\");
 		}
@@ -722,16 +737,17 @@ class Program
 		if(pass == 1) {
 			// Check if within procedure
             if(has_statement) {
-                if(statements.children[0].children[0].name == "XCBASIC.Proc_stmt") {
+                ParseTree statement_kw = statements.children[0].children[0];
+                if(statement_kw.name == "XCBASIC.Proc_stmt" || statement_kw.name == "XCBASIC.Fun_stmt") {
                     this.in_procedure = true;
                     this.current_proc_name = join(statements.children[0].children[0].children[0].matches);
                 }
-                else if(statements.children[0].children[0].name == "XCBASIC.Endproc_stmt") {
+                else if(statement_kw.name == "XCBASIC.Endproc_stmt" || statement_kw.name == "XCBASIC.Endfun_stmt") {
                     this.in_procedure = false;
                     this.current_proc_name = "";
                 }
                 // line has statement and it's a DATA statement
-                if(statements.children[0].children[0].name == "XCBASIC.Data_stmt") {
+                if(statement_kw.name == "XCBASIC.Data_stmt") {
                     Stmt stmt = StmtFactory(statements.children[0], this);
                     stmt.process();
                 }
@@ -802,11 +818,11 @@ class Program
 
 			if(child.children.length > 1) {
 				auto Stmt = child.children[1].children[0].children[0];
-				if(Stmt.name == "XCBASIC.Proc_stmt") {
+				if(Stmt.name == "XCBASIC.Proc_stmt" || Stmt.name == "XCBASIC.Fun_stmt") {
 					this.in_procedure = true;
 					this.current_proc_name = join(Stmt.children[0].matches);
 				}
-				else if(Stmt.name == "XCBASIC.Endproc_stmt") {
+				else if(Stmt.name == "XCBASIC.Endproc_stmt" || Stmt.name == "XCBASIC.Endfun_stmt") {
 					this.in_procedure = false;
 					this.current_proc_name = "";
 				}

@@ -13,8 +13,18 @@ class For_stmt: Stmt
 {
     mixin StmtConstructor;
 
+    public static int counter = 0;
+
+    public static Variable[int] save_var;
+
     void process()
     {
+        counter++;
+        this.program.for_stack.push(counter);
+
+        string ret;
+        string strcounter = to!string(counter);
+
         /* step 1 initialize variable */
         ParseTree v = this.node.children[0].children[0];
         ParseTree ex = this.node.children[0].children[1];
@@ -23,37 +33,63 @@ class For_stmt: Stmt
         char vartype = this.program.resolve_sigil(sigil);
 
         if(vartype == 'f') {
-            this.program.error("Index must not be a float");
+            this.program.error("Counter must not be a float");
         }
 
         if(!this.program.is_variable(varname, sigil)) {
             this.program.addVariable(Variable(0, varname, vartype));
         }
+
         Variable var = this.program.findVariable(varname, sigil);
         Expression Ex = new Expression(ex, this.program);
         Ex.eval();
-        if(Ex.type == 'f' || (Ex.type == 'w' && vartype == 'b')) {
-            this.program.error("Type mismatch");
-        }
-        else if(Ex.type == 'b' && vartype == 'w') {
-            Ex.btow();
+        if(Ex.type != vartype) {
+            Ex.convert(vartype);
         }
         this.program.appendProgramSegment(to!string(Ex));
         this.program.appendProgramSegment("\tpl" ~ to!string(vartype) ~ "2var " ~ var.getLabel() ~ "\n");
 
-        /* step 2 evaluate max_value and push value */
+        save_var[counter] = var;
+
+        /* evaluate max_value and save to private variable */
         ParseTree ex2 = this.node.children[0].children[2];
         Expression Ex2 = new Expression(ex2, this.program);
         Ex2.eval();
         if(Ex2.type == 'f' || (Ex2.type == 'w' && vartype == 'b')) {
-            this.program.error("Type mismatch");
+            this.program.error("Type mismatch. When counter is a(n) " ~ this.program.vartype_names[vartype] ~ ", max value and step must also be " ~ this.program.vartype_names[vartype] ~ "s");
         }
         else if(Ex2.type == 'b' && vartype == 'w') {
             Ex2.btow();
         }
-        this.program.appendProgramSegment(to!string(Ex2));
 
-        /* step 3 call for */
-        this.program.appendProgramSegment("\tfor\n");
+        Variable max_var = Variable(0, "FOR_max_" ~ to!string(counter), vartype);
+        max_var.isPrivate = true;
+        max_var.force_global = true;
+        this.program.addVariable(max_var);
+        this.program.appendProgramSegment(to!string(Ex2));
+        this.program.appendProgramSegment("\tpl" ~ vartype ~ "2var " ~ max_var.getLabel() ~ "\n");
+
+        // is there a STEP keyword?
+        if(this.node.children[0].children.length > 3) {
+            ParseTree ex3 = this.node.children[0].children[3];
+            Expression Ex3 = new Expression(ex3, this.program);
+            Ex3.eval();
+            if(Ex3.type == 'f' || (Ex3.type == 'w' && vartype == 'b')) {
+                this.program.error("Type mismatch. When counter is a(n) " ~ this.program.vartype_names[vartype] ~ ", max value and step must also be " ~ this.program.vartype_names[vartype] ~ "s");
+            }
+            else if(Ex3.type == 'b' && vartype == 'w') {
+                Ex3.btow();
+            }
+
+            Variable step_var = Variable(0, "FOR_step_" ~ to!string(counter), vartype);
+            step_var.isPrivate = true;
+            step_var.force_global = true;
+            this.program.addVariable(step_var);
+            this.program.appendProgramSegment(to!string(Ex3));
+            this.program.appendProgramSegment("\tpl" ~ vartype ~ "2var " ~ step_var.getLabel() ~ "\n");
+        }
+
+        this.program.appendProgramSegment("_FOR_" ~ to!string(counter) ~ ":\n" ~
+                                          "\tfor" ~ to!string(vartype) ~ " " ~ to!string(counter) ~ ", " ~ var.getLabel() ~ "\n");
     }
 }

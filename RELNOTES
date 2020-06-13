@@ -1,9 +1,31 @@
 XC=BASIC Release Notes
 
 Current Release Number:
-   v2.2-beta1
+   v2.3
 Release Date:
-  12/12/2019
+  21/02/2020
+
+What's new in version 2.3?
+=========================
+
+(1) New GitHub action for automatic build
+
+(2) Removed binaries from source repository
+
+(3) The executable now calls DASM - no more bash scripts
+
+(4) Added some command line options
+
+(5) FOR now supports STEP and became a little faster
+
+(6) Bugfixes
+
+What's new in version 2.2.05?
+=============================
+
+(1) The @ operator can be used to resolve procedure address
+
+(2) Bugfixes
 
 What's new in version 2.2?
 ==========================

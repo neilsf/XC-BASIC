@@ -231,6 +231,11 @@ stack 		EQU $0100
 	ENDIF
 	ENDM
 	
+	; Pull string pointer to variable
+	MAC pls2var
+	plw2var {1}
+	ENDM
+	
 	; Pull float to variable
 	MAC plf2var
 	pla
@@ -1401,79 +1406,91 @@ NUCL_DIVU16 SUBROUTINE
 	sta (R0),y
 	ENDM
 
-	MAC for
-	; max value already pushed
-	; push address
-.addr
-	lda #<.addr
-	pha
-	lda #>.addr
-	pha
+	; Entry of FOR loop (integer index)
+	; Usage: forw <for identifier>, <index_var>
+	MAC forw
+	IFCONST XFOR_step_{1}
+	; need to check if step is negative
+	lda XFOR_step_{1} + 1
+	; it is positive: do the regular comparison
+	bpl .cmp
+.neg
+	; compare index to max
+	lda {2}
+	cmp XFOR_max_{1}
+	lda {2}+1
+	sbc XFOR_max_{1}+1
+	bpl .enter					; Enter the code block
+	jmp _ENDFOR_{1}				; Exit loop
+	ENDIF
+.cmp
+	; compare index to max
+	lda XFOR_max_{1}
+	cmp {2}
+	lda XFOR_max_{1}+1
+	sbc {2}+1
+	bpl .enter					; Enter the code block
+	jmp _ENDFOR_{1}				; Exit loop
+.enter
 	ENDM
 
 	; NEXT routine (integer index)
-	; usage next variable
+	; Usage: nextw <for identifier>, <index_var>
 	MAC nextw
-	; increment variable
+	; increment index variable
+	IFCONST XFOR_step_{1}
+	; increment with step
 	clc
-	inc {1}
+	lda XFOR_step_{1}
+	adc {2}
+	sta {2}
+	lda XFOR_step_{1}+1
+	adc {2}+1
+	sta {2}+1
+	ELSE
+	; increment with 1
+	inc {2}
 	bne .skip
-	inc {1}+1
+	inc {2}+1
+	ENDIF
 .skip
-	; pull address
-	pla
-	sta .selfmod_code+2
-	pla
-	sta .selfmod_code+1
-	; pull max_value
-	pla
-	sta R1
-	pla
-	sta R0
-	; compare them
-	lda R0
-	cmp {1}
-	lda R1
-	sbc {1}+1
-	bcs .jump_back
-	jmp .end ;variable is higher, exit loop
-.jump_back
-	; push max_value back
-	lda R0
-	pha
-	lda R1
-	pha
-.selfmod_code
-	jmp $0000;                                          
-.end
+	; Jump back to loop entry
+	jmp _FOR_{1}
+	ENDM
+	
+	; Entry of FOR loop (byte index)
+	; Usage: forb <for identifier>, <index_var>
+	MAC forb
+	; compare index to max
+	lda XFOR_max_{1}
+	cmp {2}
+	bcs .enter
+	;index is gte, exit loop
+	jmp _ENDFOR_{1}
+.enter
 	ENDM
 	
 	; NEXT routine (byte index)
-	; usage next variable
+	; Usage: nextb <for identifier>, <index_var>
 	MAC nextb
-	; increment variable
-	inc {1}
+	; increment index variable
+	IFCONST XFOR_step_{1}
+	; increment with step
+	clc
+	lda XFOR_step_{1}
+	adc {2}
+	sta {2}
 	; don't roll over
-	beq .end
-.skip
-    ; pull address
-    pla
-    sta .selfmod_code+2
-    pla
-    sta .selfmod_code+1
-    ; pull max_value
-    pla
-    cmp {1}
-    bcs .jump_back
-    jmp .end
-.jump_back
-    ; push max_value back
-    pha
-.selfmod_code
-    jmp $0000;
-.end
-    ENDM
-
+	bcs _ENDFOR_{1}
+	ELSE
+	; increment with one
+	inc {2}
+	; don't roll over
+	beq _ENDFOR_{1}
+	ENDIF
+	jmp _FOR_{1}
+	ENDM
+	
 	; Opcode for PEEK! (byte)
 	MAC peekb
 	IF !FPULL
