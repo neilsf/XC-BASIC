@@ -621,16 +621,17 @@ class Program
 		if(pass == 1) {
 			// Check if within procedure
             if(has_statement) {
-                if(statements.children[0].children[0].name == "XCBASIC.Proc_stmt") {
+                ParseTree statement_kw = statements.children[0].children[0];
+                if(statement_kw.name == "XCBASIC.Proc_stmt" || statement_kw.name == "XCBASIC.Fun_stmt") {
                     this.in_procedure = true;
                     this.current_proc_name = join(statements.children[0].children[0].children[0].matches);
                 }
-                else if(statements.children[0].children[0].name == "XCBASIC.Endproc_stmt") {
+                else if(statement_kw.name == "XCBASIC.Endproc_stmt" || statement_kw.name == "XCBASIC.Endfun_stmt") {
                     this.in_procedure = false;
                     this.current_proc_name = "";
                 }
                 // line has statement and it's a DATA statement
-                if(statements.children[0].children[0].name == "XCBASIC.Data_stmt") {
+                if(statement_kw.name == "XCBASIC.Data_stmt") {
                     Stmt stmt = StmtFactory(statements.children[0], this);
                     stmt.process();
                 }
@@ -701,11 +702,11 @@ class Program
 
 			if(child.children.length > 1) {
 				auto Stmt = child.children[1].children[0].children[0];
-				if(Stmt.name == "XCBASIC.Proc_stmt") {
+				if(Stmt.name == "XCBASIC.Proc_stmt" || Stmt.name == "XCBASIC.Fun_stmt") {
 					this.in_procedure = true;
 					this.current_proc_name = join(Stmt.children[0].matches);
 				}
-				else if(Stmt.name == "XCBASIC.Endproc_stmt") {
+				else if(Stmt.name == "XCBASIC.Endproc_stmt" || Stmt.name == "XCBASIC.Endfun_stmt") {
 					this.in_procedure = false;
 					this.current_proc_name = "";
 				}
