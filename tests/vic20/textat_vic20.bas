@@ -1,4 +1,3 @@
 pragma target = "vic20"
 
-textat 0,0, "hello vic-20"
-textat 0,3, "test"
+textat 10, 10, "hello vic-20"

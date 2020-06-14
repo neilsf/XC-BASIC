@@ -1856,18 +1856,6 @@ NUCL_DIVU16 SUBROUTINE
 	basicout
 	ENDM
 
-	MAC basicin
-	lda $01
-	ora #%00000001         
-	sta $01
-	ENDM
-	
-	MAC basicout
-	lda $01
-	and #%11111110
-	sta $01
-	ENDM
-	
 	; print byte as decimal  	
 	MAC printb
 	pla
@@ -2351,10 +2339,13 @@ NUCL_SQRW	SUBROUTINE
 	MAC textat
 	IF !FPULL
 	pla
-	ENDIF
 	sta RB
 	pla
 	sta RA
+	ELSE 
+	sta RA
+	sty RB
+	ENDIF
 	pla
 	sta R9
 	pla

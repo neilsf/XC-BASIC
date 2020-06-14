@@ -230,15 +230,15 @@ class Program
             case "vic20":
                 // VIC-20 unexpanded
                 if(vic20_opt == "default") {
-                    addr = "$1001";
+                    addr = "$1000";
                 }
                 // VIC-20 3k RAM
                 else if(vic20_opt == "3k") {
-                    addr = "$0401";
+                    addr = "$0400";
                 }
                 // VIC-20 8k+ RAM
                 else {
-                    addr = "$1201";
+                    addr = "$1200";
                 }
                 break;
 
@@ -248,7 +248,7 @@ class Program
 
             // C16 and Plus/4
             default:
-                addr = "$1001";
+                addr = "$1000";
                 break;
         }
 

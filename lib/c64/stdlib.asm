@@ -14,7 +14,7 @@ KERNAL_SAVE			EQU $ffd8
 KERNAL_PLOT			EQU $fff0
 KERNAL_PRINTCHR		EQU $e716
 KERNAL_GETIN 		EQU $ffe4	
-KERNAL_SCREEN		EQU $ffed                       
+KERNAL_SCREEN		EQU $ffed                         
 
 ; Storage space to save SP 
 STDLIB_STACK_POINTER DC.B 0
@@ -337,7 +337,8 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 ; To screen at 
 ; Row in R8
 ; Col in R9
-; TODO optimize
+; TODO optimize (calculate row first then Y should be col)
+; TODO check for x>32
 ; ---------------------------------------------------------
 		
 STDLIB_TEXTAT	SUBROUTINE
@@ -364,21 +365,13 @@ STDLIB_TEXTAT	SUBROUTINE
 	lda #$00
 	adc R7
 	sta R7
-	; Add Column
-	lda R9
-	clc
-	adc R6
-	sta R6
-	lda #$00
-	adc R7
-	sta R7
 	; Add screen pointer
 	clc
 	lda $0288
 	adc R7
 	sta R7
 	; Now we have a pointer in R6
-	ldy #$00
+	ldy R9
 .loop:
 	lda (RA),y
 	beq .end

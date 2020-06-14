@@ -58,6 +58,7 @@ STDLIB_SEED_RND SUBROUTINE
 	sta random
 	lda $a2
 	sta random+1
+	rts
 
 ; ---------------------------------------------------------
 ; Bank BASIC in
@@ -284,30 +285,53 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	jmp .loop
 .end
 	rts
+	
+; ---------------------------------------------------------
+; Output string pointed to by (RA)
+; To screen at 
+; Row in R8
+; Col in R9
+; TODO optimize
+; ---------------------------------------------------------
 		
-	MAC textat
-	IF !FPULL
-	pla
-	sta R3
-	pla
-	sta R2
-	ELSE
-	sta R2
-	sty R3
-	ENDIF
-	pla
-	sta R1
-	pla
-	sta R0
+STDLIB_TEXTAT	SUBROUTINE
+	; Get screen top pointer
+	lda #$00
+	sta R6
+	lda $0288
+	sta R7
+	; Add 22 x row
+	ldx R8
+.again	
+	beq .1
+	clc
+	lda R6
+	adc #22
+	sta R6
+	bcc .skip
+	inc R7
+.skip
+	dex
+	jmp .again 
+	
+	; Add col
+	lda R9
+	clc
+	adc R6
+	sta R6
+	bcc .1
+	inc R7
+	
+.1	; Now we have a pointer in R6
 	ldy #$00
 .loop:
-	lda (R0),y
+	lda (RA),y
 	beq .end
-	sta (R2),y
+	sta (R6),y
 	iny
 	jmp .loop
 .end:
-	ENDM
+	rts
 	
 ; ---------------------------------------------------------	
 ; Ouput one character	
