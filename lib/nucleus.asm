@@ -1012,7 +1012,9 @@ PLOT		EQU $fff0
 	MAC btof
 	basicin
 	pla
-	jsr BYTETOF
+	tay
+	lda #$00
+	jsr GIVAYF
 	pushfac
 	ENDM
 	
