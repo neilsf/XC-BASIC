@@ -12,6 +12,7 @@ KERNAL_SAVE			EQU $ffd8
 KERNAL_PLOT			EQU $fff0
 KERNAL_PRINTCHR		EQU $e742
 KERNAL_GETIN 		EQU $ffe4	
+KERNAL_SCREEN_PTR	EQU $0288
 
 ; Storage space to save SP 
 STDLIB_STACK_POINTER DC.B 0
@@ -45,8 +46,6 @@ random:  DC.B %10011101,%01011011
 ; ---------------------------------------------------------
 
 STDLIB_MEMSETUP SUBROUTINE
-	;lda #$36
-	;sta $01
 	rts
 	
 ; ---------------------------------------------------------
@@ -142,6 +141,72 @@ STDLIB_PRINT_BYTE SUBROUTINE
 	rts
 	
 ; ---------------------------------------------------------
+; Convert signed word in R2 to PETSCII string
+; output at $0100
+; ---------------------------------------------------------
+STDLIB_WORD_TO_STRING2 SUBROUTINE
+.number			EQU R2
+.numchars		EQU R9
+.has_output		EQU RA
+
+	lda #$00
+	sta .has_output
+	sta .numchars
+	
+	lda .number + 1	; load HB
+	bpl .1			; is it positive?
+	; no, negate number and output "-"
+	twoscomplement R2
+	lda #$2d
+	sta STACK
+	inc .numchars
+.1
+	; loop through powers of 10
+		
+	lda #<10000
+	sta R0
+	lda #>10000
+	sta R0 + 1
+	jsr .cycle
+	
+	lda #<1000
+	sta R0
+	lda #>1000
+	sta R0 + 1
+	jsr .cycle
+	
+	lda #100
+	sta R0
+	lda #0
+	sta R0 + 1
+	jsr .cycle
+	
+	lda #10
+	sta R0
+	jsr .cycle
+	rts
+	
+.cycle	
+	jsr NUCL_DIVU16	; Divide. Result in R2, remainder in R4
+	lda R2
+	ora .has_output
+	beq .2
+	lda R2
+	clc
+	adc #$30
+	ldy .numchars
+	sta STACK, y
+	inc .numchars
+	inc .has_output
+	; copy remainder to number
+	lda R4
+	sta .number	
+	lda R4 + 1
+	sta .number + 1
+.2
+	rts
+	
+; ---------------------------------------------------------
 ; Convert signed word in R2 to string on stack
 ; input in R2-R3
 ; output on stack
@@ -229,10 +294,12 @@ STDLIB_OUTPUT_WORD SUBROUTINE
 	bne .loop
 	rts
 
-; ---------------------------------------------------------		
-; Copy byte as petscii decimal
-; input in A
-; Output to address specified in RA-RB
+; ---------------------------------------------------------
+; Output byte 
+; To screen at 
+; Row in R8
+; Col in R9
+; String length returned in Y 
 ; ---------------------------------------------------------
 	
 STDLIB_OUTPUT_BYTE SUBROUTINE
@@ -244,7 +311,7 @@ STDLIB_OUTPUT_BYTE SUBROUTINE
 	ldy #$00
 	cmp #$30
 	beq .skip                                  
-	sta (RA),y
+	sta STACK,y
 	inc R0
 .skip
 	txa
@@ -254,36 +321,33 @@ STDLIB_OUTPUT_BYTE SUBROUTINE
 	beq .skip2
 .printit	
 	iny
-	sta (RA),y
+	sta STACK,y
 .skip2
 	pla
 	iny
-	sta (RA),y
+	sta STACK,y
+	ldx #$00
+	stx RA
+	inx
+	stx RB
+	jsr STDLIB_TEXTAT
 	rts
 	
 ; ---------------------------------------------------------
-; Copy float as petscii decimal
-; Input in FAC
-; Output to address specified in RA-RB
+; Output float 
+; To screen at 
+; Row in R8
+; Col in R9
+; String length returned in Y 
 ; ---------------------------------------------------------
 	
 STDLIB_OUTPUT_FLOAT SUBROUTINE
 	jsr FOUT
 	ldx #$00
-	lda $0100
-	cmp #$20
-	bne .doprint
-	inx	
-.doprint
-	ldy #$00
-.loop:	
-	lda $0100,x
-	beq .end
-	sta (RA),y
+	stx RA
 	inx
-	iny
-	jmp .loop
-.end
+	stx RB
+	jsr STDLIB_TEXTAT
 	rts
 	
 ; ---------------------------------------------------------
@@ -291,19 +355,19 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 ; To screen at 
 ; Row in R8
 ; Col in R9
-; TODO optimize
+; String length returned in Y 
 ; ---------------------------------------------------------
 		
 STDLIB_TEXTAT	SUBROUTINE
 	; Get screen top pointer
 	lda #$00
 	sta R6
-	lda $0288
+	lda KERNAL_SCREEN_PTR
 	sta R7
 	; Add 22 x row
 	ldx R8
 .again	
-	beq .1
+	beq .0
 	clc
 	lda R6
 	adc #22
@@ -313,7 +377,7 @@ STDLIB_TEXTAT	SUBROUTINE
 .skip
 	dex
 	jmp .again 
-	
+.0
 	; Add col
 	lda R9
 	clc
@@ -331,6 +395,31 @@ STDLIB_TEXTAT	SUBROUTINE
 	iny
 	jmp .loop
 .end:
+	rts
+	
+; ---------------------------------------------------------
+; Set color of previously output string
+;
+; A	   The color
+; (R6) Should still hold the start screen address
+;      we only need to add an offset to get color
+;      address
+; Y	   Should still hold the char length
+; ---------------------------------------------------------
+
+STDLIB_SETCOLOR SUBROUTINE
+	tax
+	lda R7
+	sec
+	sbc KERNAL_SCREEN_PTR
+	clc
+	adc #$96 ; Color RAM starts at $9600 on the VIC-20
+	sta R7
+	txa
+.loop
+	sta (R6),y
+	dey
+	bpl .loop
 	rts
 	
 ; ---------------------------------------------------------	

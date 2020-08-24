@@ -35,6 +35,17 @@ class Textat_stmt:Stmt
         offset_code ~= to!string(row);
         offset_code ~= to!string(col);
 
+        bool color_set = false;
+        if(exlist.children.length > 3) {
+            color_set = true;
+            Expression color = new Expression(exlist.children[3], this.program);
+            color.eval();
+            if(color.detect_type() != 'b') {
+                color.convert('b');
+            }
+            this.program.appendProgramSegment(to!string(color) ~ "\n");
+        }
+
         if(exlist.children[2].name == "XCBASIC.Expression") {
 
             Expression ex = new Expression(exlist.children[2], this.program);
@@ -43,14 +54,13 @@ class Textat_stmt:Stmt
             if(ex.type != 's') {
                 this.program.appendProgramSegment(offset_code);
                 this.program.appendProgramSegment(to!string(ex) ~ "\n");
-                this.program.appendProgramSegment("\t"~to!string(ex.type)~"at\n");
+                this.program.appendProgramSegment("\t"~to!string(ex.type)~"at " ~ (color_set ? "1" : "0") ~ "\n");
             }
             else {
                 this.program.appendProgramSegment(to!string(ex) ~ "\n");
                 this.program.appendProgramSegment(offset_code);
-                this.program.appendProgramSegment("\tstringat\n");
+                this.program.appendProgramSegment("\tstringat " ~ (color_set ? "1" : "0") ~ "\n");
             }
-
         }
         else {
             // string literal
@@ -60,7 +70,7 @@ class Textat_stmt:Stmt
             // text first
             this.program.appendProgramSegment(offset_code);
             this.program.appendProgramSegment("\tpaddr _S" ~ to!string(Stringliteral.id) ~ "\n");
-            this.program.appendProgramSegment("\ttextat\n");
+            this.program.appendProgramSegment("\ttextat " ~ (color_set ? "1" : "0") ~ "\n");
         }
     }
 }

@@ -232,9 +232,9 @@ stack 		EQU $0100
 	ENDM
 	
 	; Pull string pointer to variable
-	MAC pls2var
-	plw2var {1}
-	ENDM
+    MAC pls2var
+    plw2var {1}
+    ENDM
 	
 	; Pull float to variable
 	MAC plf2var
@@ -1300,6 +1300,7 @@ NUCL_DIV16	SUBROUTINE
 
 	; 16 bit division routine
 	; Author: unknown
+	; https://codebase64.org/doku.php?id=base:16bit_division_16-bit_result
 	
 NUCL_DIVU16 SUBROUTINE
 .divisor 	EQU R0
@@ -1490,7 +1491,7 @@ NUCL_DIVU16 SUBROUTINE
 	ENDIF
 	jmp _FOR_{1}
 	ENDM
-	
+
 	; Opcode for PEEK! (byte)
 	MAC peekb
 	IF !FPULL
@@ -1856,6 +1857,18 @@ NUCL_DIVU16 SUBROUTINE
 	basicout
 	ENDM
 
+	MAC basicin
+	lda $01
+	ora #%00000001         
+	sta $01
+	ENDM
+	
+	MAC basicout
+	lda $01
+	and #%11111110
+	sta $01
+	ENDM
+	
 	; print byte as decimal  	
 	MAC printb
 	pla
@@ -2313,44 +2326,57 @@ NUCL_SQRW	SUBROUTINE
 	ENDIF
 	tax
 	pla
-	sta RB
+	sta R9
 	pla
-	sta RA
+	sta R8
 	txa
 	jsr STDLIB_OUTPUT_BYTE
 	ENDM
 	
 	; Output float as decimal at col, row
+	; args on stack:
+	; color (if {1} EQ 1)
+	; then COL, ROW
 	MAC fat
 	basicin
 	pullfac
 	pla
-	sta RB
+	sta R9
 	pla
-	sta RA
+	sta R8
 	jsr STDLIB_OUTPUT_FLOAT
 	basicout
+	IF {1}
+	pla
+	jsr STDLIB_SETCOLOR
+	ENDIF
 	ENDM
 	
 	; TEXTAT - output string at col, row
 	; args on stack:
+	; color (if {1} EQ 1)
 	; top 2 - string addr
 	; then COL, ROW
+	; {1} color is set
 	MAC textat
 	IF !FPULL
 	pla
 	sta RB
 	pla
 	sta RA
-	ELSE 
+	ELSE
 	sta RA
 	sty RB
 	ENDIF
 	pla
-	sta R9
+	sta R9 ; col
 	pla
-	sta R8
+	sta R8 ; row
 	jsr STDLIB_TEXTAT
+	IF {1}
+	pla
+	jsr STDLIB_SETCOLOR
+	ENDIF
 	ENDM
 
 	; Swap byte and word on top of stack

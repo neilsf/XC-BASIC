@@ -15,6 +15,7 @@ KERNAL_PLOT			EQU $fff0
 KERNAL_PRINTCHR		EQU $e716
 KERNAL_GETIN 		EQU $ffe4	
 KERNAL_SCREEN		EQU $ffed                         
+KERNAL_SCREEN_PTR	EQU $0288               
 
 ; Storage space to save SP 
 STDLIB_STACK_POINTER DC.B 0
@@ -75,12 +76,9 @@ STDLIB_MEMSETUP SUBROUTINE
 	; Calculate absolute screen address
 	; and notify KERNAL about the change
 	lda #STDLIB_VIC_BANK                                                  
+	REPEAT 6
 	asl
-	asl
-	asl
-	asl
-	asl
-	asl
+	REPEND
 	ora R0
 	sta $0288
 	; Get screen cols and rows and
@@ -316,20 +314,10 @@ STDLIB_OUTPUT_BYTE SUBROUTINE
 STDLIB_OUTPUT_FLOAT SUBROUTINE
 	jsr FOUT
 	ldx #$00
-	lda $0100
-	cmp #$20
-	bne .doprint
-	inx	
-.doprint
-	ldy #$00
-.loop:	
-	lda $0100,x
-	beq .end
-	sta (RA),y
+	stx RA
 	inx
-	iny
-	jmp .loop
-.end
+	stx RB
+	jsr STDLIB_TEXTAT
 	rts
 		
 ; ---------------------------------------------------------
@@ -365,6 +353,14 @@ STDLIB_TEXTAT	SUBROUTINE
 	lda #$00
 	adc R7
 	sta R7
+	; Add col
+	lda R9
+	clc
+	adc R6
+	sta R6
+	lda #$00
+	adc R7
+	sta R7
 	; Add screen pointer
 	clc
 	lda $0288
@@ -379,6 +375,31 @@ STDLIB_TEXTAT	SUBROUTINE
 	iny
 	jmp .loop
 .end:
+	rts
+	
+; ---------------------------------------------------------
+; Set color of previously output string
+;
+; A	   The color
+; (R6) Should still hold the start screen address
+;      we only need to add an offset to get color
+;      address
+; Y	   Should still hold the char length
+; ---------------------------------------------------------
+
+STDLIB_SETCOLOR SUBROUTINE
+	tax
+	lda R7
+	sec
+	sbc KERNAL_SCREEN_PTR
+	clc
+	adc #$d8 ; Color RAM starts at $d800 on the C-64
+	sta R7
+	txa
+.loop
+	sta (R6),y
+	dey
+	bpl .loop
 	rts
 	
 ; ---------------------------------------------------------	
