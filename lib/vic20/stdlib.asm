@@ -158,7 +158,7 @@ STDLIB_WORD_TO_STRING2 SUBROUTINE
 	; no, negate number and output "-"
 	twoscomplement R2
 	lda #$2d
-	sta STACK
+	sta stack
 	inc .numchars
 .1
 	; loop through powers of 10
@@ -195,7 +195,7 @@ STDLIB_WORD_TO_STRING2 SUBROUTINE
 	clc
 	adc #$30
 	ldy .numchars
-	sta STACK, y
+	sta.wy stack
 	inc .numchars
 	inc .has_output
 	; copy remainder to number
@@ -311,7 +311,7 @@ STDLIB_OUTPUT_BYTE SUBROUTINE
 	ldy #$00
 	cmp #$30
 	beq .skip                                  
-	sta STACK,y
+	sta.wy stack
 	inc R0
 .skip
 	txa
@@ -321,11 +321,11 @@ STDLIB_OUTPUT_BYTE SUBROUTINE
 	beq .skip2
 .printit	
 	iny
-	sta STACK,y
+	sta.wy stack
 .skip2
 	pla
 	iny
-	sta STACK,y
+	sta.wy stack
 	ldx #$00
 	stx RA
 	inx
