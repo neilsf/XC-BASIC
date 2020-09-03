@@ -1,26 +1,29 @@
 rem *** relation tests ***
 
-let a = -587
-let b = 35
+proc check(a, b)
+  print "for a=",a," and b=",b
+  print "---------"
+  if a < b then print "a < b is true"
+  if a <= b then print "a <= b is true"
+  if a > b then print "a > b is true"
+  if a >= b then print "a >= b is true"
+  if a = b then print "a = b is true"
+  if a <> b then print "a <> b is true"
 
-if a < b then print "a < b is true"
-if a <= b then print "a <= b is true"
-if a > b then print "a > b is true"
-if a >= b then print "a >= b is true"
-if a = b then print "a = b is true"
-if a <> b then print "a <> b is true"
+  if b < a then print "b < a is true"
+  if b <= a then print "b <= a is true"
+  if b > a then print "b > a is true"
+  if b >= a then print "b >= a is true"
+  if b = a then print "b = a is true"
+  if b <> a then print "b <> a is true"
 
-if b < a then print "b < a is true"
-if b <= a then print "b <= a is true"
-if b > a then print "b > a is true"
-if b >= a then print "b >= a is true"
-if b = a then print "b = a is true"
-if b <> a then print "b <> a is true"
+  loop: if inkey!() = 0 then goto loop
+endproc
 
-let x = -4223
-let y = -4223
 
-if x = y then print "x = y is true"
-if x <> y then print "x <> y is true"
-if x <= y then print "x <= y is true"
-if x >= y then print "x >= y is true"
+for i! = 0 to 6
+  call check(a[i!], b[i!])
+next i!
+
+data a[] = 0, -30000, 30000, -25000, 25000, -5, -1
+data b[] = 0,   5000, -2768, -27000, 27000, -5, 32767

@@ -646,24 +646,27 @@ PLOT		EQU $fff0
 	cmp.wx stack+2
 	lda.wx stack+3
 	sbc.wx stack+1
-	bpl .phf			
+	bvc .1
+	eor #$80
+.1
+	bmi .pht	
 	inx
-	inx
-	inx
-	inx
-	txs
-	pone
-	IF !FPUSH
-	jmp *+11
-	ELSE
-	jmp *+10
-	ENDIF
-.phf: inx
 	inx
 	inx
 	inx
 	txs
 	pzero
+	IF !FPUSH
+	jmp *+11
+	ELSE
+	jmp *+10
+	ENDIF
+.pht: inx
+	inx
+	inx
+	inx
+	txs
+	pone
 	ENDM
 
 	; Compare two words on stack for greater than or equal (H >= L)
@@ -702,24 +705,27 @@ PLOT		EQU $fff0
 	cmp.wx stack+2
 	lda.wx stack+3
 	sbc.wx stack+1
-	bpl .pht			
+	bvc .1
+	eor #$80
+.1
+	bmi .phf	
 	inx
-	inx
-	inx
-	inx
-	txs
-	pzero
-	IF !FPUSH
-	jmp *+11
-	ELSE
-	jmp *+10
-	ENDIF
-.pht: inx
 	inx
 	inx
 	inx
 	txs
 	pone
+	IF !FPUSH
+	jmp *+11
+	ELSE
+	jmp *+10
+	ENDIF
+.phf: inx
+	inx
+	inx
+	inx
+	txs
+	pzero
 	ENDM
 
 	; Compare two words on stack for greater than (H > L)
@@ -758,6 +764,9 @@ PLOT		EQU $fff0
 	cmp.wx stack+4
 	lda.wx stack+1
 	sbc.wx stack+3
+	bvc .1
+	eor #$80
+.1
 	bmi .pht	
 	inx
 	inx
@@ -786,7 +795,10 @@ PLOT		EQU $fff0
 	cmp.wx stack+4
 	lda.wx stack+1
 	sbc.wx stack+3
-	bmi .phf
+	bvc .1
+	eor #$80
+.1
+	bmi .phf	
 	inx
 	inx
 	inx
