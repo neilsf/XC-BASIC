@@ -409,6 +409,7 @@ STR_VALW	SUBROUTINE
 	sty .ret
 	sty .ret+1
 	sty .poft
+	sty .neg
 	; check if negative
 	lda (.ptr),y
 	cmp #$2d
