@@ -25,6 +25,13 @@ class Call_stmt:Stmt
             }
             this.program.error(error);
         }
+        
+        bool recursive = false;
+        if(lbl == this.program.current_proc_name) {
+            recursive = true;
+            this.program.appendProgramSegment(this.program.push_locals());
+        }
+        
         Procedure proc = this.program.findProcedure(lbl);
         if(this.node.children[0].children.length > 1) {
             ParseTree exprlist = this.node.children[0].children[1];
@@ -43,12 +50,6 @@ class Call_stmt:Stmt
                 string varlabel = proc.arguments[i].getLabel();
                 this.program.appendProgramSegment("\tpl" ~ to!string(vartype) ~ "2var " ~ varlabel ~ "\n");
             }
-        }
-
-        bool recursive = false;
-        if(lbl == this.program.current_proc_name) {
-            recursive = true;
-            this.program.appendProgramSegment(this.program.push_locals());
         }
 
         this.program.appendProgramSegment("\tjsr " ~ proc.getLabel() ~ "\n");
