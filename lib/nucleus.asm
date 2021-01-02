@@ -2171,9 +2171,12 @@ NUCL_SQRW	SUBROUTINE
 	tay
 	pla
 .loop
+	cpy #$00
+	beq .endloop
 	asl
 	dey
-	bne .loop
+	bpl .loop ; = branch always
+.endloop
 	IF !FPUSH
 	pha
 	ENDIF
@@ -2186,9 +2189,12 @@ NUCL_SQRW	SUBROUTINE
 	tay
 	pla
 .loop
+	cpy #$00
+	beq .endloop
 	lsr
 	dey
-	bne .loop
+	bpl .loop ; = branch always
+.endloop
 	IF !FPUSH
 	pha
 	ENDIF
@@ -2208,10 +2214,13 @@ NUCL_SQRW	SUBROUTINE
 	tay
 	tsx
 .loop
+	cpy #$00
+	beq .endloop
 	asl.wx stack+2
 	rol.wx stack+1
 	dey
-	bne .loop
+	bpl .loop ; = branch always
+.endloop
 	ENDM
 	
 	MAC rshiftw
@@ -2221,10 +2230,13 @@ NUCL_SQRW	SUBROUTINE
 	tay
 	tsx
 .loop
+	cpy #$00
+	beq .endloop
 	lsr.wx stack+1
 	ror.wx stack+2
 	dey
-	bne .loop
+	bpl .loop ; = branch always
+.endloop
 	ENDM
 	
 	; LSHIFT!() function
