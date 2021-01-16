@@ -39,7 +39,7 @@ Fun FunFactory(ParseTree node, Program program) {
 
     string funName = join(node.children[0].matches);
     Fun fun;
-    if(builtin_functions.find(funName).empty) {
+    if(builtin_functions.find(funName.toLower).empty) {
 
         if(program.procExists(funName)) {
             Procedure proc = program.findProcedure(funName);
@@ -54,7 +54,7 @@ Fun FunFactory(ParseTree node, Program program) {
         }
     }
     else {
-        switch (funName) {
+        switch (funName.toLower) {
             case "peek":
                 fun = new Peek_fun(node, program);
             break;

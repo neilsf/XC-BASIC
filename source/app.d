@@ -27,7 +27,7 @@ string listfile="";
  * Version
  */
 
-string compiler_version = "v2.3.07";
+string compiler_version = "v2.3.08";
 
 /**
  * Application entry point

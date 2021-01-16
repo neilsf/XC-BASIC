@@ -3018,7 +3018,7 @@ struct GenericXCBASIC(TParseTree)
     {
         if(__ctfe)
         {
-            return         pegged.peg.defined!(pegged.peg.longest_match!(pegged.peg.wrapAround!(Spacing, pegged.peg.literal!("and"), Spacing), pegged.peg.wrapAround!(Spacing, pegged.peg.literal!("or"), Spacing)), "XCBASIC.Logop")(p);
+            return         pegged.peg.defined!(pegged.peg.longest_match!(pegged.peg.wrapAround!(Spacing, pegged.peg.caseInsensitiveLiteral!("and"), Spacing), pegged.peg.wrapAround!(Spacing, pegged.peg.caseInsensitiveLiteral!("or"), Spacing)), "XCBASIC.Logop")(p);
         }
         else
         {
@@ -3026,7 +3026,7 @@ struct GenericXCBASIC(TParseTree)
                 return *m;
             else
             {
-                TParseTree result = hooked!(pegged.peg.defined!(pegged.peg.longest_match!(pegged.peg.wrapAround!(Spacing, pegged.peg.literal!("and"), Spacing), pegged.peg.wrapAround!(Spacing, pegged.peg.literal!("or"), Spacing)), "XCBASIC.Logop"), "Logop")(p);
+                TParseTree result = hooked!(pegged.peg.defined!(pegged.peg.longest_match!(pegged.peg.wrapAround!(Spacing, pegged.peg.caseInsensitiveLiteral!("and"), Spacing), pegged.peg.wrapAround!(Spacing, pegged.peg.caseInsensitiveLiteral!("or"), Spacing)), "XCBASIC.Logop"), "Logop")(p);
                 memo[tuple(`Logop`, p.end)] = result;
                 return result;
             }
@@ -3037,12 +3037,12 @@ struct GenericXCBASIC(TParseTree)
     {
         if(__ctfe)
         {
-            return         pegged.peg.defined!(pegged.peg.longest_match!(pegged.peg.wrapAround!(Spacing, pegged.peg.literal!("and"), Spacing), pegged.peg.wrapAround!(Spacing, pegged.peg.literal!("or"), Spacing)), "XCBASIC.Logop")(TParseTree("", false,[], s));
+            return         pegged.peg.defined!(pegged.peg.longest_match!(pegged.peg.wrapAround!(Spacing, pegged.peg.caseInsensitiveLiteral!("and"), Spacing), pegged.peg.wrapAround!(Spacing, pegged.peg.caseInsensitiveLiteral!("or"), Spacing)), "XCBASIC.Logop")(TParseTree("", false,[], s));
         }
         else
         {
             forgetMemo();
-            return hooked!(pegged.peg.defined!(pegged.peg.longest_match!(pegged.peg.wrapAround!(Spacing, pegged.peg.literal!("and"), Spacing), pegged.peg.wrapAround!(Spacing, pegged.peg.literal!("or"), Spacing)), "XCBASIC.Logop"), "Logop")(TParseTree("", false,[], s));
+            return hooked!(pegged.peg.defined!(pegged.peg.longest_match!(pegged.peg.wrapAround!(Spacing, pegged.peg.caseInsensitiveLiteral!("and"), Spacing), pegged.peg.wrapAround!(Spacing, pegged.peg.caseInsensitiveLiteral!("or"), Spacing)), "XCBASIC.Logop"), "Logop")(TParseTree("", false,[], s));
         }
     }
     static string Logop(GetName g)

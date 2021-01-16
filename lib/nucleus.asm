@@ -952,8 +952,8 @@ PLOT		EQU $fff0
     ora.wx stack+2
     sta.wx stack+2
     tya
-    ora.wx stack+3
-    sta.wx stack+3
+    ora.wx stack+1
+    sta.wx stack+1
     ENDM
 
     ; Perform AND on top 2 words of stack
@@ -965,8 +965,8 @@ PLOT		EQU $fff0
     and.wx stack+2
     sta.wx stack+2
     tya
-    and.wx stack+3
-    sta.wx stack+3
+    and.wx stack+1
+    sta.wx stack+1
     ENDM
 
     ; Perform XOR on top 2 words of stack
@@ -978,8 +978,8 @@ PLOT		EQU $fff0
     eor.wx stack+2
     sta.wx stack+2
     tya
-    eor.wx stack+3
-    sta.wx stack+3
+    eor.wx stack+1
+    sta.wx stack+1
     ENDM
 
 	; Add words on stack
