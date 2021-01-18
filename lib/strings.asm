@@ -285,13 +285,15 @@ STR_INPUT	SUBROUTINE
 	lda #$00
 	sta (R2),y
 	
-	; turn off cursor 
-	ldy $d3
-	lda ($d1),y
-	ora #%01111111
+	; turn off cursor
+	sei
+	ldy $d3 ; y pos of cursor
+	lda $ce ; character under cursor
+	and #%01111111
 	sta ($d1),y
 	lda #$ff
 	sta $cc
+	cli
 	
 	rts
 	
