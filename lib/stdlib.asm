@@ -2,6 +2,8 @@
 
 KERNAL_PRINTCHR	EQU $e716
 KERNAL_GETIN EQU $ffe4	
+ZP_RNDSEED EQU $8b
+ZP_JIFFY EQU $a0
 RESERVED_STACK_POINTER DC.B 0
 FILE_ERROR_MSG		   DC.B 0
 
@@ -274,35 +276,38 @@ STDLIB_OUTPUT_FLOAT SUBROUTINE
 	ENDM
 	
 STDLIB_RND SUBROUTINE
-	lda random+1
-	sta temp1
-	lda random
+.random EQU ZP_RNDSEED + 1
+.temp1  EQU ZP_RNDSEED + 4
+	lda .random+1
+	sta .temp1
+	lda .random
 	asl
-	rol temp1
+	rol .temp1
 	asl
-	rol temp1
+	rol .temp1
 	clc
-	adc random
+	adc .random
 	pha
-	lda temp1
-	adc random+1
-	sta random+1
+	lda .temp1
+	adc .random+1
+	sta .random+1
 	pla
 	adc #$11
-	sta random
-	lda random+1
+	sta .random
+	lda .random+1
 	adc #$36
-	sta random+1
+	sta .random+1
 	rts
 
-temp1:   DC.B $5a
-random:  DC.B %10011101,%01011011
-
 	MAC seed_rnd
-	lda $a1
-	sta random
-	lda $a2
-	sta random+1
+	lda #$80
+	sta ZP_RNDSEED
+	lda ZP_JIFFY + 2
+	sta ZP_RNDSEED + 1
+	lda ZP_JIFFY + 1
+	sta ZP_RNDSEED + 2
+	lda ZP_JIFFY
+	sta ZP_RNDSEED + 3
 	ENDM
 
 	LIST ON

@@ -56,6 +56,8 @@ LOAD		EQU $ffd5
 SAVE		EQU $ffd8
 PLOT		EQU $fff0
 
+random 		EQU ZP_RNDSEED + 1
+
 	; Push a zero on the stack
 	; EXAMINE REFS BEFORE CHANGING!
 	MAC pzero
