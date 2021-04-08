@@ -48,11 +48,11 @@ class Textat_stmt:Stmt
 
             if(ex.type != 's') {
                 this.program.appendProgramSegment(offset_code);
-                this.program.appendProgramSegment(to!string(ex) ~ "\n");
+                this.program.appendProgramSegment(to!string(ex));
                 this.program.appendProgramSegment("\t"~to!string(ex.type)~"at\n");
             }
             else {
-                this.program.appendProgramSegment(to!string(ex) ~ "\n");
+                this.program.appendProgramSegment(to!string(ex));
                 this.program.appendProgramSegment(offset_code);
                 this.program.appendProgramSegment("\tstringat\n");
             }
