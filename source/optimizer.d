@@ -1,7 +1,7 @@
 module optimizer;
 
 import std.string, std.array, std.uni, std.regex, std.stdio;
-import std.algorithm.mutation;
+import std.algorithm;
 import library.opt;
 
 template Optimization_pass_ctor()
@@ -152,6 +152,11 @@ class Replace_sequences: Optimization_pass
         this.outcode = "";
         for(int i=0; i<lines.length; i++) {
             string line = lines[i];
+
+            if(line.length == 0) {
+                continue;
+            }
+
             if(line == "\t; !!opt_start!!") {
                 opt_enabled = true;
                 this.outcode ~= line ~ "\n";
@@ -238,12 +243,12 @@ class Remove_stack_ops: Optimization_pass
 
     const string[] pushers = [
         "pzero",  "pone", "pbyte", "pbvar", "pword", "paddr",
-        "pwvar", "psvar", "pbarray", "pbarray_fast", "pwarray", "cmpblt",
+        "pwvar", "psvar", "pbarray", "pbarray_fast", "pwarray", "psarray", "cmpblt",
         "cmpblte", "cmpbgte", "cmpbeq", "cmpbneq",
         "cmpbgt", "cmpweq", "cmpwneq", "cmpwlt",
         "cmpwgte", "cmpwgt", "cmpwlte", "addb",
         "orb", "andb", "xorb", "mulb", "mulw",
-        "divb", "peekb", "peekw", "deek", "inkeyb",
+        "divb", "divw", "peekb", "peekw", "deek", "inkeyb",
         "inkeyw", "rndb", "rndw", "sqrw",
         "opt_pbyte_pbyte_add", "opt_pword_pwvar_add", "opt_pwvar_pword_add",
         "opt_pwvar_pwvar_add", "opt_pbyte_pbyte_sub", "opt_pword_pwvar_sub",
@@ -255,17 +260,17 @@ class Remove_stack_ops: Optimization_pass
     ];
 
     const string[] pullers = [
-        "pbarray", "pwarray", "plb2var", "plw2var", "pls2var",
-        "plbarray", "plbarray_fast", "plwarray", "cmpblt", "cmpblte",
+        "pbarray", "pbarray_fast", "pwarray", "psarray", "plb2var", "plw2var", "pls2var",
+        "plbarray", "plbarray_fast", "plwarray", "plsarray" , "plfarray", "cmpblt", "cmpblte",
         "cmpbgte", "cmpbeq", "cmpbneq", "cmpbgt",
         "cmpweq", "cmpwneq", "addb", "orb", "andb",
-        "xorb", "mulb", "mulw", "divb", "pokeb",
-        "pokew", "doke", "peekb", "peekw", "deek",
+        "xorb", "mulb", "mulw", "divb", "divw", "pokeb",  "pokeb_c",
+        "pokew", "pokew_c", "doke", "peekb", "peekw", "deek",
         "sys", "usr", "stdlib_printw", "textat", "wat",
-        "bat", "ongoto", "ongosub", "sqrw", "wait", "watch", "watchc",
+        "bat", "printb", "printw", "ongoto", "ongosub", "sqrw", "wait", "watch", "watchc",
         "pokeb_const_addr", "poke_const_addr",
-        "cond_stmt", "lshiftb", "rshiftb", "lshiftw", "rshiftw",
-        "lshiftbc", "rshiftbc", "incbarrb", "incwarr", "decbarrb", "decwarr"
+        "cond_stmt", "prints", "lshiftb", "rshiftb", "lshiftw", "rshiftw",
+        "lshiftbc", "rshiftbc", "incbarrb", "incwarr", "decbarrb", "decwarr", "incbarr", "decbarr"
     ];
 
     override void run()
@@ -275,6 +280,16 @@ class Remove_stack_ops: Optimization_pass
         bool opt_enabled = false;
         bool pushf = false;
         bool pullf = false;
+
+        bool lineIsLabel(string line) {
+            return line.length > 2 && line[$-1] == ':';
+        }
+
+        bool lineIsComment(string line) {
+            string stripped = stripLeft(line);
+            return stripped.length > 0 && stripped[0] == ';';
+        }
+
         for(int i=0; i<lines.length; i++) {
             string line = lines[i];
             if(line == "\t; !!opt_start!!") {
@@ -291,12 +306,13 @@ class Remove_stack_ops: Optimization_pass
                 continue;
             }
 
-            string opc = this.get_opc(line);
-            if(opc == "") {
+            if(lineIsLabel(line) || lineIsComment(line)) {
                 this.outcode ~= line ~ "\n";
                 continue;
             }
 
+            string opc = this.get_opc(line);
+            
             string next_opc = "";
             string next_line = "";
             if(i+1 < lines.length) {
@@ -306,7 +322,7 @@ class Remove_stack_ops: Optimization_pass
                     next_opc = this.get_opc(next_line);
                     j++;
                 }
-                while(next_line == "");
+                while(next_line == "" || lineIsLabel(next_line) || lineIsComment(line));
 
                 if(this.is_puller(opc) && pushf) {
                     if(!pullf) {
@@ -335,7 +351,7 @@ class Remove_stack_ops: Optimization_pass
                     }
                 }
             }
-
+           
             this.outcode ~= line ~ "\n";
         }
     }
@@ -345,7 +361,18 @@ class Remove_stack_ops: Optimization_pass
         if(line == "") {
             return "";
         }
-        string[] parts = line.split!isWhite;
+        string[] allparts = line.split!isWhite;
+        string[] parts;
+        foreach (string part; allparts) {
+            if(part.length > 0) {
+                parts ~= part;
+            }
+        }
+
+        if(parts.length == 0) {
+            return "";
+        }
+
         if(this.is_puller(parts[0]) || this.is_pusher(parts[0])) {
             return parts[0];
         }
@@ -353,7 +380,7 @@ class Remove_stack_ops: Optimization_pass
             return parts[1];
         }
         else {
-            return "";
+            return parts[0];
         }
     }
 
