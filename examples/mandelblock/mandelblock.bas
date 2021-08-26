@@ -31,7 +31,7 @@ for py! = 0 to 24
       xt% = x% * x% - y% * y% + xz%
       y% = 2.0 * x% * y% + yz%
       x% = xt%
-      i! = i! + 1
+      inc i!
     endwhile
     poke r + px!, i!
   next px!
