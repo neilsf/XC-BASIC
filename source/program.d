@@ -146,7 +146,7 @@ class Program
         this.compiler_options = [
             "civars" : 0,
             "basic_loader" : 1,
-            "start_address" : 0x0800
+            "start_address" : 0x0801
         ];
 
         this.if_stack = Stack(this, "ENDIF without IF");
@@ -322,7 +322,6 @@ class Program
 		asm_code ~= "\tORG $" ~ start_addr ~ "\n";
 
         if(this.compiler_options["basic_loader"] == 1) {
-            asm_code ~= "\tHEX 00\n";
             asm_code ~= "\tDC.W next_line\n";
             asm_code ~= "\tDC.W 2018\n";
             asm_code ~= "\tHEX 9e\n";
